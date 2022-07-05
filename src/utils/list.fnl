@@ -20,10 +20,13 @@
     (icollect [i v (ipairs x)] 
       [(. a i) (. b  i)])))
                     
-(fn p [...]
-    (local f (require :fennel)) 
-    (print (f.view ...))) 
+(fn concat [a b] 
+  (local r [(table.unpack a)]) 
+  (each [_ v (ipairs b)] 
+    (table.insert r v)) 
+  r) 
 
 { : some
   : range 
+  : concat
   : zip} 
