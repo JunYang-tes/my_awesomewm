@@ -6,4 +6,8 @@
     (awesome.disconnect_signal :refresh on-refresh)) 
   (awesome.connect_signal :refresh on-refresh)) 
       
-{ : on-idle }
+(fn focus [client] 
+  (set _G.client.focus client)) 
+
+{ : on-idle
+  : focus} 

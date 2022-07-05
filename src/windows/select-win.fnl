@@ -1,8 +1,12 @@
 (local awful (require :awful))
 (local wibox (require :wibox)) 
-(local { : range : zip } (require :utils.list))                         
-(local inspect (require :inspect))
-(local { : on-idle } (require :utils.wm))
+(local { : range : zip : filter } (require :utils.list))                         
+(local awesome-global (require :awesome-global)) 
+
+(fn close-popup [popups]
+  (each [_ p (pairs popups)] 
+    (set p.popup.visible false) 
+    (set p.popup nil))) 
 
 (fn show-mark-popup [letter client]
   (awful.popup {
@@ -22,27 +26,15 @@
                 :visible true 
                 :x client.x             
                 :y client.y})) 
-(fn close-popup [popups]
-  (each [_ p (pairs popups)] 
-    (set p.popup.visible false) 
-    (set p.popup nil))) 
 
-(fn normon []
-  (var flag false)
-  (each [_ c (ipairs (. (awful.screen.focused) :clients))] 
-    (if (or c.fullscreen c.maximized c.maximized_vertical c.maximized_horizontal) 
-      (do
-        (set flag true)
-        (set c.fullscreen false) 
-        (set c.maximized false) 
-        (set c.maximized_vertical false) 
-        (set c.maximized_horizontal false)))) 
-  flag) 
-
-(fn select-win [fullscreen]
+(fn select-win [{: ignore-focus : on-selected}]
   (local screen (awful.screen.focused)) 
+  (local clients
+     (if ignore-focus 
+        (filter screen.clients #(not= $1 awesome-global.client.focus)) 
+        screen.clients)) 
   (local popups 
-    (collect [i [letter client] (ipairs (zip (range 97 (+ 97 26)) screen.clients))] 
+    (collect [i [letter client] (ipairs (zip (range 97 (+ 97 26)) clients))] 
       (values 
         (string.char letter) 
         {:popup (show-mark-popup (string.char letter) client) 
@@ -58,19 +50,9 @@
         (match [key event] 
           ["Escape" _] (stop) 
           [_ "release"]
-          (let [popup (. popups key)] 
+          (let [popup (. popups (string.lower key))] 
             (if (not= popup nil) 
-                (do (set _G.client.focus popup.client) 
-                  (if fullscreen 
-                      (set popup.client.fullscreen true)) 
+                (do 
+                  (on-selected popup)
                   (stop)))))))))
-
-(fn launch [make-it-fullscreen]
-  (local clients (. (awful.screen.focused ) :clients)) 
-  (match (length clients) 
-    1 (tset (. clients 1) :fullscreen (not (. clients 1 :fullscreen))) 
-    _ (if (normon) 
-          (on-idle (fn [] (select-win make-it-fullscreen))) 
-          (select-win make-it-fullscreen)))) 
-
-{ : launch}
+{ : select-win}                                

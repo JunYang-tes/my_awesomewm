@@ -1,4 +1,3 @@
-(local focus-win (require :focus-win))
 (local root _G.root)                                    
 (local gears (require :gears))                  
 (local awful (require :awful))        

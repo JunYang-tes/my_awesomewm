@@ -1,14 +1,15 @@
 (local awful (require :awful))
 (local { : key : tag } (require :awful))
 (local hotkeys-popup (require :awful.hotkeys_popup))
-(local focus-win (require :focus-win))
+(local focus-win (require :windows.focus-win))
+(local swap-win (require :windows.swap))                                   
 (local gears (require :gears))                  
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const)) 
 
 (gears.table.join
  (_G.root.keys)
- (key [modkey] "s" hotkeys-popup.show_help 
+ (key [modkey] "h" hotkeys-popup.show_help 
       { :description "Show help"
         :group "awesome"}) 
  (key [modkey] "Left" tag.viewprev 
@@ -26,12 +27,19 @@
  (key [modkey] "k" #(awful.client.focus.byidx -1)
       { :description "Focus previous by index" 
         :group "client"}) 
- (key [modkey] "f" #(focus-win.launch true) 
+ (key [modkey] "f" #(focus-win.launch false) 
+      { :description "Focus window"
+        :group "client"}) 
+ (key [modkey "Shift"] "f" (fn [] 
+                            (local client awesome-global.client.focus)
+                            (if client 
+                              (do (set client.fullscreen (not client.fullscreen))))) 
       { :description "Focus window"
         :group "client"}) 
  (key [modkey] "w" #(print :TODO-Main-Menu) 
       { :description "Focus window"
         :group "client"}) 
+ (key [modkey] "s" swap-win)
  (key [modkey "Shift"] "j" #(awful.client.swap.byidx 1) 
       { :description "swap with next client by index"
         :group "client"}) 

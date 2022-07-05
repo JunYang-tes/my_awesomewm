@@ -26,7 +26,15 @@
     (table.insert r v)) 
   r) 
 
-{ : some
+(fn filter [list should-remain?]
+  (icollect [_ v (ipairs list)] 
+    (if (should-remain? v) 
+        v))) 
+
+
+{ 
+  : filter
+  : some
   : range 
   : concat
   : zip} 
