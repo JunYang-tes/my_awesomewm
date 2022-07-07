@@ -1,24 +1,28 @@
 (local awful (require :awful))
-(local { : key : tag } (require :awful))
+(local { : key } (require :awful))
 (local hotkeys-popup (require :awful.hotkeys_popup))
 (local focus-win (require :windows.focus-win))
 (local swap-win (require :windows.swap))                                   
 (local gears (require :gears))                  
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const)) 
+(local tag (require :tag)) 
+(local {: range} (require :utils.list))           
+(local wibox  (require :wibox))
+(local {: prompt } (require :ui.prompt))                           
 
 (gears.table.join
  (_G.root.keys)
  (key [modkey] "h" hotkeys-popup.show_help 
       { :description "Show help"
         :group "awesome"}) 
- (key [modkey] "Left" tag.viewprev 
+ (key [modkey] "Left" awful.tag.viewprev 
       { :description "View previous" 
         :group "tag"}) 
- (key [modkey] "Right" tag.viewnext 
+ (key [modkey] "Right" awful.tag.viewnext 
       { :description "View next" 
         :group "tag"}) 
- (key [modkey] "Escape" tag.history.restore 
+ (key [modkey] "Escape" awful.tag.history.restore 
       { :description "Go back" 
         :group "tag"}) 
  (key [modkey] "j" #(awful.client.focus.byidx 1)
@@ -100,4 +104,13 @@
         :group "launcher"})
  (key [modkey] "w" #(awful.util.spawn "rofi -show window")
       { :description "Run"
-        :group "launcher"}))
+        :group "launcher"})
+ (key [modkey] "c" tag.create
+      { :description "New tag"
+        :group "tag"})
+ (key [modkey] "n" tag.name-tag 
+      { :description "Name a tag" 
+        :group "tag"}) 
+ (key [modkey] "t" tag.view-tag
+      { :description "Name a tag" 
+        :group "tag"})) 
