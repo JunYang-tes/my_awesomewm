@@ -11,10 +11,18 @@
 (local wibox  (require :wibox))
 (local {: prompt } (require :ui.prompt))                           
 
+(fn run-lua []
+  (prompt {
+           :prompt "Run Lua:"
+           :on-finished awful.util.eval})) 
+
 (gears.table.join
  (_G.root.keys)
  (key [modkey] "h" hotkeys-popup.show_help 
       { :description "Show help"
+        :group "awesome"}) 
+ (key [modkey] "x" run-lua
+      { :description "Lua execute prompt" 
         :group "awesome"}) 
  (key [modkey] "Left" awful.tag.viewprev 
       { :description "View previous" 

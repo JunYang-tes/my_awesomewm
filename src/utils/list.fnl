@@ -18,6 +18,13 @@
   (icollect [i v (ipairs list)] 
     (f v i))) 
 
+(fn find [list predict?] 
+  (var found nil) 
+  (each [_ item (ipairs list)] :util found 
+    (if (predict? item) 
+        (set found item))) 
+  found) 
+
 (fn find-index [list entry] 
   (-> list 
     (map (fn [v i] [i v])) 
@@ -30,7 +37,7 @@
   (while (< start to) 
     (table.insert list start) 
     (set start (+ start (or step 1)))) 
-  (make-list list)) 
+  list) 
     
 (fn zip [ a b]
   (let [ [ x y] (if (< (length a) (length b))  
@@ -59,4 +66,5 @@
   : range 
   : concat
   : find-index 
+  : find 
   : zip} 

@@ -4,14 +4,17 @@
 (local inspect (require :inspect))                       
 (local modkey "Mod4")
 (local tag (require :tag))
+(print :cfg-rules)
 (require :rules)
 
 (fn setup-global-keys []
+  (print :set-keys)
   (local ks (require :key-bindings))
   (root.keys ks))
 
 ;; TODO
 ;; move focus
 ;; search key              
+;; exit fullscreen when new window was opened 
 (setup-global-keys)
-(tag.create) 
+(tag:init) 

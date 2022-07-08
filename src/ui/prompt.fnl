@@ -16,7 +16,7 @@
                  :visible false 
                  :x 0 
                  :y 0})) 
-(fn prompt [{: on-finished : prompt}]
+(fn prompt [{: on-finished : prompt : history_path}]
                 
   (local s (awful.screen.focused))
   (set popup.widget textbox)
@@ -29,7 +29,7 @@
     {: textbox 
      : prompt
      :exe_callback on-finished
-     :changed_callback #(print :change $1)
+     : history_path
      :done_callback (fn [] 
                       (set popup.visible false))})) 
                                               
