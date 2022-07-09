@@ -20,7 +20,7 @@
                          :forced_width 30} 
                          
                 :fg :#00ff00 
-                :border_color :#00ff00           
+                :border_color :#00ff00
                 :border_width 1 
                 :ontop true 
                 :visible true 

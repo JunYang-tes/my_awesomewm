@@ -55,7 +55,8 @@
            :on-finished (fn [name]
                           (local tag (-> (awful.screen.focused)
                                          (. :selected_tag))) 
-                          (set tag.name name))})) 
+                          (set tag.name name) 
+                          (save-tags))})) 
 (fn select-tag [{: on-selected : prompt}]
   (local tags (root.tags))
   (local tags-name (map tags (fn [t i ] (.. i " " t.name)))) 
@@ -83,6 +84,14 @@
       (. (tag:clients) 1))) 
                            
 
+;; (fn make-switch tag [switch]
+;;   (var client nil)
+;;   (fn [...] 
+;;     (local old-focused awesome.client.focus) 
+;;     (switch ...) 
+;;     (if (not client) 
+;;         (set client (get-focusable-client tag))))) 
+
 (local switch-tag  
   (do 
     (var client nil) 
@@ -95,6 +104,11 @@
           (wm.focus client)) 
       (set client old-focused)))) 
 
+(fn switch-by-index [index]  
+  (local tag (. (root.tags) index)) 
+  (if tag 
+    (switch-tag tag))) 
+
 (fn view-tag []
   (select-tag { :on-selected switch-tag}))
 
@@ -105,5 +119,7 @@
 { : create
   : init
   : name-tag 
+  : switch-tag
   : select-tag
+  : switch-by-index 
   : view-tag}           
