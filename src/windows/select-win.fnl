@@ -2,6 +2,7 @@
 (local wibox (require :wibox)) 
 (local { : range : zip : filter } (require :utils.list))                         
 (local awesome-global (require :awesome-global)) 
+(local ui (require :utils.ui)) 
 
 (fn close-popup [popups]
   (each [_ p (pairs popups)] 
@@ -9,6 +10,9 @@
     (set p.popup nil))) 
 
 (fn show-mark-popup [letter client]
+  (local size 50)
+  (local x (+ client.x (/ client.width 2)))              
+  (local y (+ client.y (/ client.height 2)))              
   (awful.popup {
                 :widget {
                          :text (string.upper letter)
@@ -16,16 +20,16 @@
                          :align :center 
                          :valign :center 
                          :font "Sans regular 20" 
-                         :forced_height 30 
-                         :forced_width 30} 
+                         :forced_height size 
+                         :forced_width size} 
                          
-                :fg :#00ff00 
-                :border_color :#00ff00
-                :border_width 1 
+                ;;:fg :#00ff00 
+                ;;:border_color :#00ff00
+                :shape (ui.rrect 10)
                 :ontop true 
                 :visible true 
-                :x client.x             
-                :y client.y})) 
+                :x x
+                :y y})) 
 
 (fn select-win [{: ignore-focus : on-selected}]
   (local screen (awful.screen.focused)) 
