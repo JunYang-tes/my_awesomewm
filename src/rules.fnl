@@ -24,8 +24,8 @@
   [
     { :rule {}
       :properties {
-                   :border_width 1
-                   :border_color beautiful.border_normal
+                   :border_width 0
+                   :border_color beautiful.xforeground
                    :focus awful.client.focus.filter
                    :raise true
                    :keys key-bindings

@@ -9,6 +9,7 @@
 (local {: range} (require :utils.list))           
 (local wibox  (require :wibox))
 (local {: prompt } (require :ui.prompt))                           
+(local bar (require :components.function-bar))                    
 
 (fn run-lua []
   (prompt {
@@ -142,4 +143,7 @@
          :group "tag"}) 
   (key [modkey] "t" tag.view-tag
        { :description "Name a tag" 
-         :group "tag"})) 
+         :group "tag"}) 
+  (key [modkey] "b" bar.toggle-visible 
+       { :description "Toggle function bar" 
+         :group "awesome"})) 

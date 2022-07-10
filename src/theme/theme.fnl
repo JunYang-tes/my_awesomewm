@@ -22,6 +22,8 @@
 (assign
   theme 
   [ 
+    :wallpapers_path (.. (os.getenv "HOME")
+                         "/.config/awesome/src/theme/wallpapers") 
     ;; Specail
     :xforeground  "#D9D7D6"
     :darker_xbackground  "#000a0e"
@@ -173,7 +175,7 @@
     
     
     ;; Gaps
-    :useless_gap  (dpi 2)
+    :useless_gap  (dpi 1)
     
     ;; Systray
     :systray_icon_size  (dpi 20)

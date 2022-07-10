@@ -1,11 +1,11 @@
 (local wibox (require :wibox))
+(local { : map } (require :utils.list))                  
  
 (fn is-props [tbl]
   (= (. tbl :--builder-role ) nil)) 
 
 (fn make-layout-builder [method]
   (fn [props ...] 
-    (print :props? (is-props props))
     (let [ (props children) (if (is-props props)
                                 (values props [...]) 
                                 (values {} [props ...]))] 
@@ -36,7 +36,6 @@
                            [nil c] (values {} c) 
                            _ (values props child))] 
                    
-      (print :props props :child child)
       (local tbl {}) 
       (tset tbl method-key method) 
       (tset tbl 1 child) 
@@ -60,9 +59,8 @@
 (fn make-widget-builder [widget]
   (fn [props] 
     (local tbl { : widget}) 
-    (each [k v (pairs (or props nil))]                     
+    (each [k v (pairs (or props {}))]                     
       (tset tbl k v)) 
-    (print :widget tbl)
     (tset tbl :--builder-role :widget)
     tbl)) 
 

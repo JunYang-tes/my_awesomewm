@@ -7,6 +7,9 @@
 (local json (require :cjson)) 
 (local {: filesystem } (require :gears)) 
 (local wm (require :utils.wm))
+;;(local wallpaper (require :utils.wallpapers)) 
+(local gears (require :gears)) 
+
 (local path "./tag.json")
 (fn load-tags []
   (local default [ {:name :default}])
@@ -37,15 +40,22 @@
   (-> (root.tags)
     (map (fn [t] {:name t.name})) 
     json.encode 
-    (write))) 
+    (write)))
+            
+
 
 (fn create [name]
   (print awful.screen.focused)
   (local t (tag.add (or name "tag") 
                     {
-                      :selected true
+                      :selected false
                       :screen (awful.screen.focused)
                       :layout awful.layout.suit.tile})) 
+  ;;(t:connect_signal "property::selected"
+  ;;  (fn [tag] 
+  ;;    (if tag.selected
+  ;;      (wm.on-idle #(gears.wallpaper.maximized (wallpaper.get-random t)))))) 
+  ;;    ;(gears.wallpaper.maximized (wallpaper.get-random t)))) 
   (save-tags)
   (t:view_only))  
 
@@ -98,6 +108,7 @@
     (fn [tag] 
       (local old-focused awesome.client.focus)
       (tag:view_only) 
+      (set tag.selected true)
       (if (not client) 
           (set client (get-focusable-client tag))) 
       (if client 
@@ -105,6 +116,7 @@
       (set client old-focused)))) 
 
 (fn switch-by-index [index]  
+  (print :will-select index)
   (local tag (. (root.tags) index)) 
   (if tag 
     (switch-tag tag))) 
@@ -116,6 +128,7 @@
   (each [_ tag-info (ipairs (load-tags))] 
     (create tag-info.name))) 
  
+
 { : create
   : init
   : name-tag 
