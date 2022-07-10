@@ -1,3 +1,4 @@
+;; https://github.com/rxyhn/dotfiles/blob/main/config/awesome/theme/theme.lua
 (local gears (require :gears))
 (local gfs (require :gears.filesystem)) 
 (local themes_path (gfs.get_themes_dir)) 
