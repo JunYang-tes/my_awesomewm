@@ -1,6 +1,8 @@
 (local gears (require :gears))                  
+(local theme (require :theme.theme))
 (local beautiful (require :beautiful)) 
-(beautiful.init (.. (gears.filesystem.get_themes_dir ) "zenburn/theme.lua"))
+(beautiful.init theme)
+(print :after-init beautiful.border_width) 
 
 (local root _G.root)                                    
 (local awful (require :awful))        
