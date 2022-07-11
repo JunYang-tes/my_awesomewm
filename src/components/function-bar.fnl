@@ -41,12 +41,13 @@
     (assign!
       {
         :widget (wibox.widget
-                  (container.place
-                    {
-                     :forced_width (. (awful.screen.focused) :geometry :width)} 
+                  ;;(container.place
+                  ;;  {
+                  ;;    :shape (ui.rrect 10)
+                  ;;    :forced_width (. (awful.screen.focused) :geometry :width)} 
                     (container.background
                       { 
-                       :shape (ui.rrect 10)
+                       :-id :bar-container
                        :forced_height bar-height
                        :bg beautiful.wibar_bg}
                       (container.margin
@@ -64,18 +65,31 @@
                             (do 
                               (local systray (wibox.widget.systray)) 
                               (systray:set_base_size 20) 
-                              systray))))))) 
+                              systray)))))) 
         :border_width 0
         :bg :#fff00000
+        :type "dock" 
         :ontop true 
+        :shape (ui.rrect 10)
         :visible false} 
       (get-bar-geometry))))
                      
+;; update x when width changed
+(function-bar:connect_signal "property::width" 
+  (fn [] 
+    (local screen (awful.screen.focused)) 
+    (local {: width} (function-bar:geometry))
+    (assign! 
+      function-bar 
+      {
+       :x (/ (- screen.geometry.width width) 2)}))) 
 
 (fn toggle-visible []
   (local screen (awful.screen.focused)) 
+  (local {: width} (function-bar:geometry))
   (assign! 
     function-bar 
-    {:visible (not function-bar.visible)})) 
+    {:visible (not function-bar.visible) 
+     :x (/ (- screen.geometry.width width) 2)})) 
                  
 { : toggle-visible}

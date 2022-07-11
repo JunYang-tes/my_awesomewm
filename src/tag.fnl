@@ -129,6 +129,17 @@
 (fn init []
   (each [_ tag-info (ipairs (load-tags))] 
     (create tag-info.name))) 
+
+(fn swap []
+  (local tag (-> (awful.screen.focused)
+                 (. :selected_tag))) 
+  (print :swap tag)
+  (select-tag 
+    { :on-selected (fn [tag2] 
+                     (tag:swap tag2) 
+                     (local tmp tag.name) 
+                     (set tag.name tag2.name) 
+                     (set tag2.name tmp))})) 
  
 
 { : create
@@ -136,5 +147,6 @@
   : name-tag 
   : switch-tag
   : select-tag
+  : swap           
   : switch-by-index 
   : view-tag}           

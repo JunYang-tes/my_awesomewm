@@ -166,6 +166,9 @@
   (key [modkey] "t" tag.view-tag
        { :description "Name a tag" 
          :group "tag"}) 
+  (key [modkey "Shift"] "s" tag.swap
+       { :description "Swap tag" 
+         :group "tag"}) 
   (key [modkey] "b" bar.toggle-visible 
        { :description "Toggle function bar" 
          :group "awesome"}) 

@@ -202,6 +202,7 @@
     
     ;; Notifications
     :notification_spacing  (dpi 4)
+    :notification_shape (ui.rrect theme.border_radius)
     :notification_bg  theme.xbackground
     :notification_bg_alt  theme.lighter_xbackground
     
