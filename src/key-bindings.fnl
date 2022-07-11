@@ -35,6 +35,20 @@
   keys) 
 
 
+(local toggle-desktop
+  (do 
+    (var show-desktop false) 
+    (var last-tag nil) 
+    (fn [] 
+      (if last-tag
+          (do
+            (last-tag:view_only) 
+            (set last-tag nil)) 
+          (do
+            (set last-tag (-> (awful.screen.focused) 
+                              (. :selected_tag))) 
+            (awful.tag.viewnone)))))) 
+
 (join-keys
   (icollect [i _ (ipairs (range 1 10 1))]
      (key [modkey] (.. "#" (+ i 9)) #(tag.switch-by-index i) 
@@ -146,4 +160,7 @@
          :group "tag"}) 
   (key [modkey] "b" bar.toggle-visible 
        { :description "Toggle function bar" 
+         :group "awesome"}) 
+  (key [modkey] "d" toggle-desktop 
+       { :description "Toggle desktop" 
          :group "awesome"})) 
