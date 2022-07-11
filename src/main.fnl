@@ -2,6 +2,7 @@
 (local theme (require :theme.theme))
 (local beautiful (require :beautiful)) 
 (beautiful.init theme)
+(require :theme.notification) 
 
 (local root _G.root)                                    
 (local awful (require :awful))        

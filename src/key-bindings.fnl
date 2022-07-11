@@ -14,7 +14,15 @@
 (fn run-lua []
   (prompt {
            :prompt "Run Lua:"
-           :on-finished awful.util.eval})) 
+           :on-finished 
+             (fn [content] 
+               (awful.util.eval (table.concat
+                                  [
+                                   "local awful = require(\"awful\")" 
+                                    "local naughty = require(\"naughty\")" 
+                                    content] "\n")))})) 
+                                  
+                                   
 (fn key [...]
   { :is-key-define true 
     :key-define (awful.key ...)}) 

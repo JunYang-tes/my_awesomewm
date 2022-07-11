@@ -18,6 +18,7 @@
                       (builder.container.margin {:right 10}
                         (builder.widget.textbox {
                                                  :-id "input-tb"
+                                                 :ellipsize :start
                                                  :forced_height 50})))) 
                                                   
                 :fg :white
@@ -50,6 +51,8 @@
     {: textbox 
      :font "Sans regular 14" 
      :exe_callback on-finished
+     :fg_cursor beautiful.wibar_bg
+     :bg_cursor beautiful.xforeground
      : history_path
      :done_callback (fn [] 
                       (set popup.visible false))})) 

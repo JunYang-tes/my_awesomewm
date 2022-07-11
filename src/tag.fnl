@@ -10,6 +10,7 @@
 (local wm (require :utils.wm))
 ;;(local wallpaper (require :utils.wallpapers)) 
 (local gears (require :gears)) 
+(local signal (require :utils.signal)) 
 
 (local path "./tag.json")
 (fn load-tags []
@@ -70,6 +71,10 @@
                       :screen (awful.screen.focused)
                       :layout awful.layout.suit.tile})) 
   (t:connect_signal "property::selected" handle-switch-tag-focus)
+  (t:connect_signal "property::selected"
+    (fn [tag] 
+      (if tag.selected 
+          (signal.emit "tag::selected" tag)))) 
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
@@ -84,6 +89,7 @@
            :on-finished (fn [name]
                           (local tag (-> (awful.screen.focused)
                                          (. :selected_tag))) 
+                          (signal.emit "tag:rename" tag tag.name name)
                           (set tag.name name) 
                           (save-tags))})) 
 (fn select-tag [{: on-selected : prompt}]

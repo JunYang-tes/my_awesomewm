@@ -1,5 +1,7 @@
 (local wibox (require :wibox))
 (local { : map } (require :utils.list))                  
+(local beautiful (require :beautiful)) 
+(local {: assign! } (require :utils.table)) 
  
 (fn is-props [tbl]
   (= (. tbl :--builder-role ) nil)) 
@@ -27,7 +29,6 @@
    :flex-vertical (make-layout-builder wibox.layout.flex.vertical) 
    :manual (make-layout-builder wibox.layout.manual) 
    :stack (make-layout-builder wibox.layout.stack)}) 
-                                                  
 
 (fn make-container-builder [method method-key]
   (fn [props child]
@@ -56,15 +57,26 @@
     :background (make-container-builder wibox.container.background :widget) 
     :arcchart (make-container-builder wibox.container.arcchart :widget)}) 
             
-(fn make-widget-builder [widget]
+(fn make-widget-builder [widget fix-props]
   (fn [props] 
     (local tbl { : widget}) 
+    (each [k v (pairs (or fix-props {}))]
+      (tset tbl k v)) 
     (each [k v (pairs (or props {}))]                     
       (tset tbl k v)) 
     (tset tbl :--builder-role :widget)
     tbl)) 
 
-(local widget
+(fn font-icon [icon props]
+  (local { : size } (or props {}))
+  (local tbl {
+              :widget wibox.widget.textbox
+              :font (.. beautiful.icon_font 
+                        (or size 14)) 
+              :markup icon}) 
+  (assign! tbl props))  
+
+(global  widget
   { :calendar-month (make-widget-builder wibox.widget.calendar.month) 
     :calendar-year (make-widget-builder wibox.widget.calendar.year) 
     :checkbox (make-widget-builder wibox.widget.checkbox) 
@@ -76,6 +88,7 @@
     :slider (make-widget-builder wibox.widget.slider) 
     :systray (make-widget-builder wibox.widget.systray) 
     :textbox (make-widget-builder wibox.widget.textbox) 
+    : font-icon 
     :text-clock (make-widget-builder wibox.widget.textclock)}) 
 
 { : layout

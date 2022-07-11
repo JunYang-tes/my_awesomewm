@@ -75,7 +75,8 @@
     :font  (.. "Roboto "  "Medium 10")
 
     ;; Icon Fonts
-    :icon_font  "Material Icons "
+    ;;:icon_font  "Material Icons "
+    :icon_font "MaterialIconsRound " 
 
     ;; Background Colors
     :bg_normal  theme.xbackground
