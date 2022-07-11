@@ -7,7 +7,8 @@
   (awesome.connect_signal :refresh on-refresh)) 
       
 (fn focus [client] 
-  (set _G.client.focus client)) 
+  (if client
+    (set _G.client.focus client))) 
 
 { : on-idle
   : focus} 

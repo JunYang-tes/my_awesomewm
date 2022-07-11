@@ -43,6 +43,21 @@
     (write)))
             
 
+(fn get-focusable-client [tag] 
+  (or (find (tag:clients ) (fn [c] c.fullscreen)) 
+      (. (tag:clients) 1))) 
+(local handle-switch-tag-focus 
+  (do 
+    (local focus-map {})
+    (fn get-focus [tag]
+      (local client (or (. focus-map tag) 
+                        (get-focusable-client tag))) 
+      (tset focus-map tag client) 
+      client) 
+    (fn [tag] 
+      (if tag.selected 
+        (wm.focus (get-focus tag)))))) 
+
 
 (fn create [name]
   (print awful.screen.focused)
@@ -51,6 +66,7 @@
                       :selected false
                       :screen (awful.screen.focused)
                       :layout awful.layout.suit.tile})) 
+  (t:connect_signal "property::selected" handle-switch-tag-focus)
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
@@ -89,31 +105,10 @@
         (-> (. tags ind) 
             (on-selected)))))) 
             
-(fn get-focusable-client [tag] 
-  (or (find (tag:clients ) (fn [c] c.fullscreen)) 
-      (. (tag:clients) 1))) 
                            
 
-;; (fn make-switch tag [switch]
-;;   (var client nil)
-;;   (fn [...] 
-;;     (local old-focused awesome.client.focus) 
-;;     (switch ...) 
-;;     (if (not client) 
-;;         (set client (get-focusable-client tag))))) 
-
-(local switch-tag  
-  (do 
-    (var client nil) 
-    (fn [tag] 
-      (local old-focused awesome.client.focus)
-      (tag:view_only) 
-      (set tag.selected true)
-      (if (not client) 
-          (set client (get-focusable-client tag))) 
-      (if client 
-          (wm.focus client)) 
-      (set client old-focused)))) 
+(fn switch-tag [tag] 
+  (tag:view_only)) 
 
 (fn switch-by-index [index]  
   (print :will-select index)
