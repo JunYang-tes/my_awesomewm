@@ -1,4 +1,5 @@
 (local awful (require :awful))
+(local awesome-global (require :awesome-global))
 (local {: tag} awful)
 (local {: prompt } (require :ui.prompt)) 
 (local {: root } (require :awesome-global)) 
@@ -46,21 +47,23 @@
 (fn get-focusable-client [tag] 
   (or (find (tag:clients ) (fn [c] c.fullscreen)) 
       (. (tag:clients) 1))) 
+
 (local handle-switch-tag-focus 
   (do 
     (local focus-map {})
+    (awesome-global.client.connect_signal :focus
+      (fn [client] 
+        (tset focus-map client.first_tag client))) 
     (fn get-focus [tag]
       (local client (or (. focus-map tag) 
                         (get-focusable-client tag))) 
       (tset focus-map tag client) 
       client) 
-    (fn [tag] 
+    (fn [tag]
       (if tag.selected 
         (wm.focus (get-focus tag)))))) 
 
-
 (fn create [name]
-  (print awful.screen.focused)
   (local t (tag.add (or name "tag") 
                     {
                       :selected false
@@ -100,7 +103,6 @@
       (local ind (-> stdout
                      (string.match "(%d+)%s") 
                      (tonumber))) 
-      (print (. tags ind))
       (if ind 
         (-> (. tags ind) 
             (on-selected)))))) 
@@ -111,7 +113,6 @@
   (tag:view_only)) 
 
 (fn switch-by-index [index]  
-  (print :will-select index)
   (local tag (. (root.tags) index)) 
   (if tag 
     (switch-tag tag))) 
