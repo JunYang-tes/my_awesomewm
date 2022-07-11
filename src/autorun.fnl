@@ -1,4 +1,4 @@
 (local {: spawn} (require :awful))
 
-(print :compton (spawn :compton))
+(spawn :picom)
 (spawn :fcitx5) 

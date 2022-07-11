@@ -12,7 +12,7 @@
  
 (require :rules)
 (require :components.function-bar) 
-(require :autorun) 
+(require :autorun)
 
 (fn setup-global-keys []
   (print :set-keys)
@@ -26,4 +26,4 @@
 ;; exit fullscreen when new window was opened 
 (setup-global-keys)
 (tag:init)
-(auto-switch ) 
+(auto-switch) 
