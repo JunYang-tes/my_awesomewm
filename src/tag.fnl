@@ -45,10 +45,6 @@
     (write)))
             
 
-(fn get-focusable-client [tag] 
-  (or (find (tag:clients ) (fn [c] c.fullscreen)) 
-      (. (tag:clients) 1))) 
-
 (local handle-switch-tag-focus 
   (do 
     (local focus-map {})
@@ -57,7 +53,7 @@
         (tset focus-map client.first_tag client))) 
     (fn get-focus [tag]
       (local client (or (. focus-map tag) 
-                        (get-focusable-client tag))) 
+                        (wm.get-focusable-client tag))) 
       (tset focus-map tag client) 
       client) 
     (fn [tag]
