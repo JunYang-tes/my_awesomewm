@@ -138,18 +138,30 @@
   (key [modkey] ">" #(awful.tag.incmwfact -0.05)
        { :description "decrease master width factor"
          :group "layout"})
-  (key [modkey "Shift"] "h" #(awful.tag.incnmaster 1 nil true)
-       { :description "increase the number of master clients"
-         :group "layout"})
-  (key [modkey "Shift"] "l" #(awful.tag.incnmaster -1 nil true)
-       { :description "decrease the number of master clients"
-         :group "layout"})
-  (key [modkey "Control"] "h" #(awful.tag.incncol 1 nil true)
-       { :description "increase the number of columns"
-         :group "layout"})
-  (key [modkey "Control"] "l" #(awful.tag.incncol -1 nil true)
-       { :description "decrease the number of columns"
-         :group "layout"})
+  (key [modkey] "h" #(awful.client.focus.bydirection :left)
+       { :description "focus left" 
+         :group "layout"}) 
+  (key [modkey] "j" #(awful.client.focus.bydirection :down)
+       { :description "focus down" 
+         :group "layout"}) 
+  (key [modkey] "k" #(awful.client.focus.bydirection :up)
+       { :description "focus up" 
+         :group "layout"}) 
+  (key [modkey] "l" #(awful.client.focus.bydirection :right)
+       { :description "focus right" 
+         :group "layout"}) 
+  ;;(key [modkey "Shift"] "h" #(awful.tag.incnmaster 1 nil true)
+  ;;     { :description "increase the number of master clients"
+  ;;       :group "layout"})
+  ;;(key [modkey "Shift"] "l" #(awful.tag.incnmaster -1 nil true)
+  ;;     { :description "decrease the number of master clients"
+  ;;       :group "layout"})
+  ;;(key [modkey "Control"] "h" #(awful.tag.incncol 1 nil true)
+  ;;     { :description "increase the number of columns"
+  ;;       :group "layout"})
+  ;;(key [modkey "Control"] "l" #(awful.tag.incncol -1 nil true)
+       ;; { :description "decrease the number of columns"
+       ;;   :group "layout"})
   (key [modkey] "space" #(awful.layout.inc 1)
        { :description "select next"
          :group "layout"})
