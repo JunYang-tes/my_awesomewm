@@ -10,6 +10,7 @@
 (local { : dpi} (require :utils.wm))                   
 (local screen-utils (require :utils.screen))                         
 (local battery (require :components.battery)) 
+(local volume (require :components.volume)) 
 
 (local bar-height (dpi 40))
 (local bar-offset-y (dpi 30)) 
@@ -68,6 +69,7 @@
                             (do 
                               (local systray (wibox.widget.systray)) 
                               (systray:set_base_size (dpi 20)) 
+			      (volume.widget)
                               systray)))))) 
         :border_width 0
         :bg :#fff00000
@@ -99,6 +101,7 @@
               (/ (- screen.geometry.width width) 2)
               (- screen.geometry.height bar-offset-y bar-height))) 
   (print :bar-pos pos.x pos.y)
+  (signal.emit "volumn::update")
   (assign! 
     function-bar 
     {:visible (not function-bar.visible) 
