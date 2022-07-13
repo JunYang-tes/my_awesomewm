@@ -2,6 +2,7 @@
 
 luarocks install lua-cjson 2.1.0-1
 luafilesystem 1.8.0
+penlight 1.12.0-2
 inspect 3.1.3
 
 # Compositor
