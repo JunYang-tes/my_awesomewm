@@ -16,11 +16,16 @@
            :prompt "Run Lua:"
            :on-finished 
              (fn [content] 
-               (awful.util.eval (table.concat
-                                  [
-                                   "local awful = require(\"awful\")" 
-                                    "local naughty = require(\"naughty\")" 
-                                    content] "\n")))})) 
+               (local src
+                (table.concat
+                   [
+                    "local inspect = require(\"inspect\")"
+                    "local awful = require(\"awful\")" 
+                    "local naughty = require(\"naughty\")" 
+                    content] "\n"))
+               (print src)
+               (awful.util.eval src))})) 
+                  
                                   
                                    
 (fn key [...]
