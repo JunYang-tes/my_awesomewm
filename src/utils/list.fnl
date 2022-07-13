@@ -57,6 +57,23 @@
       (table.remove list ind)) 
   list) 
 
+(fn reduce [list accumulator init]
+  (var ret init) 
+  (each [i v (ipairs list)] 
+    (set ret (accumulator v ret))) 
+  ret)
+     
+(fn max-by [list accessor]
+  (reduce 
+    list  
+    (fn [item acc] 
+      (local a (accessor item)) 
+      (local b (accessor acc)) 
+      (if (> a b) 
+          item 
+          acc))
+    (. list 1))) 
+
 { 
   : filter
   : map
@@ -66,4 +83,6 @@
   : find-index 
   : find 
   : remove-value!
+  : reduce
+  : max-by       
   : zip} 
