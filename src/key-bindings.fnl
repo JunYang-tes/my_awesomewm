@@ -10,6 +10,7 @@
 (local wibox  (require :wibox))
 (local {: prompt } (require :ui.prompt))                           
 (local bar (require :components.function-bar))                    
+(local client (require :client))                                
 
 (fn run-lua []
   (prompt {
@@ -67,7 +68,7 @@
      (key [modkey] (.. "#" (+ i 9)) #(tag.switch-by-index i) 
        { :description (.. "Switch to tag " i) 
          :group "tag"}))                                  
-  (key [modkey] "h" hotkeys-popup.show_help 
+  (key [modkey "Shift"] "h" hotkeys-popup.show_help 
         { :description "Show help"
           :group "awesome"}) 
   (key [modkey] "x" run-lua
@@ -82,12 +83,12 @@
   (key [modkey] "Escape" awful.tag.history.restore 
        { :description "Go back" 
          :group "tag"}) 
-  (key [modkey] "j" #(awful.client.focus.byidx 1)
-       { :description "Focus next by index" 
-         :group "client"}) 
-  (key [modkey] "k" #(awful.client.focus.byidx -1)
-       { :description "Focus previous by index" 
-         :group "client"}) 
+  ;; (key [modkey] "j" #(awful.client.focus.byidx 1)
+  ;;      { :description "Focus next by index" 
+  ;;        :group "client"}) 
+  ;; (key [modkey] "k" #(awful.client.focus.byidx -1)
+  ;;      { :description "Focus previous by index" 
+  ;;        :group "client"}) 
   (key [modkey] "f" #(focus-win.launch false) 
        { :description "Focus window"
          :group "client"}) 
@@ -138,18 +139,30 @@
   (key [modkey] ">" #(awful.tag.incmwfact -0.05)
        { :description "decrease master width factor"
          :group "layout"})
-  (key [modkey "Shift"] "h" #(awful.tag.incnmaster 1 nil true)
-       { :description "increase the number of master clients"
-         :group "layout"})
-  (key [modkey "Shift"] "l" #(awful.tag.incnmaster -1 nil true)
-       { :description "decrease the number of master clients"
-         :group "layout"})
-  (key [modkey "Control"] "h" #(awful.tag.incncol 1 nil true)
-       { :description "increase the number of columns"
-         :group "layout"})
-  (key [modkey "Control"] "l" #(awful.tag.incncol -1 nil true)
-       { :description "decrease the number of columns"
-         :group "layout"})
+  (key [modkey] "h" #(client.focus-by-direction :left)
+       { :description "focus left" 
+         :group "layout"}) 
+  (key [modkey] "j" #(client.focus-by-direction :down)
+       { :description "focus down" 
+         :group "layout"}) 
+  (key [modkey] "k" #(client.focus-by-direction :up)
+       { :description "focus up" 
+         :group "layout"}) 
+  (key [modkey] "l" #(client.focus-by-direction :right)
+       { :description "focus right" 
+         :group "layout"}) 
+  ;;(key [modkey "Shift"] "h" #(awful.tag.incnmaster 1 nil true)
+  ;;     { :description "increase the number of master clients"
+  ;;       :group "layout"})
+  ;;(key [modkey "Shift"] "l" #(awful.tag.incnmaster -1 nil true)
+  ;;     { :description "decrease the number of master clients"
+  ;;       :group "layout"})
+  ;;(key [modkey "Control"] "h" #(awful.tag.incncol 1 nil true)
+  ;;     { :description "increase the number of columns"
+  ;;       :group "layout"})
+  ;;(key [modkey "Control"] "l" #(awful.tag.incncol -1 nil true)
+       ;; { :description "decrease the number of columns"
+       ;;   :group "layout"})
   (key [modkey] "space" #(awful.layout.inc 1)
        { :description "select next"
          :group "layout"})

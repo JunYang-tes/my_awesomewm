@@ -5,49 +5,27 @@
 (local {: root } (require :awesome-global)) 
 (local  awesome (require :awesome-global))
 (local {: map : find } (require :utils.list)) 
-(local json (require :cjson)) 
 (local {: filesystem } (require :gears)) 
+(local {: get-prefered-screen 
+        : parse-interface} (require :utils.screen))
 (local wm (require :utils.wm))
 ;;(local wallpaper (require :utils.wallpapers)) 
 (local gears (require :gears)) 
 (local signal (require :utils.signal)) 
-
-(local path "./tag.json")
-(fn load-tags []
-  (local default [ {:name :default}])
-  (fn read []
-    (let [(file msg) (io.open path "r")] 
-      (if file 
-        (do 
-          (-> file 
-            (: :read) 
-            json.decode)) 
-        (do 
-          (print :failed-to-open-file msg) 
-          default)))) 
-  (print :has-config (filesystem.file_readable path))
-  (if (filesystem.file_readable path) 
-      (read)
-      default))
-          
+(local cfg (require :utils.cfg)) 
+(local inspect (require :inspect)) 
 
 (fn save-tags []
-  (fn write [data]
-    (let [(file msg) (io.open path "w")] 
-         (if file 
-           (do
-             (file:write data) 
-             (file:close)) 
-           (do (print :fail-to-open msg))))) 
-  (-> (root.tags)
-    (map (fn [t] {:name t.name})) 
-    json.encode 
-    (write)))
-            
-
-(fn get-focusable-client [tag] 
-  (or (find (tag:clients ) (fn [c] c.fullscreen)) 
-      (. (tag:clients) 1))) 
+  (fn save []
+    (fn mk-cfg [tags]
+      {: tags}) 
+    (-> (root.tags)
+      (map (fn [t] {:name t.name 
+                    :selected t.selected 
+                    :screen (.. "interface:" (parse-interface t.screen))}))
+      mk-cfg
+      (cfg.save-cfg :tag)))        
+  (wm.on-idle save)) 
 
 (local handle-switch-tag-focus 
   (do 
@@ -57,31 +35,37 @@
         (tset focus-map client.first_tag client))) 
     (fn get-focus [tag]
       (local client (or (. focus-map tag) 
-                        (get-focusable-client tag))) 
+                        (wm.get-focusable-client tag))) 
       (tset focus-map tag client) 
       client) 
     (fn [tag]
       (if tag.selected 
         (wm.focus (get-focus tag)))))) 
 
-(fn create [name]
-  (local t (tag.add (or name "tag") 
+(fn create [tag-info]
+  (local tag-info (or tag-info {:name "(Anonymous)"
+                                :screen ":focused" 
+                                :selected true})) 
+  (print (inspect tag-info))
+  (local t (tag.add tag-info.name 
                     {
-                      :selected false
-                      :screen (awful.screen.focused)
+                      :selected tag-info.selected
+                      :screen (get-prefered-screen tag-info.screen)
                       :layout awful.layout.suit.tile})) 
   (t:connect_signal "property::selected" handle-switch-tag-focus)
   (t:connect_signal "property::selected"
     (fn [tag] 
       (if tag.selected 
-          (signal.emit "tag::selected" tag)))) 
+          (signal.emit "tag::selected" tag) 
+          (save-tags)))) 
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
   ;;      (wm.on-idle #(gears.wallpaper.maximized (wallpaper.get-random t)))))) 
   ;;    ;(gears.wallpaper.maximized (wallpaper.get-random t)))) 
   (save-tags)
-  (t:view_only))  
+  (if tag-info.selected
+    (t:view_only)))  
 
 (fn name-tag []
   (prompt {
@@ -89,7 +73,7 @@
            :on-finished (fn [name]
                           (local tag (-> (awful.screen.focused)
                                          (. :selected_tag))) 
-                          (signal.emit "tag:rename" tag tag.name name)
+                          (signal.emit "tag::rename" tag tag.name name)
                           (set tag.name name) 
                           (save-tags))})) 
 (fn select-tag [{: on-selected : prompt}]
@@ -127,8 +111,14 @@
   (select-tag { :on-selected switch-tag}))
 
 (fn init []
-  (each [_ tag-info (ipairs (load-tags))] 
-    (create tag-info.name))) 
+  (print (inspect (cfg.load-cfg :tag {})))
+  (local tag-config
+    (cfg.load-cfg :tag {
+                                               :tags
+                                                 [ {:name "Default"}]}))
+  (each [_ tag-info (ipairs tag-config.tags)] 
+                                                 
+    (create tag-info))) 
 
 (fn swap []
   (local tag (-> (awful.screen.focused)

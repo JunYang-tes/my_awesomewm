@@ -1,12 +1,3 @@
-(fn make-list [...]
-  (local r [...]) 
-  (setmetatable r {
-                   :__is_list true}))
-                    
-
-(fn is-list? [a]
-  a.__is_list) 
-
 (fn some [list predict?]
   (var found false)
   (each [_ item (ipairs list)] :util found 
@@ -24,12 +15,6 @@
     (if (predict? item) 
         (set found item))) 
   found) 
-
-(fn find-index [list entry] 
-  (-> list 
-    (map (fn [v i] [i v])) 
-    (filter (fn [[i v]] (= v entry))) 
-    (. 1))) 
 
 (fn range [from to step]
   (local list [])
@@ -57,9 +42,39 @@
     (if (should-remain? v) 
         v))) 
 
+(fn find-index [list entry] 
+  (-> list 
+    (map (fn [v i] [i v])) 
+    (filter (fn [[i v]] (= v entry))) 
+    (. 1))) 
+
+(fn remove-value! [list value]
+  (var ind   0) 
+  (each [i v (ipairs list)] 
+    (if (= v value) 
+        (set ind i))) 
+  (if (> ind 0) 
+      (table.remove list ind)) 
+  list) 
+
+(fn reduce [list accumulator init]
+  (var ret init) 
+  (each [i v (ipairs list)] 
+    (set ret (accumulator v ret))) 
+  ret)
+     
+(fn max-by [list accessor]
+  (reduce 
+    list  
+    (fn [item acc] 
+      (local a (accessor item)) 
+      (local b (accessor acc)) 
+      (if (> a b) 
+          item 
+          acc))
+    (. list 1))) 
 
 { 
-  : make-list
   : filter
   : map
   : some
@@ -67,4 +82,7 @@
   : concat
   : find-index 
   : find 
+  : remove-value!
+  : reduce
+  : max-by       
   : zip} 
