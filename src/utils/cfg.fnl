@@ -27,7 +27,7 @@
             def)))) 
   (if (filesystem.file_readable path) 
       (read) 
-      (def))) 
+      def)) 
 
 (fn save-cfg [cfg name]
   (local path (.. cfg_path name ".json")) 
