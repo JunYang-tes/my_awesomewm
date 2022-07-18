@@ -1,7 +1,6 @@
 (local awful (require :awful))
 (local { : key : tag } (require :awful))
 (local hotkeys-popup (require :awful.hotkeys_popup))
-(local focus-win (require :focus-win))
 (local gears (require :gears))                  
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const)) 
