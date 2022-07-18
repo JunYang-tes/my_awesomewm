@@ -52,26 +52,26 @@
                        :forced_height bar-height
                        :bg beautiful.wibar_bg}
                       (container.margin
-                        { :left 10 :right 10}
+                        { :left (dpi 10) :right (dpi 10)}
                         (layout.fixed-horizontal
                           { 
-                            :spacing 16}
+                            :spacing (dpi 16)}
                           (tag-indicator)
                           (layout.fixed-horizontal
-                            { :spacing 2}
+                            { :spacing (dpi 2)}
                             (widget.font-icon "date_range")
                             (widget.text-clock)) 
                           (container.margin
-                            {:top 8 :right 10}
+                            {:top (dpi 8) :right (dpi 10)}
                             (do 
                               (local systray (wibox.widget.systray)) 
-                              (systray:set_base_size 20) 
+                              (systray:set_base_size (dpi 20)) 
                               systray)))))) 
         :border_width 0
         :bg :#fff00000
         :type "dock" 
         :ontop true 
-        :shape (ui.rrect 10)
+        :shape (ui.rrect (dpi 10))
         :visible false} 
       (get-bar-geometry))))
                      
