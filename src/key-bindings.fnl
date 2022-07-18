@@ -11,6 +11,7 @@
 (local {: prompt } (require :ui.prompt))                           
 (local bar (require :components.function-bar))                    
 (local client (require :client))                                
+(local naughty (require :naughty)) 
 
 (fn run-lua []
   (prompt {
@@ -175,7 +176,11 @@
   (key [modkey] "w" #(awful.util.spawn "rofi -show window")
        { :description "Run"
          :group "launcher"})
-  (key [modkey] "c" tag.create
+  (key [modkey] "c" (fn [] 
+                      (tag.create)
+                      (naughty.notify {
+                                       :title "Tag created"}))
+                                        
        { :description "New tag"
          :group "tag"})
   (key [modkey] "n" tag.name-tag 

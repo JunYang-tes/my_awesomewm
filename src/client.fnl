@@ -18,6 +18,15 @@
     (if client 
         (wm.focus (wm.get-by-direct client clients dir))))) 
 
+(fn tag-untaged []
+  (local tag (-> (awful.screen.focused)
+                 (. :tags 1))) 
+  (if tag
+    (each [_ c (ipairs (awesome-global.client.get))]
+      (c:move_to_tag tag)) 
+    (print :no-tag-yet))) 
+
 {
- : focus-by-direction}
+ : focus-by-direction
+ : tag-untaged} 
  

@@ -10,6 +10,7 @@
 (local modkey "Mod4")
 (local tag (require :tag))
 (local { : auto-switch } (require :utils.wallpapers)) 
+(local {: tag-untaged} (require :client)) 
  
 (require :rules)
 (require :components.function-bar) 
@@ -28,3 +29,4 @@
 (setup-global-keys)
 (tag:init)
 (auto-switch) 
+(tag-untaged) 

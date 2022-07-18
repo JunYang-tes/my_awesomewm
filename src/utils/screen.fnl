@@ -37,15 +37,19 @@
   (if query
     (match (stringx.split query ":") 
       ["" :focused] (awful.screen.focused) 
-      ["" :primary] (awful.screen.primary) 
-      ["interface" interface] (or (. screens (parse-interface interface)) 
+      ["" :primary] awful.screen.primary 
+      ["interface" interface] (or (. screens interface) 
                                   (awful.screen.focused)) 
       _ (awful.screen.focused)) 
     (awful.screen.focused))) 
+
+(fn get-name [screen]
+  (parse-interface screen)) 
 
 (fn get-screens []
   screens) 
 
 { : get-prefered-screen
   : parse-interface 
+  : get-name 
   : get-screens} 

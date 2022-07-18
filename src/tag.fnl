@@ -14,6 +14,7 @@
 (local signal (require :utils.signal)) 
 (local cfg (require :utils.cfg)) 
 (local inspect (require :inspect)) 
+(local screen-utils (require :utils.screen))                                   
 
 (fn save-tags []
   (fn save []
@@ -46,7 +47,7 @@
   (local tag-info (or tag-info {:name "(Anonymous)"
                                 :screen ":focused" 
                                 :selected true})) 
-  (print (inspect tag-info))
+  (print :will-create-tag (inspect tag-info))
   (local t (tag.add tag-info.name 
                     {
                       :selected tag-info.selected
@@ -78,7 +79,11 @@
                           (save-tags))})) 
 (fn select-tag [{: on-selected : prompt}]
   (local tags (root.tags))
-  (local tags-name (map tags (fn [t i ] (.. i " " t.name)))) 
+  (local tags-name (map tags (fn [t i ] (.. i 
+                                            " "
+                                            (screen-utils.get-name t.screen)
+                                            " " 
+                                            t.name)))) 
   (awful.spawn.easy_async 
     (..
       "bash -c '"
@@ -112,12 +117,13 @@
 
 (fn init []
   (print (inspect (cfg.load-cfg :tag {})))
+  (local def-tags (icollect [k _ (pairs (screen-utils.get-screens))]
+                    {:name "Default" 
+                     :screen (.. "interface:" k)})) 
   (local tag-config
     (cfg.load-cfg :tag {
-                                               :tags
-                                                 [ {:name "Default"}]}))
+                        :tags def-tags}))
   (each [_ tag-info (ipairs tag-config.tags)] 
-                                                 
     (create tag-info))) 
 
 (fn swap []
