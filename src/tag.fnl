@@ -84,13 +84,14 @@
                                             (screen-utils.get-name t.screen)
                                             " " 
                                             t.name)))) 
+  (print :select-tag-rofi-dpi (. (awful.screen.focused ) :dpi))
   (awful.spawn.easy_async 
     (..
       "bash -c '"
        "cat > /tmp/tags << EOL\n" 
        (table.concat tags-name "\n")
       "\nEOL\n"
-      "cat /tmp/tags | rofi -dmenu -p "
+      "cat /tmp/tags | rofi -dmenu -dpi " (. (awful.screen.focused ) :dpi) " -p "
       (or prompt "Select tag")
       "'") 
 

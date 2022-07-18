@@ -41,7 +41,7 @@
         (file:close)) 
       (do
         (print :failed-to-write path) 
-        (print :msg)))))  
+        (print msg)))))  
 
 { : load-cfg
   : save-cfg} 
