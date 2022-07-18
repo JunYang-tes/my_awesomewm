@@ -11,6 +11,7 @@
   [
    #(stringx.starts-with $1 "HDMI-")
    #(stringx.starts-with $1 "DP-") 
+   #(stringx.starts-with $1 "eDP-") 
    #(stringx.starts-with $1 "VGA-")]) 
 
 (fn parse-interface [screen]
@@ -41,6 +42,10 @@
                                   (awful.screen.focused)) 
       _ (awful.screen.focused)) 
     (awful.screen.focused))) 
-        
+
+(fn get-screens []
+  screens) 
+
 { : get-prefered-screen
-  : parse-interface} 
+  : parse-interface 
+  : get-screens} 

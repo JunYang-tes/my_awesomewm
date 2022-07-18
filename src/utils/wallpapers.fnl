@@ -2,7 +2,8 @@
 (local beautiful (require :beautiful))
 (local inspect (require :inspect)) 
 (local { : random } (require :utils.math)) 
-(local gears (require :gears)) 
+(local gears (require :gears))
+(local screen-utils (require :utils.screen))                             
 
 (print :wallpapers-path beautiful.wallpapers_path)
 (fn get-wallpapers []
@@ -39,8 +40,9 @@
       :call_now true
       :callback (fn [] 
                   (print :switch-wallpaper)
-                  (local wp (. wallpapers (random 1 (+ 1 (length wallpapers))))) 
-                  (gears.wallpaper.maximized wp))})) 
+                  (each [id screen (pairs (screen-utils.get-screens))]
+                    (local wp (. wallpapers (random 1 (+ 1 (length wallpapers))))) 
+                    (gears.wallpaper.maximized wp screen)))})) 
         
 { : get-random
   : auto-switch} 
