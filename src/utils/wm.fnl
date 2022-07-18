@@ -6,6 +6,9 @@
          : max-by} 
        (require :utils.list)) 
 (local inspect (require :inspect)) 
+ 
+(local xresources (require :beautiful.xresources))                                                    
+(local dpi xresources.apply_dpi) 
 
 (fn on-idle [f]
   (fn on-refresh [] 
@@ -69,4 +72,5 @@
 { : on-idle
   : focus 
   : get-focusable-client 
-  : get-by-direct} 
+  : get-by-direct 
+  : dpi} 

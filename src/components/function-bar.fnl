@@ -7,19 +7,20 @@
 (local { : assign! } (require :utils.table))                    
 (local ui (require :utils.ui)) 
 (local signal (require :utils.signal))                         
+(local { : dpi} (require :utils.wm))                   
+(local screen-utils (require :utils.screen))                         
 
-(local bar-height 40)
-(local bar-offset-y 30) 
+(local bar-height (dpi 40))
+(local bar-offset-y (dpi 30)) 
 
 (fn get-bar-geometry [] 
   (local screen (awful.screen.focused)) 
   (local { : width : height} screen.geometry)
-  (print height)
-  {
-   :x 0
-   :y (- height bar-height bar-offset-y) 
-   :height bar-height
-   :width width}) 
+  (print height) {
+                  :x 0
+                  :y (- height bar-height bar-offset-y) 
+                  :height bar-height
+                  :width width}) 
 
 (fn tag-indicator []
   (local tag-name (wibox.widget 
@@ -79,17 +80,27 @@
   (fn [] 
     (local screen (awful.screen.focused)) 
     (local {: width} (function-bar:geometry))
+    (local pos (screen-utils.calc-pos 
+                 screen 
+                (/ (- screen.geometry.width width) 2)
+                (- screen.geometry.height bar-offset-y bar-height)))
     (assign! 
       function-bar 
-      {
-       :x (/ (- screen.geometry.width width) 2)}))) 
+      pos))) 
 
 (fn toggle-visible []
   (local screen (awful.screen.focused)) 
+  (print :toggle-function-bar "@" (screen-utils.get-name screen))
   (local {: width} (function-bar:geometry))
+  (local pos (screen-utils.calc-pos 
+               screen 
+              (/ (- screen.geometry.width width) 2)
+              (- screen.geometry.height bar-offset-y bar-height))) 
+  (print :bar-pos pos.x pos.y)
   (assign! 
     function-bar 
     {:visible (not function-bar.visible) 
-     :x (/ (- screen.geometry.width width) 2)})) 
+     :x pos.x 
+     :y pos.y})) 
                  
 { : toggle-visible}

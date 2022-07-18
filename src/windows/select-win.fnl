@@ -3,6 +3,7 @@
 (local { : range : zip : filter } (require :utils.list))                         
 (local awesome-global (require :awesome-global)) 
 (local ui (require :utils.ui)) 
+(local {: dpi} (require :utils.wm))          
 
 (fn close-popup [popups]
   (each [_ p (pairs popups)] 
@@ -10,7 +11,7 @@
     (set p.popup nil))) 
 
 (fn show-mark-popup [letter client]
-  (local size 50)
+  (local size (dpi 50))
   (local x (+ client.x (/ client.width 2)))              
   (local y (+ client.y (/ client.height 2)))              
   (awful.popup {
@@ -25,7 +26,7 @@
                          
                 ;;:fg :#00ff00 
                 ;;:border_color :#00ff00
-                :shape (ui.rrect 10)
+                :shape (ui.rrect (dpi 10))
                 :ontop true 
                 :visible true 
                 :x x

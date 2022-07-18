@@ -49,7 +49,13 @@
 (fn get-screens []
   screens) 
 
+(fn calc-pos [s x y]
+  (local workarea s.workarea)
+  { :x (+ x workarea.x) 
+    :y (+ y workarea.y)}) 
+
 { : get-prefered-screen
   : parse-interface 
   : get-name 
+  : calc-pos 
   : get-screens} 

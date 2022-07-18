@@ -57,8 +57,11 @@
   (t:connect_signal "property::selected"
     (fn [tag] 
       (if tag.selected 
+        (do
           (signal.emit "tag::selected" tag) 
-          (save-tags)))) 
+          (save-tags) 
+          (awful.screen.focus tag.screen)
+          (print :focus-that-screen))))) 
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
@@ -106,6 +109,7 @@
                            
 
 (fn switch-tag [tag] 
+  (set tag.selected false)
   (tag:view_only)) 
 
 (fn switch-by-index [index]  
