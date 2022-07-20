@@ -149,9 +149,13 @@
                      (local tmp tag.name) 
                      (set tag.name tag2.name) 
                      (set tag2.name tmp))})) 
- 
+(fn delete [] 
+  (-> (awful.screen.focused) 
+      (. :selected_tag) 
+      (: :delete))) 
 
 { : create
+  : delete
   : init
   : name-tag 
   : switch-tag

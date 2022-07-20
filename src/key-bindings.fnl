@@ -198,6 +198,9 @@
   (key [modkey] "b" bar.toggle-visible 
        { :description "Toggle function bar" 
          :group "awesome"}) 
-  (key [modkey] "d" toggle-desktop 
+  (key [modkey] "d" tag.delete
+       { :description "Delete tag" 
+         :group :tag}) 
+  (key [modkey "Shift"] "d" toggle-desktop 
        { :description "Toggle desktop" 
          :group "awesome"})) 
