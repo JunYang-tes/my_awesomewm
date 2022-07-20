@@ -15,6 +15,7 @@
 (local cfg (require :utils.cfg)) 
 (local inspect (require :inspect)) 
 (local screen-utils (require :utils.screen))                                   
+(local {: select-item } (require :ui.select)) 
 
 (fn save-tags []
   (fn save []
@@ -120,6 +121,23 @@
 (fn view-tag []
   (select-tag { :on-selected switch-tag}))
 
+(fn move-to-screen []
+  (local screens (icollect [ k v (pairs (screen-utils.get-screens))]
+                   v)) 
+  (select-item 
+    { 
+      :items (-> screens 
+                 (map (fn [s] 
+                        (screen-utils.get-name s)))) 
+      :prompt "Select screen" 
+      :on-selected 
+        (fn [index] 
+          (local s (. screens index)) 
+          (local tag (wm.get-current-tag))
+          (print :move-to (screen-utils.get-name s)) 
+          (set tag.screen s))})) 
+           
+
 (fn init []
   (print (inspect (cfg.load-cfg :tag {})))
   (local def-tags (icollect [k _ (pairs (screen-utils.get-screens))]
@@ -150,4 +168,5 @@
   : select-tag
   : swap           
   : switch-by-index 
-  : view-tag}           
+  : view-tag           
+  : move-to-screen} 

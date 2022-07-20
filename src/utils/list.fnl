@@ -7,7 +7,9 @@
 
 (fn map [list f]
   (icollect [i v (ipairs list)] 
-    (f v i))) 
+    (do
+      (print :map i v)
+      (f v i)))) 
 
 (fn find [list predict?] 
   (var found nil) 

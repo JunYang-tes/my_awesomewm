@@ -69,8 +69,13 @@
       (. (max-by checked #(. $1 1)) 2) 
       item)) 
 
+(fn get-current-tag []
+  (local screen (awful.screen.focused)) 
+  screen.selected_tag) 
+
 { : on-idle
   : focus 
   : get-focusable-client 
   : get-by-direct 
+  : get-current-tag
   : dpi} 

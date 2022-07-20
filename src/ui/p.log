@@ -1,0 +1,2294 @@
+SCRIPT  /home/yj/.local/nvim-linux64/share/nvim/runtime/syntax/lsp_markdown.vim
+Sourced 1 time
+Total time:   0.043711
+ Self time:   0.000205
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language:	lsp_markdown
+                            " Maintainer:	Michael Lingelbach <m.j.lbach@gmail.com
+                            " URL:		http://neovim.io
+                            " Remark:	Uses markdown syntax file
+                            
+                            " always source the system included markdown instead of any other installed
+                            " markdown.vim syntax files
+    1   0.043604   0.000098 execute 'source' expand('<sfile>:p:h') .. '/markdown.vim'
+                            
+    1              0.000008 syn cluster mkdNonListItem add=mkdEscape,mkdNbsp
+                            
+    1              0.000002 syn clear markdownEscape
+    1              0.000020 syntax region markdownEscape matchgroup=markdownEscape start=/\\\ze[\\\x60*{}\[\]()#+\-,.!_>~|"$%&'\/:;<=?@^ ]/ end=/./ containedin=ALL keepend oneline concealends
+                            
+                            " conceal html entities
+    1              0.000008 syntax match mkdNbsp /&nbsp;/ conceal cchar= 
+    1              0.000007 syntax match mkdLt /&lt;/  conceal cchar=<
+    1              0.000008 syntax match mkdGt /&gt;/  conceal cchar=>
+    1              0.000007 syntax match mkdAmp /&amp;/  conceal cchar=&
+    1              0.000007 syntax match mkdQuot /&quot;/  conceal cchar="
+                            
+    1              0.000005 hi def link mkdEscape special
+
+SCRIPT  /home/yj/.local/nvim-linux64/share/nvim/runtime/syntax/markdown.vim
+Sourced 1 time
+Total time:   0.043484
+ Self time:   0.001880
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language:     Markdown
+                            " Maintainer:   Tim Pope <vimNOSPAM@tpope.org>
+                            " Filenames:    *.markdown
+                            " Last Change:  2020 Jan 14
+                            
+    1              0.000010 if exists("b:current_syntax")
+                              finish
+    1              0.000001 endif
+                            
+    1              0.000004 if !exists('main_syntax')
+    1              0.000018   let main_syntax = 'markdown'
+    1              0.000001 endif
+                            
+    1   0.042261   0.000657 runtime! syntax/html.vim
+    1              0.000006 unlet! b:current_syntax
+                            
+    1              0.000010 if !exists('g:markdown_fenced_languages')
+                              let g:markdown_fenced_languages = []
+    1              0.000002 endif
+    1              0.000008 let s:done_include = {}
+    1              0.000022 for s:type in map(copy(g:markdown_fenced_languages),'matchstr(v:val,"[^=]*$")')
+                              if has_key(s:done_include, matchstr(s:type,'[^.]*'))
+                                continue
+                              endif
+                              if s:type =~ '\.'
+                                let b:{matchstr(s:type,'[^.]*')}_subtype = matchstr(s:type,'\.\zs.*')
+                              endif
+                              exe 'syn include @markdownHighlight'.substitute(s:type,'\.','','g').' syntax/'.matchstr(s:type,'[^.]*').'.vim'
+                              unlet! b:current_syntax
+                              let s:done_include[matchstr(s:type,'[^.]*')] = 1
+    1              0.000004 endfor
+    1              0.000003 unlet! s:type
+    1              0.000004 unlet! s:done_include
+                            
+    1              0.000007 if !exists('g:markdown_minlines')
+                              let g:markdown_minlines = 50
+    1              0.000001 endif
+    1              0.000016 execute 'syn sync minlines=' . g:markdown_minlines
+    1              0.000002 syn case ignore
+                            
+    1              0.000022 syn match markdownValid '[<>]\c[a-z/$!]\@!' transparent contains=NONE
+    1              0.000017 syn match markdownValid '&\%(#\=\w*;\)\@!' transparent contains=NONE
+                            
+    1              0.000016 syn match markdownLineStart "^[<@]\@!" nextgroup=@markdownBlock,htmlSpecialChar
+                            
+    1              0.000019 syn cluster markdownBlock contains=markdownH1,markdownH2,markdownH3,markdownH4,markdownH5,markdownH6,markdownBlockquote,markdownListMarker,markdownOrderedListMarker,markdownCodeBlock,markdownRule
+    1              0.000020 syn cluster markdownInline contains=markdownLineBreak,markdownLinkText,markdownItalic,markdownBold,markdownCode,markdownEscape,@htmlTop,markdownError,markdownValid
+                            
+    1              0.000016 syn match markdownH1 "^.\+\n=\+$" contained contains=@markdownInline,markdownHeadingRule,markdownAutomaticLink
+    1              0.000013 syn match markdownH2 "^.\+\n-\+$" contained contains=@markdownInline,markdownHeadingRule,markdownAutomaticLink
+                            
+    1              0.000009 syn match markdownHeadingRule "^[=-]\+$" contained
+                            
+    1              0.000021 syn region markdownH1 matchgroup=markdownH1Delimiter start="##\@!"      end="#*\s*$" keepend oneline contains=@markdownInline,markdownAutomaticLink contained
+    1              0.000018 syn region markdownH2 matchgroup=markdownH2Delimiter start="###\@!"     end="#*\s*$" keepend oneline contains=@markdownInline,markdownAutomaticLink contained
+    1              0.000015 syn region markdownH3 matchgroup=markdownH3Delimiter start="####\@!"    end="#*\s*$" keepend oneline contains=@markdownInline,markdownAutomaticLink contained
+    1              0.000016 syn region markdownH4 matchgroup=markdownH4Delimiter start="#####\@!"   end="#*\s*$" keepend oneline contains=@markdownInline,markdownAutomaticLink contained
+    1              0.000015 syn region markdownH5 matchgroup=markdownH5Delimiter start="######\@!"  end="#*\s*$" keepend oneline contains=@markdownInline,markdownAutomaticLink contained
+    1              0.000014 syn region markdownH6 matchgroup=markdownH6Delimiter start="#######\@!" end="#*\s*$" keepend oneline contains=@markdownInline,markdownAutomaticLink contained
+                            
+    1              0.000010 syn match markdownBlockquote ">\%(\s\|$\)" contained nextgroup=@markdownBlock
+                            
+    1              0.000010 syn region markdownCodeBlock start="    \|\t" end="$" contained
+                            
+                            " TODO: real nesting
+    1              0.000015 syn match markdownListMarker "\%(\t\| \{0,4\}\)[-*+]\%(\s\+\S\)\@=" contained
+    1              0.000011 syn match markdownOrderedListMarker "\%(\t\| \{0,4}\)\<\d\+\.\%(\s\+\S\)\@=" contained
+                            
+    1              0.000008 syn match markdownRule "\* *\* *\*[ *]*$" contained
+    1              0.000007 syn match markdownRule "- *- *-[ -]*$" contained
+                            
+    1              0.000011 syn match markdownLineBreak " \{2,\}$"
+                            
+    1              0.000023 syn region markdownIdDeclaration matchgroup=markdownLinkDelimiter start="^ \{0,3\}!\=\[" end="\]:" oneline keepend nextgroup=markdownUrl skipwhite
+    1              0.000009 syn match markdownUrl "\S\+" nextgroup=markdownUrlTitle skipwhite contained
+    1              0.000013 syn region markdownUrl matchgroup=markdownUrlDelimiter start="<" end=">" oneline keepend nextgroup=markdownUrlTitle skipwhite contained
+    1              0.000010 syn region markdownUrlTitle matchgroup=markdownUrlTitleDelimiter start=+"+ end=+"+ keepend contained
+    1              0.000008 syn region markdownUrlTitle matchgroup=markdownUrlTitleDelimiter start=+'+ end=+'+ keepend contained
+    1              0.000007 syn region markdownUrlTitle matchgroup=markdownUrlTitleDelimiter start=+(+ end=+)+ keepend contained
+                            
+    1              0.000039 syn region markdownLinkText matchgroup=markdownLinkTextDelimiter start="!\=\[\%(\%(\_[^][]\|\[\_[^][]*\]\)*]\%( \=[[(]\)\)\@=" end="\]\%( \=[[(]\)\@=" nextgroup=markdownLink,markdownId skipwhite contains=@markdownInline,markdownLineStart
+    1              0.000012 syn region markdownLink matchgroup=markdownLinkDelimiter start="(" end=")" contains=markdownUrl keepend contained
+    1              0.000010 syn region markdownId matchgroup=markdownIdDelimiter start="\[" end="\]" keepend contained
+    1              0.000019 syn region markdownAutomaticLink matchgroup=markdownUrlDelimiter start="<\%(\w\+:\|[[:alnum:]_+-]\+@\)\@=" end=">" keepend oneline
+                            
+    1              0.000008 let s:concealends = ''
+    1              0.000015 if has('conceal') && get(g:, 'markdown_syntax_conceal', 1) == 1
+    1              0.000005   let s:concealends = ' concealends'
+    1              0.000003 endif
+    1              0.000044 exe 'syn region markdownItalic matchgroup=markdownItalicDelimiter start="\S\@<=\*\|\*\S\@=" end="\S\@<=\*\|\*\S\@=" skip="\\\*" contains=markdownLineStart,@Spell' . s:concealends
+    1              0.000035 exe 'syn region markdownItalic matchgroup=markdownItalicDelimiter start="\w\@<!_\S\@=" end="\S\@<=_\w\@!" skip="\\_" contains=markdownLineStart,@Spell' . s:concealends
+    1              0.000036 exe 'syn region markdownBold matchgroup=markdownBoldDelimiter start="\S\@<=\*\*\|\*\*\S\@=" end="\S\@<=\*\*\|\*\*\S\@=" skip="\\\*" contains=markdownLineStart,markdownItalic,@Spell' . s:concealends
+    1              0.000032 exe 'syn region markdownBold matchgroup=markdownBoldDelimiter start="\w\@<!__\S\@=" end="\S\@<=__\w\@!" skip="\\_" contains=markdownLineStart,markdownItalic,@Spell' . s:concealends
+    1              0.000050 exe 'syn region markdownBoldItalic matchgroup=markdownBoldItalicDelimiter start="\S\@<=\*\*\*\|\*\*\*\S\@=" end="\S\@<=\*\*\*\|\*\*\*\S\@=" skip="\\\*" contains=markdownLineStart,@Spell' . s:concealends
+    1              0.000036 exe 'syn region markdownBoldItalic matchgroup=markdownBoldItalicDelimiter start="\w\@<!___\S\@=" end="\S\@<=___\w\@!" skip="\\_" contains=markdownLineStart,@Spell' . s:concealends
+                            
+    1              0.000016 syn region markdownCode matchgroup=markdownCodeDelimiter start="`" end="`" keepend contains=markdownLineStart
+    1              0.000018 syn region markdownCode matchgroup=markdownCodeDelimiter start="`` \=" end=" \=``" keepend contains=markdownLineStart
+    1              0.000037 syn region markdownCode matchgroup=markdownCodeDelimiter start="^\s*````*.*$" end="^\s*````*\ze\s*$" keepend
+                            
+    1              0.000011 syn match markdownFootnote "\[^[^\]]\+\]"
+    1              0.000008 syn match markdownFootnoteDefinition "^\[^[^\]]\+\]:"
+                            
+    1              0.000005 if main_syntax ==# 'markdown'
+    1              0.000006   let s:done_include = {}
+    1              0.000005   for s:type in g:markdown_fenced_languages
+                                if has_key(s:done_include, matchstr(s:type,'[^.]*'))
+                                  continue
+                                endif
+                                exe 'syn region markdownHighlight'.substitute(matchstr(s:type,'[^=]*$'),'\..*','','').' matchgroup=markdownCodeDelimiter start="^\s*````*\s*\%({.\{-}\.\)\='.matchstr(s:type,'[^=]*').'}\=\S\@!.*$" end="^\s*````*\ze\s*$" keepend contains=@markdownHighlight'.substitute(matchstr(s:type,'[^=]*$'),'\.','','g') . s:concealends
+                                let s:done_include[matchstr(s:type,'[^.]*')] = 1
+    1              0.000002   endfor
+    1              0.000003   unlet! s:type
+    1              0.000003   unlet! s:done_include
+    1              0.000001 endif
+                            
+    1              0.000010 syn match markdownEscape "\\[][\\`*_{}()<>#+.!-]"
+    1              0.000008 syn match markdownError "\w\@<=_\w\@="
+                            
+    1              0.000004 hi def link markdownH1                    htmlH1
+    1              0.000003 hi def link markdownH2                    htmlH2
+    1              0.000002 hi def link markdownH3                    htmlH3
+    1              0.000002 hi def link markdownH4                    htmlH4
+    1              0.000002 hi def link markdownH5                    htmlH5
+    1              0.000002 hi def link markdownH6                    htmlH6
+    1              0.000002 hi def link markdownHeadingRule           markdownRule
+    1              0.000003 hi def link markdownH1Delimiter           markdownHeadingDelimiter
+    1              0.000002 hi def link markdownH2Delimiter           markdownHeadingDelimiter
+    1              0.000002 hi def link markdownH3Delimiter           markdownHeadingDelimiter
+    1              0.000002 hi def link markdownH4Delimiter           markdownHeadingDelimiter
+    1              0.000003 hi def link markdownH5Delimiter           markdownHeadingDelimiter
+    1              0.000002 hi def link markdownH6Delimiter           markdownHeadingDelimiter
+    1              0.000002 hi def link markdownHeadingDelimiter      Delimiter
+    1              0.000003 hi def link markdownOrderedListMarker     markdownListMarker
+    1              0.000002 hi def link markdownListMarker            htmlTagName
+    1              0.000002 hi def link markdownBlockquote            Comment
+    1              0.000002 hi def link markdownRule                  PreProc
+                            
+    1              0.000002 hi def link markdownFootnote              Typedef
+    1              0.000002 hi def link markdownFootnoteDefinition    Typedef
+                            
+    1              0.000002 hi def link markdownLinkText              htmlLink
+    1              0.000009 hi def link markdownIdDeclaration         Typedef
+    1              0.000002 hi def link markdownId                    Type
+    1              0.000002 hi def link markdownAutomaticLink         markdownUrl
+    1              0.000002 hi def link markdownUrl                   Float
+    1              0.000002 hi def link markdownUrlTitle              String
+    1              0.000002 hi def link markdownIdDelimiter           markdownLinkDelimiter
+    1              0.000002 hi def link markdownUrlDelimiter          htmlTag
+    1              0.000002 hi def link markdownUrlTitleDelimiter     Delimiter
+                            
+    1              0.000002 hi def link markdownItalic                htmlItalic
+    1              0.000002 hi def link markdownItalicDelimiter       markdownItalic
+    1              0.000002 hi def link markdownBold                  htmlBold
+    1              0.000002 hi def link markdownBoldDelimiter         markdownBold
+    1              0.000003 hi def link markdownBoldItalic            htmlBoldItalic
+    1              0.000002 hi def link markdownBoldItalicDelimiter   markdownBoldItalic
+    1              0.000002 hi def link markdownCodeDelimiter         Delimiter
+                            
+    1              0.000002 hi def link markdownEscape                Special
+    1              0.000002 hi def link markdownError                 Error
+                            
+    1              0.000004 let b:current_syntax = "markdown"
+    1              0.000004 if main_syntax ==# 'markdown'
+    1              0.000013   unlet main_syntax
+    1              0.000001 endif
+                            
+                            " vim:set sw=2:
+
+SCRIPT  /home/yj/.local/nvim-linux64/share/nvim/runtime/syntax/html.vim
+Sourced 1 time
+Total time:   0.041573
+ Self time:   0.007368
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language:             HTML
+                            " Previous Maintainer:  Jorge Maldonado Ventura <jorgesumle@freakspot.net>
+                            " Previous Maintainer:  Claudio Fleiner <claudio@fleiner.com>
+                            " Repository:           https://notabug.org/jorgesumle/vim-html-syntax
+                            " Last Change:          2021 Mar 02
+                            "			Included patch #7900 to fix comments
+                            "			Included patch #7916 to fix a few more things
+                            "
+                            
+                            " Please check :help html.vim for some comments and a description of the options
+                            
+                            " quit when a syntax file was already loaded
+    1              0.000011 if !exists("main_syntax")
+                              if exists("b:current_syntax")
+                                finish
+                              endif
+                              let main_syntax = 'html'
+    1              0.000002 endif
+                            
+    1              0.000017 let s:cpo_save = &cpo
+    1   0.000035   0.000028 set cpo&vim
+                            
+    1              0.000004 syntax spell toplevel
+                            
+    1              0.000002 syn case ignore
+                            
+                            " mark illegal characters
+    1              0.000017 syn match htmlError "[<>&]"
+                            
+                            
+                            " tags
+    1              0.000023 syn region  htmlString   contained start=+"+ end=+"+ contains=htmlSpecialChar,javaScriptExpression,@htmlPreproc
+    1              0.000013 syn region  htmlString   contained start=+'+ end=+'+ contains=htmlSpecialChar,javaScriptExpression,@htmlPreproc
+    1              0.000015 syn match   htmlValue    contained "=[\t ]*[^'" \t>][^ \t>]*"hs=s+1   contains=javaScriptExpression,@htmlPreproc
+    1              0.000014 syn region  htmlEndTag             start=+</+      end=+>+ contains=htmlTagN,htmlTagError
+    1              0.000021 syn region  htmlTag                start=+<[^/]+   end=+>+ fold contains=htmlTagN,htmlString,htmlArg,htmlValue,htmlTagError,htmlEvent,htmlCssDefinition,@htmlPreproc,@htmlArgCluster
+    1              0.000018 syn match   htmlTagN     contained +<\s*[-a-zA-Z0-9]\++hs=s+1 contains=htmlTagName,htmlSpecialTagName,@htmlTagNameCluster
+    1              0.000011 syn match   htmlTagN     contained +</\s*[-a-zA-Z0-9]\++hs=s+2 contains=htmlTagName,htmlSpecialTagName,@htmlTagNameCluster
+    1              0.000006 syn match   htmlTagError contained "[^>]<"ms=s+1
+                            
+                            
+                            " tag names
+    1              0.000010 syn keyword htmlTagName contained address applet area a base basefont
+    1              0.000006 syn keyword htmlTagName contained big blockquote br caption center
+    1              0.000010 syn keyword htmlTagName contained cite code dd dfn dir div dl dt font
+    1              0.000004 syn keyword htmlTagName contained form hr html img
+    1              0.000007 syn keyword htmlTagName contained input isindex kbd li link map menu
+    1              0.000007 syn keyword htmlTagName contained meta ol option param pre p samp span
+    1              0.000006 syn keyword htmlTagName contained select small sub sup
+    1              0.000024 syn keyword htmlTagName contained table td textarea th tr tt ul var xmp
+    1              0.000015 syn match htmlTagName contained "\<\(b\|i\|u\|h[1-6]\|em\|strong\|head\|body\|title\)\>"
+                            
+                            " new html 4.0 tags
+    1              0.000006 syn keyword htmlTagName contained abbr acronym bdo button col label
+    1              0.000005 syn keyword htmlTagName contained colgroup fieldset iframe ins legend
+    1              0.000006 syn keyword htmlTagName contained object optgroup q s tbody tfoot thead
+                            
+                            " new html 5 tags
+    1              0.000005 syn keyword htmlTagName contained article aside audio bdi canvas data
+    1              0.000005 syn keyword htmlTagName contained datalist details dialog embed figcaption
+    1              0.000005 syn keyword htmlTagName contained figure footer header hgroup keygen main
+    1              0.000006 syn keyword htmlTagName contained mark menuitem meter nav output picture
+    1              0.000006 syn keyword htmlTagName contained progress rb rp rt rtc ruby section
+    1              0.000006 syn keyword htmlTagName contained slot source summary template time track
+    1              0.000003 syn keyword htmlTagName contained video wbr
+                            
+                            " legal arg names
+    1              0.000003 syn keyword htmlArg contained action
+    1              0.000006 syn keyword htmlArg contained align alink alt archive background bgcolor
+    1              0.000005 syn keyword htmlArg contained border bordercolor cellpadding
+    1              0.000008 syn keyword htmlArg contained cellspacing checked class clear code codebase color
+    1              0.000007 syn keyword htmlArg contained cols colspan content coords enctype face
+    1              0.000005 syn keyword htmlArg contained gutter height hspace id
+    1              0.000004 syn keyword htmlArg contained link lowsrc marginheight
+    1              0.000005 syn keyword htmlArg contained marginwidth maxlength method name prompt
+    1              0.000007 syn keyword htmlArg contained rel rev rows rowspan scrolling selected shape
+    1              0.000006 syn keyword htmlArg contained size src start target text type url
+    1              0.000007 syn keyword htmlArg contained usemap ismap valign value vlink vspace width wrap
+    1              0.000011 syn match   htmlArg contained "\<\(http-equiv\|href\|title\)="me=e-1
+                            
+                            " aria attributes
+    1              0.000188 exe 'syn match htmlArg contained "\<aria-\%(' . join([
+                                \ 'activedescendant', 'atomic', 'autocomplete', 'busy', 'checked', 'colcount',
+                                \ 'colindex', 'colspan', 'controls', 'current', 'describedby', 'details',
+                                \ 'disabled', 'dropeffect', 'errormessage', 'expanded', 'flowto', 'grabbed',
+                                \ 'haspopup', 'hidden', 'invalid', 'keyshortcuts', 'label', 'labelledby', 'level',
+                                \ 'live', 'modal', 'multiline', 'multiselectable', 'orientation', 'owns',
+                                \ 'placeholder', 'posinset', 'pressed', 'readonly', 'relevant', 'required',
+                                \ 'roledescription', 'rowcount', 'rowindex', 'rowspan', 'selected', 'setsize',
+                                \ 'sort', 'valuemax', 'valuemin', 'valuenow', 'valuetext'
+                                \ ], '\|') . '\)\>"'
+    1              0.000005 syn keyword htmlArg contained role
+                            
+                            " Netscape extensions
+    1              0.000006 syn keyword htmlTagName contained frame noframes frameset nobr blink
+    1              0.000037 syn keyword htmlTagName contained layer ilayer nolayer spacer
+    1              0.000040 syn keyword htmlArg     contained frameborder noresize pagex pagey above below
+    1              0.000032 syn keyword htmlArg     contained left top visibility clip id noshade
+    1              0.000006 syn match   htmlArg     contained "\<z-index\>"
+                            
+                            " Microsoft extensions
+    1              0.000008 syn keyword htmlTagName contained marquee
+                            
+                            " html 4.0 arg names
+    1              0.000008 syn match   htmlArg contained "\<\(accept-charset\|label\)\>"
+    1              0.000037 syn keyword htmlArg contained abbr accept accesskey axis char charoff charset
+    1              0.000026 syn keyword htmlArg contained cite classid codetype compact data datetime
+    1              0.000025 syn keyword htmlArg contained declare defer dir disabled for frame
+    1              0.000030 syn keyword htmlArg contained headers hreflang lang language longdesc
+    1              0.000007 syn keyword htmlArg contained multiple nohref nowrap object profile readonly
+    1              0.000006 syn keyword htmlArg contained rules scheme scope span standby style
+    1              0.000005 syn keyword htmlArg contained summary tabindex valuetype version
+                            
+                            " html 5 arg names
+    1              0.000005 syn keyword htmlArg contained allowfullscreen async autocomplete autofocus
+    1              0.000006 syn keyword htmlArg contained autoplay challenge contenteditable contextmenu
+    1              0.000006 syn keyword htmlArg contained controls crossorigin default dirname download
+    1              0.000006 syn keyword htmlArg contained draggable dropzone form formaction formenctype
+    1              0.000005 syn keyword htmlArg contained formmethod formnovalidate formtarget hidden
+    1              0.000007 syn keyword htmlArg contained high icon inputmode keytype kind list loop low
+    1              0.000006 syn keyword htmlArg contained max min minlength muted nonce novalidate open
+    1              0.000005 syn keyword htmlArg contained optimum pattern placeholder poster preload
+    1              0.000006 syn keyword htmlArg contained radiogroup required reversed sandbox spellcheck
+    1              0.000006 syn keyword htmlArg contained sizes srcset srcdoc srclang step title translate
+    1              0.000003 syn keyword htmlArg contained typemustmatch
+                            
+                            " special characters
+    1              0.000018 syn match htmlSpecialChar "&#\=[0-9A-Za-z]\{1,8};"
+                            
+                            " Comments (the real ones or the old netscape ones)
+    1              0.000008 if exists("html_wrong_comments")
+                              syn region htmlComment        start=+<!--+    end=+--\s*>+    contains=@Spell
+    1              0.000003 else
+                              " The HTML 5.2 syntax 8.2.4.41: bogus comment is parser error; browser skips until next &gt
+    1              0.000014   syn region htmlComment        start=+<!+      end=+>+         contains=htmlCommentError keepend
+                              " Idem 8.2.4.42,51: Comment starts with <!-- and ends with -->
+                              " Idem 8.2.4.43,44: Except <!--> and <!---> are parser errors
+                              " Idem 8.2.4.52: dash-dash-bang (--!>) is error ignored by parser, also closes comment
+    1              0.000021   syn region htmlComment matchgroup=htmlComment start=+<!--\%(-\?>\)\@!+        end=+--!\?>+    contains=htmlCommentNested,@htmlPreProc,@Spell keepend
+                              " Idem 8.2.4.49: nested comment is parser error, except <!--> is all right
+    1              0.000006   syn match htmlCommentNested contained "<!-->\@!"
+    1              0.000005   syn match htmlCommentError  contained "[^><!]"
+    1              0.000002 endif
+    1              0.000009 syn region htmlComment  start=+<!DOCTYPE+       end=+>+ keepend
+                            
+                            " server-parsed commands
+    1              0.000013 syn region htmlPreProc start=+<!--#+ end=+-->+ contains=htmlPreStmt,htmlPreError,htmlPreAttr
+    1              0.000019 syn match htmlPreStmt contained "<!--#\(config\|echo\|exec\|fsize\|flastmod\|include\|printenv\|set\|if\|elif\|else\|endif\|geoguide\)\>"
+    1              0.000006 syn match htmlPreError contained "<!--#\S*"ms=s+4
+    1              0.000011 syn match htmlPreAttr contained "\w\+=[^"]\S\+" contains=htmlPreProcAttrError,htmlPreProcAttrName
+    1              0.000015 syn region htmlPreAttr contained start=+\w\+="+ skip=+\\\\\|\\"+ end=+"+ contains=htmlPreProcAttrName keepend
+    1              0.000005 syn match htmlPreProcAttrError contained "\w\+="he=e-1
+    1              0.000014 syn match htmlPreProcAttrName contained "\(expr\|errmsg\|sizefmt\|timefmt\|var\|cgi\|cmd\|file\|virtual\|value\)="he=e-1
+                            
+    1              0.000007 if !exists("html_no_rendering")
+                              " rendering
+    1              0.000015   syn cluster htmlTop contains=@Spell,htmlTag,htmlEndTag,htmlSpecialChar,htmlPreProc,htmlComment,htmlLink,javaScript,@htmlPreproc
+                            
+    1              0.000014   syn region htmlStrike start="<del\>" end="</del\_s*>"me=s-1 contains=@htmlTop
+    1              0.000012   syn region htmlStrike start="<strike\>" end="</strike\_s*>"me=s-1 contains=@htmlTop
+                            
+    1              0.000014   syn region htmlBold start="<b\>" end="</b\_s*>"me=s-1 contains=@htmlTop,htmlBoldUnderline,htmlBoldItalic
+    1              0.000014   syn region htmlBold start="<strong\>" end="</strong\_s*>"me=s-1 contains=@htmlTop,htmlBoldUnderline,htmlBoldItalic
+    1              0.000011   syn region htmlBoldUnderline contained start="<u\>" end="</u\_s*>"me=s-1 contains=@htmlTop,htmlBoldUnderlineItalic
+    1              0.000011   syn region htmlBoldItalic contained start="<i\>" end="</i\_s*>"me=s-1 contains=@htmlTop,htmlBoldItalicUnderline
+    1              0.000010   syn region htmlBoldItalic contained start="<em\>" end="</em\_s*>"me=s-1 contains=@htmlTop,htmlBoldItalicUnderline
+    1              0.000008   syn region htmlBoldUnderlineItalic contained start="<i\>" end="</i\_s*>"me=s-1 contains=@htmlTop
+    1              0.000008   syn region htmlBoldUnderlineItalic contained start="<em\>" end="</em\_s*>"me=s-1 contains=@htmlTop
+    1              0.000009   syn region htmlBoldItalicUnderline contained start="<u\>" end="</u\_s*>"me=s-1 contains=@htmlTop,htmlBoldUnderlineItalic
+                            
+    1              0.000013   syn region htmlUnderline start="<u\>" end="</u\_s*>"me=s-1 contains=@htmlTop,htmlUnderlineBold,htmlUnderlineItalic
+    1              0.000012   syn region htmlUnderlineBold contained start="<b\>" end="</b\_s*>"me=s-1 contains=@htmlTop,htmlUnderlineBoldItalic
+    1              0.000013   syn region htmlUnderlineBold contained start="<strong\>" end="</strong\_s*>"me=s-1 contains=@htmlTop,htmlUnderlineBoldItalic
+    1              0.000013   syn region htmlUnderlineItalic contained start="<i\>" end="</i\_s*>"me=s-1 contains=@htmlTop,htmlUnderlineItalicBold
+    1              0.000012   syn region htmlUnderlineItalic contained start="<em\>" end="</em\_s*>"me=s-1 contains=@htmlTop,htmlUnderlineItalicBold
+    1              0.000010   syn region htmlUnderlineItalicBold contained start="<b\>" end="</b\_s*>"me=s-1 contains=@htmlTop
+    1              0.000011   syn region htmlUnderlineItalicBold contained start="<strong\>" end="</strong\_s*>"me=s-1 contains=@htmlTop
+    1              0.000009   syn region htmlUnderlineBoldItalic contained start="<i\>" end="</i\_s*>"me=s-1 contains=@htmlTop
+    1              0.000010   syn region htmlUnderlineBoldItalic contained start="<em\>" end="</em\_s*>"me=s-1 contains=@htmlTop
+                            
+    1              0.000033   syn region htmlItalic start="<i\>" end="</i\_s*>"me=s-1 contains=@htmlTop,htmlItalicBold,htmlItalicUnderline
+    1              0.000012   syn region htmlItalic start="<em\>" end="</em\_s*>"me=s-1 contains=@htmlTop
+    1              0.000011   syn region htmlItalicBold contained start="<b\>" end="</b\_s*>"me=s-1 contains=@htmlTop,htmlItalicBoldUnderline
+    1              0.000010   syn region htmlItalicBold contained start="<strong\>" end="</strong\_s*>"me=s-1 contains=@htmlTop,htmlItalicBoldUnderline
+    1              0.000008   syn region htmlItalicBoldUnderline contained start="<u\>" end="</u\_s*>"me=s-1 contains=@htmlTop
+    1              0.000009   syn region htmlItalicUnderline contained start="<u\>" end="</u\_s*>"me=s-1 contains=@htmlTop,htmlItalicUnderlineBold
+    1              0.000009   syn region htmlItalicUnderlineBold contained start="<b\>" end="</b\_s*>"me=s-1 contains=@htmlTop
+    1              0.000009   syn region htmlItalicUnderlineBold contained start="<strong\>" end="</strong\_s*>"me=s-1 contains=@htmlTop
+                            
+    1              0.000006   syn match htmlLeadingSpace "^\s\+" contained
+    1              0.000023   syn region htmlLink start="<a\>\_[^>]*\<href\>" end="</a\_s*>"me=s-1 contains=@Spell,htmlTag,htmlEndTag,htmlSpecialChar,htmlPreProc,htmlComment,htmlLeadingSpace,javaScript,@htmlPreproc
+    1              0.000017   syn region htmlH1 start="<h1\>" end="</h1\_s*>"me=s-1 contains=@htmlTop
+    1              0.000010   syn region htmlH2 start="<h2\>" end="</h2\_s*>"me=s-1 contains=@htmlTop
+    1              0.000010   syn region htmlH3 start="<h3\>" end="</h3\_s*>"me=s-1 contains=@htmlTop
+    1              0.000012   syn region htmlH4 start="<h4\>" end="</h4\_s*>"me=s-1 contains=@htmlTop
+    1              0.000013   syn region htmlH5 start="<h5\>" end="</h5\_s*>"me=s-1 contains=@htmlTop
+    1              0.000014   syn region htmlH6 start="<h6\>" end="</h6\_s*>"me=s-1 contains=@htmlTop
+    1              0.000040   syn region htmlHead start="<head\>" end="</head\_s*>"me=s-1 end="<body\>"me=s-1 end="<h[1-6]\>"me=s-1 contains=htmlTag,htmlEndTag,htmlSpecialChar,htmlPreProc,htmlComment,htmlLink,htmlTitle,javaScript,cssStyle,@htmlPreproc
+    1              0.000019   syn region htmlTitle start="<title\>" end="</title\_s*>"me=s-1 contains=htmlTag,htmlEndTag,htmlSpecialChar,htmlPreProc,htmlComment,javaScript,@htmlPreproc
+    1              0.000002 endif
+                            
+    1              0.000005 syn keyword htmlTagName         contained noscript
+    1              0.000004 syn keyword htmlSpecialTagName  contained script style
+    1              0.000009 if main_syntax != 'java' || exists("java_javascript")
+                              " JAVA SCRIPT
+    1   0.001234   0.000586   syn include @htmlJavaScript syntax/javascript.vim
+    1              0.000004   unlet b:current_syntax
+    1              0.000031   syn region  javaScript start=+<script\_[^>]*>+ keepend end=+</script\_[^>]*>+me=s-1 contains=@htmlJavaScript,htmlCssStyleComment,htmlScriptTag,@htmlPreproc
+    1              0.000018   syn region  htmlScriptTag     contained start=+<script+ end=+>+ fold contains=htmlTagN,htmlString,htmlArg,htmlValue,htmlTagError,htmlEvent
+    1              0.000003   hi def link htmlScriptTag htmlTag
+                            
+                              " html events (i.e. arguments that include javascript commands)
+    1              0.000007   if exists("html_extended_events")
+                                syn region htmlEvent        contained start=+\<on\a\+\s*=[\t ]*'+ end=+'+ contains=htmlEventSQ
+                                syn region htmlEvent        contained start=+\<on\a\+\s*=[\t ]*"+ end=+"+ contains=htmlEventDQ
+    1              0.000002   else
+    1              0.000010     syn region htmlEvent        contained start=+\<on\a\+\s*=[\t ]*'+ end=+'+ keepend contains=htmlEventSQ
+    1              0.000009     syn region htmlEvent        contained start=+\<on\a\+\s*=[\t ]*"+ end=+"+ keepend contains=htmlEventDQ
+    1              0.000001   endif
+    1              0.000008   syn region htmlEventSQ        contained start=+'+ms=s+1 end=+'+me=s-1 contains=@htmlJavaScript
+    1              0.000009   syn region htmlEventDQ        contained start=+"+ms=s+1 end=+"+me=s-1 contains=@htmlJavaScript
+    1              0.000003   hi def link htmlEventSQ htmlEvent
+    1              0.000002   hi def link htmlEventDQ htmlEvent
+                            
+                              " a javascript expression is used as an arg value
+    1              0.000011   syn region  javaScriptExpression contained start=+&{+ keepend end=+};+ contains=@htmlJavaScript,@htmlPreproc
+    1              0.000001 endif
+                            
+    1              0.000006 if main_syntax != 'java' || exists("java_vb")
+                              " VB SCRIPT
+    1   0.006316   0.000537   syn include @htmlVbScript syntax/vb.vim
+    1              0.000007   unlet b:current_syntax
+    1              0.000031   syn region  javaScript start=+<script \_[^>]*language *=\_[^>]*vbscript\_[^>]*>+ keepend end=+</script\_[^>]*>+me=s-1 contains=@htmlVbScript,htmlCssStyleComment,htmlScriptTag,@htmlPreproc
+    1              0.000002 endif
+                            
+    1              0.000007 syn cluster htmlJavaScript      add=@htmlPreproc
+                            
+    1              0.000011 if main_syntax != 'java' || exists("java_css")
+                              " embedded style sheets
+    1              0.000005   syn keyword htmlArg           contained media
+    1   0.028559   0.000793   syn include @htmlCss syntax/css.vim
+    1              0.000003   unlet b:current_syntax
+    1              0.000023   syn region cssStyle start=+<style+ keepend end=+</style>+ contains=@htmlCss,htmlTag,htmlEndTag,htmlCssStyleComment,@htmlPreproc
+    1              0.000008   syn match htmlCssStyleComment contained "\(<!--\|-->\)"
+    1              0.003168   syn region htmlCssDefinition matchgroup=htmlArg start='style="' keepend matchgroup=htmlString end='"' contains=css.*Attr,css.*Prop,cssComment,cssLength,cssColor,cssURL,cssImportant,cssError,cssString,@htmlPreproc
+    1              0.000006   hi def link htmlStyleArg htmlString
+    1              0.000002 endif
+                            
+    1              0.000006 if main_syntax == "html"
+                              " synchronizing (does not always work if a comment includes legal
+                              " html tags, but doing it right would mean to always start
+                              " at the first line, which is too slow)
+                              syn sync match htmlHighlight groupthere NONE "<[/a-zA-Z]"
+                              syn sync match htmlHighlight groupthere javaScript "<script"
+                              syn sync match htmlHighlightSkip "^.*['\"].*$"
+                              syn sync minlines=10
+    1              0.000001 endif
+                            
+                            " The default highlighting.
+    1              0.000003 hi def link htmlTag                     Function
+    1              0.000002 hi def link htmlEndTag                  Identifier
+    1              0.000002 hi def link htmlArg                     Type
+    1              0.000002 hi def link htmlTagName                 htmlStatement
+    1              0.000002 hi def link htmlSpecialTagName          Exception
+    1              0.000002 hi def link htmlValue                   String
+    1              0.000002 hi def link htmlSpecialChar             Special
+                            
+    1              0.000008 if !exists("html_no_rendering")
+    1              0.000002   hi def link htmlH1                      Title
+    1              0.000002   hi def link htmlH2                      htmlH1
+    1              0.000002   hi def link htmlH3                      htmlH2
+    1              0.000001   hi def link htmlH4                      htmlH3
+    1              0.000002   hi def link htmlH5                      htmlH4
+    1              0.000002   hi def link htmlH6                      htmlH5
+    1              0.000002   hi def link htmlHead                    PreProc
+    1              0.000002   hi def link htmlTitle                   Title
+    1              0.000002   hi def link htmlBoldItalicUnderline     htmlBoldUnderlineItalic
+    1              0.000003   hi def link htmlUnderlineBold           htmlBoldUnderline
+    1              0.000002   hi def link htmlUnderlineItalicBold     htmlBoldUnderlineItalic
+    1              0.000008   hi def link htmlUnderlineBoldItalic     htmlBoldUnderlineItalic
+    1              0.000003   hi def link htmlItalicUnderline         htmlUnderlineItalic
+    1              0.000002   hi def link htmlItalicBold              htmlBoldItalic
+    1              0.000002   hi def link htmlItalicBoldUnderline     htmlBoldUnderlineItalic
+    1              0.000002   hi def link htmlItalicUnderlineBold     htmlBoldUnderlineItalic
+    1              0.000002   hi def link htmlLink                    Underlined
+    1              0.000002   hi def link htmlLeadingSpace            None
+    1              0.000004   if !exists("html_my_rendering")
+    1              0.000003     hi def htmlBold                term=bold cterm=bold gui=bold
+    1              0.000003     hi def htmlBoldUnderline       term=bold,underline cterm=bold,underline gui=bold,underline
+    1              0.000002     hi def htmlBoldItalic          term=bold,italic cterm=bold,italic gui=bold,italic
+    1              0.000003     hi def htmlBoldUnderlineItalic term=bold,italic,underline cterm=bold,italic,underline gui=bold,italic,underline
+    1              0.000002     hi def htmlUnderline           term=underline cterm=underline gui=underline
+    1              0.000002     hi def htmlUnderlineItalic     term=italic,underline cterm=italic,underline gui=italic,underline
+    1              0.000002     hi def htmlItalic              term=italic cterm=italic gui=italic
+    1              0.000015     if v:version > 800 || v:version == 800 && has("patch1038")
+    1              0.000004         hi def htmlStrike              term=strikethrough cterm=strikethrough gui=strikethrough
+                                else
+                                    hi def htmlStrike              term=underline cterm=underline gui=underline
+    1              0.000002     endif
+    1              0.000002   endif
+    1              0.000001 endif
+                            
+    1              0.000003 hi def link htmlPreStmt            PreProc
+    1              0.000003 hi def link htmlPreError           Error
+    1              0.000002 hi def link htmlPreProc            PreProc
+    1              0.000002 hi def link htmlPreAttr            String
+    1              0.000002 hi def link htmlPreProcAttrName    PreProc
+    1              0.000003 hi def link htmlPreProcAttrError   Error
+    1              0.000002 hi def link htmlString             String
+    1              0.000003 hi def link htmlStatement          Statement
+    1              0.000002 hi def link htmlComment            Comment
+    1              0.000002 hi def link htmlCommentNested      htmlError
+    1              0.000002 hi def link htmlCommentError       htmlError
+    1              0.000002 hi def link htmlTagError           htmlError
+    1              0.000002 hi def link htmlEvent              javaScript
+    1              0.000002 hi def link htmlError              Error
+                            
+    1              0.000003 hi def link javaScript             Special
+    1              0.000003 hi def link javaScriptExpression   javaScript
+    1              0.000003 hi def link htmlCssStyleComment    Comment
+    1              0.000003 hi def link htmlCssDefinition      Special
+                            
+    1              0.000006 let b:current_syntax = "html"
+                            
+    1              0.000004 if main_syntax == 'html'
+                              unlet main_syntax
+    1              0.000001 endif
+                            
+    1   0.000029   0.000024 let &cpo = s:cpo_save
+    1              0.000005 unlet s:cpo_save
+                            " vim: ts=8
+
+SCRIPT  /home/yj/.local/nvim-linux64/share/nvim/runtime/syntax/javascript.vim
+Sourced 1 time
+Total time:   0.000630
+ Self time:   0.000619
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language:	JavaScript
+                            " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
+                            " Updaters:	Scott Shattuck (ss) <ss@technicalpursuit.com>
+                            " URL:		http://www.fleiner.com/vim/syntax/javascript.vim
+                            " Changes:	(ss) added keywords, reserved words, and other identifiers
+                            "		(ss) repaired several quoting and grouping glitches
+                            "		(ss) fixed regex parsing issue with multiple qualifiers [gi]
+                            "		(ss) additional factoring of keywords, globals, and members
+                            " Last Change:	2021 Mar 30
+                            " 		2013 Jun 12: adjusted javaScriptRegexpString (Kevin Locke)
+                            " 		2018 Apr 14: adjusted javaScriptRegexpString (LongJohnCoder)
+                            
+                            " tuning parameters:
+                            " unlet javaScript_fold
+                            
+    1              0.000008 if !exists("main_syntax")
+                              " quit when a syntax file was already loaded
+                              if exists("b:current_syntax")
+                                finish
+                              endif
+                              let main_syntax = 'javascript'
+    1              0.000008 elseif exists("b:current_syntax") && b:current_syntax == "javascript"
+                              finish
+    1              0.000001 endif
+                            
+    1              0.000014 let s:cpo_save = &cpo
+    1   0.000026   0.000020 set cpo&vim
+                            
+                            
+    1              0.000008 syn keyword javaScriptCommentTodo      TODO FIXME XXX TBD contained
+    1              0.000013 syn match   javaScriptLineComment      "\/\/.*" contains=@Spell,javaScriptCommentTodo
+    1              0.000012 syn match   javaScriptCommentSkip      "^[ \t]*\*\($\|[ \t]\+\)"
+    1              0.000013 syn region  javaScriptComment	       start="/\*"  end="\*/" contains=@Spell,javaScriptCommentTodo
+    1              0.000008 syn match   javaScriptSpecial	       "\\\d\d\d\|\\."
+    1              0.000016 syn region  javaScriptStringD	       start=+"+  skip=+\\\\\|\\"+  end=+"\|$+	contains=javaScriptSpecial,@htmlPreproc
+    1              0.000015 syn region  javaScriptStringS	       start=+'+  skip=+\\\\\|\\'+  end=+'\|$+	contains=javaScriptSpecial,@htmlPreproc
+    1              0.000016 syn region  javaScriptStringT	       start=+`+  skip=+\\\\\|\\`+  end=+`+	contains=javaScriptSpecial,javaScriptEmbed,@htmlPreproc
+                            
+    1              0.000011 syn region  javaScriptEmbed	       start=+${+  end=+}+	contains=@javaScriptEmbededExpr
+                            
+    1              0.000006 syn match   javaScriptSpecialCharacter "'\\.'"
+    1              0.000011 syn match   javaScriptNumber	       "-\=\<\d\+L\=\>\|0[xX][0-9a-fA-F]\+\>"
+    1              0.000008 syn match   javaScriptNumber	       "-\=\<\d\+\%(_\d\+\)*\>"
+    1              0.000034 syn region  javaScriptRegexpString     start=+[,(=+]\s*/[^/*]+ms=e-1,me=e-1 skip=+\\\\\|\\/+ end=+/[gimuys]\{0,2\}\s*$+ end=+/[gimuys]\{0,2\}\s*[+;.,)\]}]+me=e-1 end=+/[gimuys]\{0,2\}\s\+\/+me=e-1 contains=@htmlPreproc,javaScriptComment oneline
+                            
+    1              0.000007 syn keyword javaScriptConditional	if else switch
+    1              0.000006 syn keyword javaScriptRepeat		while for do in
+    1              0.000005 syn keyword javaScriptBranch		break continue
+    1              0.000007 syn keyword javaScriptOperator		new delete instanceof typeof
+    1              0.000009 syn keyword javaScriptType		Array Boolean Date Function Number Object String RegExp
+    1              0.000005 syn keyword javaScriptStatement		return with await
+    1              0.000004 syn keyword javaScriptBoolean		true false
+    1              0.000004 syn keyword javaScriptNull		null undefined
+    1              0.000006 syn keyword javaScriptIdentifier	arguments this var let
+    1              0.000006 syn keyword javaScriptLabel		case default
+    1              0.000006 syn keyword javaScriptException		try catch finally throw
+    1              0.000006 syn keyword javaScriptMessage		alert confirm prompt status
+    1              0.000006 syn keyword javaScriptGlobal		self window top parent
+    1              0.000006 syn keyword javaScriptMember		document event location 
+    1              0.000007 syn keyword javaScriptDeprecated	escape unescape
+    1              0.000025 syn keyword javaScriptReserved		abstract boolean byte char class const debugger double enum export extends final float goto implements import int interface long native package private protected public short static super synchronized throws transient volatile async
+                            
+    1              0.000011 syn cluster  javaScriptEmbededExpr	contains=javaScriptBoolean,javaScriptNull,javaScriptIdentifier,javaScriptStringD,javaScriptStringS,javaScriptStringT
+                            
+    1              0.000006 if exists("javaScript_fold")
+                                syn match	javaScriptFunction	"\<function\>"
+                                syn region	javaScriptFunctionFold	start="\<function\>.*[^};]$" end="^\z1}.*$" transparent fold keepend
+                            
+                                syn sync match javaScriptSync	grouphere javaScriptFunctionFold "\<function\>"
+                                syn sync match javaScriptSync	grouphere NONE "^}"
+                            
+                                setlocal foldmethod=syntax
+                                setlocal foldtext=getline(v:foldstart)
+    1              0.000002 else
+    1              0.000006     syn keyword javaScriptFunction	function
+    1              0.000008     syn match	javaScriptBraces	   "[{}\[\]]"
+    1              0.000006     syn match	javaScriptParens	   "[()]"
+    1              0.000001 endif
+                            
+    1              0.000005 if main_syntax == "javascript"
+                              syn sync fromstart
+                              syn sync maxlines=100
+                            
+                              syn sync ccomment javaScriptComment
+    1              0.000001 endif
+                            
+                            " Define the default highlighting.
+                            " Only when an item doesn't have highlighting yet
+    1              0.000005 hi def link javaScriptComment		Comment
+    1              0.000003 hi def link javaScriptLineComment		Comment
+    1              0.000002 hi def link javaScriptCommentTodo		Todo
+    1              0.000002 hi def link javaScriptSpecial		Special
+    1              0.000003 hi def link javaScriptStringS		String
+    1              0.000002 hi def link javaScriptStringD		String
+    1              0.000002 hi def link javaScriptStringT		String
+    1              0.000003 hi def link javaScriptCharacter		Character
+    1              0.000003 hi def link javaScriptSpecialCharacter	javaScriptSpecial
+    1              0.000002 hi def link javaScriptNumber		javaScriptValue
+    1              0.000002 hi def link javaScriptConditional		Conditional
+    1              0.000002 hi def link javaScriptRepeat		Repeat
+    1              0.000002 hi def link javaScriptBranch		Conditional
+    1              0.000002 hi def link javaScriptOperator		Operator
+    1              0.000002 hi def link javaScriptType			Type
+    1              0.000002 hi def link javaScriptStatement		Statement
+    1              0.000002 hi def link javaScriptFunction		Function
+    1              0.000002 hi def link javaScriptBraces		Function
+    1              0.000002 hi def link javaScriptError		Error
+    1              0.000002 hi def link javaScrParenError		javaScriptError
+    1              0.000002 hi def link javaScriptNull			Keyword
+    1              0.000002 hi def link javaScriptBoolean		Boolean
+    1              0.000002 hi def link javaScriptRegexpString		String
+                            
+    1              0.000002 hi def link javaScriptIdentifier		Identifier
+    1              0.000002 hi def link javaScriptLabel		Label
+    1              0.000002 hi def link javaScriptException		Exception
+    1              0.000002 hi def link javaScriptMessage		Keyword
+    1              0.000002 hi def link javaScriptGlobal		Keyword
+    1              0.000002 hi def link javaScriptMember		Keyword
+    1              0.000002 hi def link javaScriptDeprecated		Exception 
+    1              0.000002 hi def link javaScriptReserved		Keyword
+    1              0.000002 hi def link javaScriptDebug		Debug
+    1              0.000002 hi def link javaScriptConstant		Label
+    1              0.000002 hi def link javaScriptEmbed		Special
+                            
+                            
+                            
+    1              0.000005 let b:current_syntax = "javascript"
+    1              0.000004 if main_syntax == 'javascript'
+                              unlet main_syntax
+    1              0.000001 endif
+    1   0.000023   0.000018 let &cpo = s:cpo_save
+    1              0.000005 unlet s:cpo_save
+                            
+                            " vim: ts=8
+
+SCRIPT  /home/yj/.local/nvim-linux64/share/nvim/runtime/syntax/vb.vim
+Sourced 1 time
+Total time:   0.005762
+ Self time:   0.005762
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language:     Visual Basic
+                            " Maintainer:   Doug Kearns <dougkearns@gmail.com>
+                            " Former Maintainer:    Tim Chase <vb.vim@tim.thechases.com>
+                            " Former Maintainer:    Robert M. Cortopassi <cortopar@mindspring.com>
+                            "       (tried multiple times to contact, but email bounced)
+                            " Last Change:
+                            "   2021 Nov 26  Incorporated additions from Doug Kearns
+                            "   2005 May 25  Synched with work by Thomas Barthel
+                            "   2004 May 30  Added a few keywords
+                            
+                            " This was thrown together after seeing numerous requests on the
+                            " VIM and VIM-DEV mailing lists.  It is by no means complete.
+                            " Send comments, suggestions and requests to the maintainer.
+                            
+                            " quit when a syntax file was already loaded
+    1              0.000007 if exists("b:current_syntax")
+                                    finish
+    1              0.000001 endif
+                            
+                            " VB is case insensitive
+    1              0.000002 syn case ignore
+                            
+    1              0.000009 syn keyword vbConditional If Then ElseIf Else Select Case
+                            
+    1              0.000008 syn keyword vbOperator AddressOf And ByRef ByVal Eqv Imp In
+    1              0.000007 syn keyword vbOperator Is Like Mod Not Or To Xor
+                            
+    1              0.000009 syn match vbOperator "[()+.,\-/*=&]"
+    1              0.000006 syn match vbOperator "[<>]=\="
+    1              0.000004 syn match vbOperator "<>"
+    1              0.000005 syn match vbOperator "\s\+_$"
+                            
+    1              0.000005 syn keyword vbBoolean  True False
+    1              0.000005 syn keyword vbConst Null Nothing
+                            
+    1              0.000006 syn keyword vbRepeat Do For ForEach Loop Next
+    1              0.000005 syn keyword vbRepeat Step To Until Wend While
+                            
+    1              0.000005 syn keyword vbEvents AccessKeyPress Activate ActiveRowChanged
+    1              0.000006 syn keyword vbEvents AfterAddFile AfterChangeFileName AfterCloseFile
+    1              0.000004 syn keyword vbEvents AfterColEdit AfterColUpdate AfterDelete
+    1              0.000004 syn keyword vbEvents AfterInsert AfterLabelEdit AfterRemoveFile
+    1              0.000004 syn keyword vbEvents AfterUpdate AfterWriteFile AmbientChanged
+    1              0.000004 syn keyword vbEvents ApplyChanges Associate AsyncProgress
+    1              0.000005 syn keyword vbEvents AsyncReadComplete AsyncReadProgress AxisActivated
+    1              0.000004 syn keyword vbEvents AxisLabelActivated AxisLabelSelected
+    1              0.000005 syn keyword vbEvents AxisLabelUpdated AxisSelected AxisTitleActivated
+    1              0.000004 syn keyword vbEvents AxisTitleSelected AxisTitleUpdated AxisUpdated
+    1              0.000004 syn keyword vbEvents BeforeClick BeforeColEdit BeforeColUpdate
+    1              0.000004 syn keyword vbEvents BeforeConnect BeforeDelete BeforeInsert
+    1              0.000004 syn keyword vbEvents BeforeLabelEdit BeforeLoadFile BeforeUpdate
+    1              0.000004 syn keyword vbEvents BeginRequest BeginTrans ButtonClick
+    1              0.000005 syn keyword vbEvents ButtonCompleted ButtonDropDown ButtonGotFocus
+    1              0.000005 syn keyword vbEvents ButtonLostFocus CallbackKeyDown Change Changed
+    1              0.000005 syn keyword vbEvents ChartActivated ChartSelected ChartUpdated Click
+    1              0.000006 syn keyword vbEvents Close CloseQuery CloseUp ColEdit ColResize
+    1              0.000005 syn keyword vbEvents Collapse ColumnClick CommitTrans Compare
+    1              0.000004 syn keyword vbEvents ConfigChageCancelled ConfigChanged
+    1              0.000005 syn keyword vbEvents ConfigChangedCancelled Connect ConnectionRequest
+    1              0.000004 syn keyword vbEvents CurrentRecordChanged DECommandAdded
+    1              0.000004 syn keyword vbEvents DECommandPropertyChanged DECommandRemoved
+    1              0.000004 syn keyword vbEvents DEConnectionAdded DEConnectionPropertyChanged
+    1              0.000004 syn keyword vbEvents DEConnectionRemoved DataArrival DataChanged
+    1              0.000005 syn keyword vbEvents DataUpdated DateClicked DblClick Deactivate
+    1              0.000004 syn keyword vbEvents DevModeChange DeviceArrival DeviceOtherEvent
+    1              0.000004 syn keyword vbEvents DeviceQueryRemove DeviceQueryRemoveFailed
+    1              0.000004 syn keyword vbEvents DeviceRemoveComplete DeviceRemovePending
+    1              0.000004 syn keyword vbEvents Disconnect DisplayChanged Dissociate
+    1              0.000005 syn keyword vbEvents DoGetNewFileName Done DonePainting DownClick
+    1              0.000005 syn keyword vbEvents DragDrop DragOver DropDown EditProperty EditQuery
+    1              0.000005 syn keyword vbEvents EndRequest EnterCell EnterFocus ExitFocus Expand
+    1              0.000005 syn keyword vbEvents FontChanged FootnoteActivated FootnoteSelected
+    1              0.000005 syn keyword vbEvents FootnoteUpdated Format FormatSize GotFocus
+    1              0.000005 syn keyword vbEvents HeadClick HeightChanged Hide InfoMessage
+    1              0.000004 syn keyword vbEvents IniProperties InitProperties Initialize
+    1              0.000004 syn keyword vbEvents ItemActivated ItemAdded ItemCheck ItemClick
+    1              0.000004 syn keyword vbEvents ItemReloaded ItemRemoved ItemRenamed
+    1              0.000006 syn keyword vbEvents ItemSeletected KeyDown KeyPress KeyUp LeaveCell
+    1              0.000004 syn keyword vbEvents LegendActivated LegendSelected LegendUpdated
+    1              0.000045 syn keyword vbEvents LinkClose LinkError LinkExecute LinkNotify
+    1              0.000010 syn keyword vbEvents LinkOpen Load LostFocus MouseDown MouseMove
+    1              0.000014 syn keyword vbEvents MouseUp NodeCheck NodeClick OLECompleteDrag
+    1              0.000009 syn keyword vbEvents OLEDragDrop OLEDragOver OLEGiveFeedback OLESetData
+    1              0.000007 syn keyword vbEvents OLEStartDrag ObjectEvent ObjectMove OnAddNew
+    1              0.000008 syn keyword vbEvents OnComm Paint PanelClick PanelDblClick PathChange
+    1              0.000007 syn keyword vbEvents PatternChange PlotActivated PlotSelected
+    1              0.000008 syn keyword vbEvents PlotUpdated PointActivated PointLabelActivated
+    1              0.000005 syn keyword vbEvents PointLabelSelected PointLabelUpdated PointSelected
+    1              0.000004 syn keyword vbEvents PointUpdated PowerQuerySuspend PowerResume
+    1              0.000004 syn keyword vbEvents PowerStatusChanged PowerSuspend ProcessTag
+    1              0.000005 syn keyword vbEvents ProcessingTimeout QueryChangeConfig QueryClose
+    1              0.000007 syn keyword vbEvents QueryComplete QueryCompleted QueryTimeout
+    1              0.000008 syn keyword vbEvents QueryUnload ReadProperties RepeatedControlLoaded
+    1              0.000006 syn keyword vbEvents RepeatedControlUnloaded Reposition
+    1              0.000004 syn keyword vbEvents RequestChangeFileName RequestWriteFile Resize
+    1              0.000005 syn keyword vbEvents ResultsChanged RetainedProject RollbackTrans
+    1              0.000004 syn keyword vbEvents RowColChange RowCurrencyChange RowResize
+    1              0.000006 syn keyword vbEvents RowStatusChanged Scroll SelChange SelectionChanged
+    1              0.000007 syn keyword vbEvents SendComplete SendProgress SeriesActivated
+    1              0.000009 syn keyword vbEvents SeriesSelected SeriesUpdated SettingChanged Show
+    1              0.000005 syn keyword vbEvents SplitChange Start StateChanged StatusUpdate
+    1              0.000006 syn keyword vbEvents SysColorsChanged Terminate TimeChanged Timer
+    1              0.000005 syn keyword vbEvents TitleActivated TitleSelected TitleUpdated
+    1              0.000004 syn keyword vbEvents UnboundAddData UnboundDeleteRow
+    1              0.000004 syn keyword vbEvents UnboundGetRelativeBookmark UnboundReadData
+    1              0.000005 syn keyword vbEvents UnboundWriteData Unformat Unload UpClick Updated
+    1              0.000004 syn keyword vbEvents UserEvent Validate ValidationError
+    1              0.000004 syn keyword vbEvents VisibleRecordChanged WillAssociate WillChangeData
+    1              0.000004 syn keyword vbEvents WillDissociate WillExecute WillUpdateRows
+    1              0.000003 syn keyword vbEvents WriteProperties
+                            
+                            
+    1              0.000008 syn keyword vbFunction Abs Array Asc AscB AscW Atn Avg BOF CBool CByte
+    1              0.000008 syn keyword vbFunction CCur CDate CDbl CInt CLng CSng CStr CVDate CVErr
+    1              0.000007 syn keyword vbFunction CVar CallByName Cdec Choose Chr ChrB ChrW Command
+    1              0.000007 syn keyword vbFunction Cos Count CreateObject CurDir DDB Date DateAdd
+    1              0.000006 syn keyword vbFunction DateDiff DatePart DateSerial DateValue Day Dir
+    1              0.000007 syn keyword vbFunction DoEvents EOF Environ Error Exp FV FileAttr
+    1              0.000005 syn keyword vbFunction FileDateTime FileLen FilterFix Fix Format
+    1              0.000005 syn keyword vbFunction FormatCurrency FormatDateTime FormatNumber
+    1              0.000005 syn keyword vbFunction FormatPercent FreeFile GetAllStrings GetAttr
+    1              0.000005 syn keyword vbFunction GetAutoServerSettings GetObject GetSetting Hex
+    1              0.000006 syn keyword vbFunction Hour IIf IMEStatus IPmt InStr Input InputB
+    1              0.000006 syn keyword vbFunction InputBox InstrB Int IsArray IsDate IsEmpty IsError
+    1              0.000006 syn keyword vbFunction IsMissing IsNull IsNumeric IsObject Join LBound
+    1              0.000204 syn keyword vbFunction LCase LOF LTrim Left LeftB Len LenB LoadPicture
+    1              0.000133 syn keyword vbFunction LoadResData LoadResPicture LoadResString Loc Log
+    1              0.000149 syn keyword vbFunction MIRR Max Mid MidB Min Minute Month MonthName
+    1              0.000219 syn keyword vbFunction MsgBox NPV NPer Now Oct PPmt PV Partition Pmt
+    1              0.000191 syn keyword vbFunction QBColor RGB RTrim Rate Replace Right RightB Rnd
+    1              0.000239 syn keyword vbFunction Round SLN SYD Second Seek Sgn Shell Sin Space Spc
+    1              0.000167 syn keyword vbFunction Split Sqr StDev StDevP Str StrComp StrConv
+    1              0.000101 syn keyword vbFunction StrReverse String Sum Switch Tab Tan Time
+    1              0.000123 syn keyword vbFunction TimeSerial TimeValue Timer Trim TypeName UBound
+    1              0.000148 syn keyword vbFunction UCase Val Var VarP VarType Weekday WeekdayName
+    1              0.000027 syn keyword vbFunction Year
+                            
+    1              0.000100 syn keyword vbMethods AboutBox Accept Activate Add AddCustom AddFile
+    1              0.000076 syn keyword vbMethods AddFromFile AddFromGuid AddFromString
+    1              0.000100 syn keyword vbMethods AddFromTemplate AddItem AddNew AddToAddInToolbar
+    1              0.000076 syn keyword vbMethods AddToolboxProgID Append AppendAppendChunk
+    1              0.000120 syn keyword vbMethods AppendChunk Arrange Assert AsyncRead BatchUpdate
+    1              0.000074 syn keyword vbMethods BeginQueryEdit BeginTrans Bind BuildPath
+    1              0.000075 syn keyword vbMethods CanPropertyChange Cancel CancelAsyncRead
+    1              0.000097 syn keyword vbMethods CancelBatch CancelUpdate CaptureImage CellText
+    1              0.000102 syn keyword vbMethods CellValue Circle Clear ClearFields ClearSel
+    1              0.000105 syn keyword vbMethods ClearSelCols ClearStructure Clone Close Cls
+    1              0.000098 syn keyword vbMethods ColContaining CollapseAll ColumnSize CommitTrans
+    1              0.000099 syn keyword vbMethods CompactDatabase Compose Connect Copy CopyFile
+    1              0.000077 syn keyword vbMethods CopyFolder CopyQueryDef Count CreateDatabase
+    1              0.000076 syn keyword vbMethods CreateDragImage CreateEmbed CreateField
+    1              0.000125 syn keyword vbMethods CreateFolder CreateGroup CreateIndex CreateLink
+    1              0.000077 syn keyword vbMethods CreatePreparedStatement CreatePropery CreateQuery
+    1              0.000086 syn keyword vbMethods CreateQueryDef CreateRelation CreateTableDef
+    1              0.000077 syn keyword vbMethods CreateTextFile CreateToolWindow CreateUser
+    1              0.000097 syn keyword vbMethods CreateWorkspace Customize Cut Delete
+    1              0.000087 syn keyword vbMethods DeleteColumnLabels DeleteColumns DeleteFile
+    1              0.000061 syn keyword vbMethods DeleteFolder DeleteLines DeleteRowLabels
+    1              0.000011 syn keyword vbMethods DeleteRows DeselectAll DesignerWindow DoVerb Drag
+    1              0.000011 syn keyword vbMethods Draw DriveExists Edit EditCopy EditPaste EndDoc
+    1              0.000009 syn keyword vbMethods EnsureVisible EstablishConnection Execute Exists
+    1              0.000009 syn keyword vbMethods Expand Export ExportReport ExtractIcon Fetch
+    1              0.000006 syn keyword vbMethods FetchVerbs FileExists Files FillCache Find
+    1              0.000006 syn keyword vbMethods FindFirst FindItem FindLast FindNext FindPrevious
+    1              0.000008 syn keyword vbMethods FolderExists Forward GetAbsolutePathName
+    1              0.000009 syn keyword vbMethods GetBaseName GetBookmark GetChunk GetClipString
+    1              0.000009 syn keyword vbMethods GetData GetDrive GetDriveName GetFile GetFileName
+    1              0.000009 syn keyword vbMethods GetFirstVisible GetFolder GetFormat GetHeader
+    1              0.000008 syn keyword vbMethods GetLineFromChar GetNumTicks GetParentFolderName
+    1              0.000005 syn keyword vbMethods GetRows GetSelectedPart GetSelection
+    1              0.000005 syn keyword vbMethods GetSpecialFolder GetTempName GetText
+    1              0.000009 syn keyword vbMethods GetVisibleCount GoBack GoForward Hide HitTest
+    1              0.000010 syn keyword vbMethods HoldFields Idle Import InitializeLabels Insert
+    1              0.000008 syn keyword vbMethods InsertColumnLabels InsertColumns InsertFile
+    1              0.000008 syn keyword vbMethods InsertLines InsertObjDlg InsertRowLabels
+    1              0.000009 syn keyword vbMethods InsertRows Item Keys KillDoc Layout Line Lines
+    1              0.000005 syn keyword vbMethods LinkExecute LinkPoke LinkRequest LinkSend Listen
+    1              0.000006 syn keyword vbMethods LoadFile LoadResData LoadResPicture LoadResString
+    1              0.000005 syn keyword vbMethods LogEvent MakeCompileFile MakeCompiledFile
+    1              0.000008 syn keyword vbMethods MakeReplica MoreResults Move MoveData MoveFile
+    1              0.000008 syn keyword vbMethods MoveFirst MoveFolder MoveLast MoveNext
+    1              0.000008 syn keyword vbMethods MovePrevious NavigateTo NewPage NewPassword
+    1              0.000008 syn keyword vbMethods NextRecordset OLEDrag OnAddinsUpdate OnConnection
+    1              0.000006 syn keyword vbMethods OnDisconnection OnStartupComplete Open
+    1              0.000006 syn keyword vbMethods OpenAsTextStream OpenConnection OpenDatabase
+    1              0.000007 syn keyword vbMethods OpenQueryDef OpenRecordset OpenResultset OpenURL
+    1              0.000007 syn keyword vbMethods Overlay PSet PaintPicture PastSpecialDlg Paste
+    1              0.000007 syn keyword vbMethods PeekData Play Point PopulatePartial PopupMenu
+    1              0.000008 syn keyword vbMethods Print PrintForm PrintReport PropertyChanged Quit
+    1              0.000006 syn keyword vbMethods Raise RandomDataFill RandomFillColumns
+    1              0.000009 syn keyword vbMethods RandomFillRows ReFill Read ReadAll ReadFromFile
+    1              0.000008 syn keyword vbMethods ReadLine ReadProperty Rebind Refresh RefreshLink
+    1              0.000008 syn keyword vbMethods RegisterDatabase ReleaseInstance Reload Remove
+    1              0.000005 syn keyword vbMethods RemoveAddInFromToolbar RemoveAll RemoveItem Render
+    1              0.000005 syn keyword vbMethods RepairDatabase ReplaceLine Reply ReplyAll Requery
+    1              0.000004 syn keyword vbMethods ResetCustom ResetCustomLabel ResolveName
+    1              0.000004 syn keyword vbMethods RestoreToolbar Resync Rollback RollbackTrans
+    1              0.000005 syn keyword vbMethods RowBookmark RowContaining RowTop Save SaveAs
+    1              0.000005 syn keyword vbMethods SaveFile SaveToFile SaveToOle1File SaveToolbar
+    1              0.000009 syn keyword vbMethods Scale ScaleX ScaleY Scroll SelPrint SelectAll
+    1              0.000009 syn keyword vbMethods SelectPart Send SendData Set SetAutoServerSettings
+    1              0.000008 syn keyword vbMethods SetData SetFocus SetOption SetSelection SetSize
+    1              0.000008 syn keyword vbMethods SetText SetViewport Show ShowColor ShowFont
+    1              0.000007 syn keyword vbMethods ShowHelp ShowOpen ShowPrinter ShowSave
+    1              0.000008 syn keyword vbMethods ShowWhatsThis SignOff SignOn Size Skip SkipLine
+    1              0.000007 syn keyword vbMethods Span Split SplitContaining StartLabelEdit
+    1              0.000007 syn keyword vbMethods StartLogging Stop Synchronize Tag TextHeight
+    1              0.000016 syn keyword vbMethods TextWidth ToDefaults Trace TwipsToChartPart
+    1              0.000008 syn keyword vbMethods TypeByChartType URLFor Update UpdateControls
+    1              0.000007 syn keyword vbMethods UpdateRecord UpdateRow Upto ValidateControls Value
+    1              0.000007 syn keyword vbMethods WhatsThisMode Write WriteBlankLines WriteLine
+    1              0.000005 syn keyword vbMethods WriteProperty WriteTemplate ZOrder
+    1              0.000006 syn keyword vbMethods rdoCreateEnvironment rdoRegisterDataSource
+                            
+    1              0.000011 syn keyword vbStatement Alias AppActivate As Base Beep Begin Call ChDir
+    1              0.000011 syn keyword vbStatement ChDrive Close Const Date Declare DefBool DefByte
+    1              0.000009 syn keyword vbStatement DefCur DefDate DefDbl DefDec DefInt DefLng DefObj
+    1              0.000009 syn keyword vbStatement DefSng DefStr DefVar Deftype DeleteSetting Dim Do
+    1              0.000010 syn keyword vbStatement Each ElseIf End Enum Erase Error Event Exit
+    1              0.000010 syn keyword vbStatement Explicit FileCopy For ForEach Function Get GoSub
+    1              0.000011 syn keyword vbStatement GoTo Gosub Implements Kill LSet Let Lib LineInput
+    1              0.000012 syn keyword vbStatement Load Lock Loop Mid MkDir Name Next On OnError Open
+    1              0.000009 syn keyword vbStatement Option Preserve Private Property Public Put RSet
+    1              0.000009 syn keyword vbStatement RaiseEvent Randomize ReDim Redim Reset Resume
+    1              0.000010 syn keyword vbStatement Return RmDir SavePicture SaveSetting Seek SendKeys
+    1              0.000010 syn keyword vbStatement Sendkeys Set SetAttr Static Step Stop Sub Time
+    1              0.000010 syn keyword vbStatement Type Unload Unlock Until Wend While Width With
+    1              0.000005 syn keyword vbStatement Write
+                            
+    1              0.000011 syn keyword vbKeyword As Binary ByRef ByVal Date Empty Error Friend Get
+    1              0.000011 syn keyword vbKeyword Input Is Len Lock Me Mid New Nothing Null On
+    1              0.000008 syn keyword vbKeyword Option Optional ParamArray Print Private Property
+    1              0.000009 syn keyword vbKeyword Public PublicNotCreateable OnNewProcessSingleUse
+    1              0.000009 syn keyword vbKeyword InSameProcessMultiUse GlobalMultiUse Resume Seek
+    1              0.000009 syn keyword vbKeyword Set Static Step String Time WithEvents
+                            
+    1              0.000006 syn keyword vbTodo contained    TODO
+                            
+                            "Datatypes
+    1              0.000011 syn keyword vbTypes Boolean Byte Currency Date Decimal Double Empty
+    1              0.000010 syn keyword vbTypes Integer Long Object Single String Variant
+                            
+                            "VB defined values
+    1              0.000011 syn keyword vbDefine dbBigInt dbBinary dbBoolean dbByte dbChar
+    1              0.000010 syn keyword vbDefine dbCurrency dbDate dbDecimal dbDouble dbFloat
+    1              0.000009 syn keyword vbDefine dbGUID dbInteger dbLong dbLongBinary dbMemo
+    1              0.000009 syn keyword vbDefine dbNumeric dbSingle dbText dbTime dbTimeStamp
+    1              0.000006 syn keyword vbDefine dbVarBinary
+                            
+                            "VB defined values
+    1              0.000008 syn keyword vbDefine vb3DDKShadow vb3DFace vb3DHighlight vb3DLight
+    1              0.000008 syn keyword vbDefine vb3DShadow vbAbort vbAbortRetryIgnore
+    1              0.000008 syn keyword vbDefine vbActiveBorder vbActiveTitleBar vbAlias
+    1              0.000007 syn keyword vbDefine vbApplicationModal vbApplicationWorkspace
+    1              0.000008 syn keyword vbDefine vbAppTaskManager vbAppWindows vbArchive vbArray
+    1              0.000009 syn keyword vbDefine vbBack vbBinaryCompare vbBlack vbBlue vbBoolean
+    1              0.000008 syn keyword vbDefine vbButtonFace vbButtonShadow vbButtonText vbByte
+    1              0.000009 syn keyword vbDefine vbCalGreg vbCalHijri vbCancel vbCr vbCritical
+    1              0.000008 syn keyword vbDefine vbCrLf vbCurrency vbCyan vbDatabaseCompare
+    1              0.000008 syn keyword vbDefine vbDataObject vbDate vbDecimal vbDefaultButton1
+    1              0.000009 syn keyword vbDefine vbDefaultButton2 vbDefaultButton3 vbDefaultButton4
+    1              0.000009 syn keyword vbDefine vbDesktop vbDirectory vbDouble vbEmpty vbError
+    1              0.000007 syn keyword vbDefine vbExclamation vbFirstFourDays vbFirstFullWeek
+    1              0.000007 syn keyword vbDefine vbFirstJan1 vbFormCode vbFormControlMenu
+    1              0.000009 syn keyword vbDefine vbFormFeed vbFormMDIForm vbFriday vbFromUnicode
+    1              0.000009 syn keyword vbDefine vbGrayText vbGreen vbHidden vbHide vbHighlight
+    1              0.000007 syn keyword vbDefine vbHighlightText vbHiragana vbIgnore vbIMEAlphaDbl
+    1              0.000007 syn keyword vbDefine vbIMEAlphaSng vbIMEDisable vbIMEHiragana
+    1              0.000007 syn keyword vbDefine vbIMEKatakanaDbl vbIMEKatakanaSng vbIMEModeAlpha
+    1              0.000007 syn keyword vbDefine vbIMEModeAlphaFull vbIMEModeDisable
+    1              0.000007 syn keyword vbDefine vbIMEModeHangul vbIMEModeHangulFull
+    1              0.000007 syn keyword vbDefine vbIMEModeHiragana vbIMEModeKatakana
+    1              0.000007 syn keyword vbDefine vbIMEModeKatakanaHalf vbIMEModeNoControl
+    1              0.000009 syn keyword vbDefine vbIMEModeOff vbIMEModeOn vbIMENoOp vbIMEOff
+    1              0.000009 syn keyword vbDefine vbIMEOn vbInactiveBorder vbInactiveCaptionText
+    1              0.000008 syn keyword vbDefine vbInactiveTitleBar vbInfoBackground vbInformation
+    1              0.000009 syn keyword vbDefine vbInfoText vbInteger vbKatakana vbKey0 vbKey1
+    1              0.000020 syn keyword vbDefine vbKey2 vbKey3 vbKey4 vbKey5 vbKey6 vbKey7 vbKey8
+    1              0.000009 syn keyword vbDefine vbKey9 vbKeyA vbKeyAdd vbKeyB vbKeyBack vbKeyC
+    1              0.000007 syn keyword vbDefine vbKeyCancel vbKeyCapital vbKeyClear vbKeyControl
+    1              0.000007 syn keyword vbDefine vbKeyD vbKeyDecimal vbKeyDelete vbKeyDivide
+    1              0.000007 syn keyword vbDefine vbKeyDown vbKeyE vbKeyEnd vbKeyEscape vbKeyExecute
+    1              0.000010 syn keyword vbDefine vbKeyF vbKeyF1 vbKeyF10 vbKeyF11 vbKeyF12 vbKeyF13
+    1              0.000010 syn keyword vbDefine vbKeyF14 vbKeyF15 vbKeyF16 vbKeyF2 vbKeyF3 vbKeyF4
+    1              0.000008 syn keyword vbDefine vbKeyF5 vbKeyF6 vbKeyF7 vbKeyF8 vbKeyF9 vbKeyG
+    1              0.000009 syn keyword vbDefine vbKeyH vbKeyHelp vbKeyHome vbKeyI vbKeyInsert
+    1              0.000011 syn keyword vbDefine vbKeyJ vbKeyK vbKeyL vbKeyLButton vbKeyLeft vbKeyM
+    1              0.000009 syn keyword vbDefine vbKeyMButton vbKeyMenu vbKeyMultiply vbKeyN
+    1              0.000007 syn keyword vbDefine vbKeyNumlock vbKeyNumpad0 vbKeyNumpad1
+    1              0.000007 syn keyword vbDefine vbKeyNumpad2 vbKeyNumpad3 vbKeyNumpad4
+    1              0.000007 syn keyword vbDefine vbKeyNumpad5 vbKeyNumpad6 vbKeyNumpad7
+    1              0.000007 syn keyword vbDefine vbKeyNumpad8 vbKeyNumpad9 vbKeyO vbKeyP
+    1              0.000009 syn keyword vbDefine vbKeyPageDown vbKeyPageUp vbKeyPause vbKeyPrint
+    1              0.000009 syn keyword vbDefine vbKeyQ vbKeyR vbKeyRButton vbKeyReturn vbKeyRight
+    1              0.000009 syn keyword vbDefine vbKeyS vbKeySelect vbKeySeparator vbKeyShift
+    1              0.000008 syn keyword vbDefine vbKeySnapshot vbKeySpace vbKeySubtract vbKeyT
+    1              0.000009 syn keyword vbDefine vbKeyTab vbKeyU vbKeyUp vbKeyV vbKeyW vbKeyX
+    1              0.000010 syn keyword vbDefine vbKeyY vbKeyZ vbLf vbLong vbLowerCase vbMagenta
+    1              0.000008 syn keyword vbDefine vbMaximizedFocus vbMenuBar vbMenuText
+    1              0.000009 syn keyword vbDefine vbMinimizedFocus vbMinimizedNoFocus vbMonday
+    1              0.000010 syn keyword vbDefine vbMsgBox vbMsgBoxHelpButton vbMsgBoxRight
+    1              0.000006 syn keyword vbDefine vbMsgBoxRtlReading vbMsgBoxSetForeground
+    1              0.000008 syn keyword vbDefine vbMsgBoxText vbNarrow vbNewLine vbNo vbNormal
+    1              0.000007 syn keyword vbDefine vbNormalFocus vbNormalNoFocus vbNull vbNullChar
+    1              0.000008 syn keyword vbDefine vbNullString vbObject vbObjectError vbOK
+    1              0.000008 syn keyword vbDefine vbOKCancel vbOKOnly vbProperCase vbQuestion
+    1              0.000008 syn keyword vbDefine vbReadOnly vbRed vbRetry vbRetryCancel vbSaturday
+    1              0.000008 syn keyword vbDefine vbScrollBars vbSingle vbString vbSunday vbSystem
+    1              0.000008 syn keyword vbDefine vbSystemModal vbTab vbTextCompare vbThursday
+    1              0.000008 syn keyword vbDefine vbTitleBarText vbTuesday vbUnicode vbUpperCase
+    1              0.000007 syn keyword vbDefine vbUseSystem vbUseSystemDayOfWeek vbVariant
+    1              0.000007 syn keyword vbDefine vbVerticalTab vbVolume vbWednesday vbWhite vbWide
+    1              0.000008 syn keyword vbDefine vbWindowBackground vbWindowFrame vbWindowText
+    1              0.000008 syn keyword vbDefine vbYellow vbYes vbYesNo vbYesNoCancel
+                            
+                            "Numbers
+                            "integer number, or floating point number without a dot.
+    1              0.000016 syn match vbNumber "\<\d\+\>"
+                            "floating point number, with dot
+    1              0.000012 syn match vbNumber "\<\d\+\.\d*\>"
+                            "floating point number, starting with a dot
+    1              0.000010 syn match vbNumber "\.\d\+\>"
+                            "syn match  vbNumber            "{[[:xdigit:]-]\+}\|&[hH][[:xdigit:]]\+&"
+                            "syn match  vbNumber            ":[[:xdigit:]]\+"
+                            "syn match  vbNumber            "[-+]\=\<\d\+\>"
+    1              0.000016 syn match  vbFloat              "[-+]\=\<\d\+[eE][\-+]\=\d\+"
+    1              0.000016 syn match  vbFloat              "[-+]\=\<\d\+\.\d*\([eE][\-+]\=\d\+\)\="
+    1              0.000015 syn match  vbFloat              "[-+]\=\<\.\d\+\([eE][\-+]\=\d\+\)\="
+                            
+                            " String and Character constants
+    1              0.000019 syn region  vbString		start=+"+  end=+"\|$+
+    1              0.000024 syn region  vbComment		start="\(^\|\s\)REM\s" end="$" contains=vbTodo
+    1              0.000019 syn region  vbComment		start="\(^\|\s\)\'"   end="$" contains=vbTodo
+    1              0.000011 syn match   vbLineLabel		"^\h\w\+:"
+    1              0.000008 syn match   vbLineNumber	"^\d\+\(:\|\s\|$\)"
+    1              0.000011 syn match   vbTypeSpecifier  "\<\a\w*[@\$%&!#]"ms=s+1
+    1              0.000008 syn match   vbTypeSpecifier  "#[a-zA-Z0-9]"me=e-1
+                            " Conditional Compilation
+    1              0.000008 syn match  vbPreProc "^#const\>"
+    1              0.000014 syn region vbPreProc matchgroup=PreProc start="^#if\>"     end="\<then\>" transparent contains=TOP
+    1              0.000012 syn region vbPreProc matchgroup=PreProc start="^#elseif\>" end="\<then\>" transparent contains=TOP
+    1              0.000007 syn match  vbPreProc "^#else\>"
+    1              0.000005 syn match  vbPreProc "^#end\s*if\>"
+                            
+                            " Define the default highlighting.
+                            " Only when an item doesn't have highlighting yet
+                            
+    1              0.000006 hi def link vbBoolean           Boolean
+    1              0.000002 hi def link vbLineNumber        Comment
+    1              0.000002 hi def link vbLineLabel         Comment
+    1              0.000003 hi def link vbComment           Comment
+    1              0.000003 hi def link vbConditional       Conditional
+    1              0.000002 hi def link vbConst             Constant
+    1              0.000010 hi def link vbDefine            Constant
+    1              0.000003 hi def link vbError             Error
+    1              0.000002 hi def link vbFunction          Identifier
+    1              0.000002 hi def link vbIdentifier        Identifier
+    1              0.000002 hi def link vbNumber            Number
+    1              0.000002 hi def link vbFloat             Float
+    1              0.000002 hi def link vbMethods           PreProc
+    1              0.000002 hi def link vbOperator          Operator
+    1              0.000002 hi def link vbRepeat            Repeat
+    1              0.000002 hi def link vbString            String
+    1              0.000003 hi def link vbStatement         Statement
+    1              0.000002 hi def link vbKeyword           Statement
+    1              0.000002 hi def link vbEvents            Special
+    1              0.000002 hi def link vbTodo              Todo
+    1              0.000002 hi def link vbTypes             Type
+    1              0.000002 hi def link vbTypeSpecifier     Type
+    1              0.000002 hi def link vbPreProc           PreProc
+                            
+    1              0.000010 let b:current_syntax = "vb"
+                            
+                            " vim: ts=8
+
+SCRIPT  /home/yj/.local/nvim-linux64/share/nvim/runtime/syntax/css.vim
+Sourced 1 time
+Total time:   0.027746
+ Self time:   0.027733
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language:     Cascading Style Sheets
+                            " Previous Contributor List:
+                            "               Jules Wang      <w.jq0722@gmail.com>
+                            "               Claudio Fleiner <claudio@fleiner.com>
+                            "               Yeti            (Add full CSS2, HTML4 support)
+                            "               Nikolai Weibull (Add CSS2 support)
+                            " URL:          https://github.com/vim-language-dept/css-syntax.vim
+                            " Maintainer:   Jay Sitter <jay@jaysitter.com>
+                            " Last Change:  2021 Oct 20
+                            
+                            " quit when a syntax file was already loaded
+    1              0.000018 if !exists("main_syntax")
+                              if exists("b:current_syntax")
+                                finish
+                              endif
+                              let main_syntax = 'css'
+    1              0.000007 elseif exists("b:current_syntax") && b:current_syntax == "css"
+                              finish
+    1              0.000001 endif
+                            
+    1              0.000018 let s:cpo_save = &cpo
+    1   0.000031   0.000024 set cpo&vim
+                            
+    1              0.000004 syn case ignore
+                            " Add dash to allowed keyword characters.
+    1              0.000018 syn iskeyword @,48-57,_,192-255,-
+                            
+                            " HTML4 tags
+    1              0.000013 syn keyword cssTagName abbr address area a b base
+    1              0.000008 syn keyword cssTagName bdo blockquote body br button
+    1              0.000009 syn keyword cssTagName caption cite code col colgroup dd del
+    1              0.000007 syn keyword cssTagName dfn div dl dt em fieldset form
+    1              0.000007 syn keyword cssTagName h1 h2 h3 h4 h5 h6 head hr html img i
+    1              0.000008 syn keyword cssTagName iframe input ins isindex kbd label legend li
+    1              0.000007 syn keyword cssTagName link map menu meta noscript ol optgroup
+    1              0.000009 syn keyword cssTagName option p param picture pre q s samp script small
+    1              0.000006 syn keyword cssTagName span strong sub sup tbody td
+    1              0.000008 syn keyword cssTagName textarea tfoot th thead title tr ul u var
+    1              0.000003 syn keyword cssTagName object svg
+    1              0.000016 syn match   cssTagName /\<select\>\|\<style\>\|\<table\>/
+                            
+                            " 34 HTML5 tags
+    1              0.000008 syn keyword cssTagName article aside audio bdi canvas command data
+    1              0.000008 syn keyword cssTagName datalist details dialog embed figcaption figure footer
+    1              0.000007 syn keyword cssTagName header hgroup keygen main mark menuitem meter nav
+    1              0.000006 syn keyword cssTagName output progress rt rp ruby section
+    1              0.000006 syn keyword cssTagName source summary time track video wbr
+                            
+                            " Tags not supported in HTML5
+                            " acronym applet basefont big center dir
+                            " font frame frameset noframes strike tt
+                            
+    1              0.000005 syn match cssTagName "\*"
+                            
+                            " selectors
+    1              0.000008 syn match cssSelectorOp "[,>+~]"
+    1              0.000008 syn match cssSelectorOp2 "[~|^$*]\?=" contained
+    1              0.000052 syn region cssAttributeSelector matchgroup=cssSelectorOp start="\[" end="]" contains=cssUnicodeEscape,cssSelectorOp2,cssStringQ,cssStringQQ
+                            
+                            " .class and #id
+    1              0.000027 syn match cssClassName "\.-\=[A-Za-z_][A-Za-z0-9_-]*" contains=cssClassNameDot
+    1              0.000009 syn match cssClassNameDot contained '\.'
+                            
+    1              0.000003 try
+    1              0.000015 syn match cssIdentifier "#[A-Za-zÀ-ÿ_@][A-Za-zÀ-ÿ0-9_@-]*"
+                            catch /^.*/
+                            syn match cssIdentifier "#[A-Za-z_@][A-Za-z0-9_@-]*"
+    1              0.000004 endtry
+                            
+                            " digits
+    1              0.000015 syn match cssValueInteger contained "[-+]\=\d\+" contains=cssUnitDecorators
+    1              0.000014 syn match cssValueNumber contained "[-+]\=\d\+\(\.\d*\)\=" contains=cssUnitDecorators
+    1              0.000026 syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=\(mm\|cm\|in\|pt\|pc\|em\|ex\|px\|rem\|dpi\|dppx\|dpcm\|fr\|vw\|vh\|vmin\|vmax\|ch\)\>" contains=cssUnitDecorators
+    1              0.000012 syn match cssValueLength contained "[-+]\=\d\+\(\.\d*\)\=%" contains=cssUnitDecorators
+    1              0.000015 syn match cssValueAngle contained "[-+]\=\d\+\(\.\d*\)\=\(deg\|grad\|rad\)\>" contains=cssUnitDecorators
+    1              0.000012 syn match cssValueTime contained "+\=\d\+\(\.\d*\)\=\(ms\|s\)\>" contains=cssUnitDecorators
+    1              0.000010 syn match cssValueFrequency contained "+\=\d\+\(\.\d*\)\=\(Hz\|kHz\)\>" contains=cssUnitDecorators
+                            
+                            " The 16 basic color names
+    1              0.000019 syn keyword cssColor contained aqua black blue fuchsia gray green lime maroon navy olive purple red silver teal yellow
+                            
+                            " 130 more color names
+    1              0.000009 syn keyword cssColor contained aliceblue antiquewhite aquamarine azure
+    1              0.000011 syn keyword cssColor contained beige bisque blanchedalmond blueviolet brown burlywood
+    1              0.000014 syn keyword cssColor contained cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan
+    1              0.000018 syn match cssColor contained /\<dark\(blue\|cyan\|goldenrod\|gray\|green\|grey\|khaki\)\>/
+    1              0.000020 syn match cssColor contained /\<dark\(magenta\|olivegreen\|orange\|orchid\|red\|salmon\|seagreen\)\>/
+    1              0.000012 syn match cssColor contained /\<darkslate\(blue\|gray\|grey\)\>/
+    1              0.000011 syn match cssColor contained /\<dark\(turquoise\|violet\)\>/
+    1              0.000025 syn keyword cssColor contained deeppink deepskyblue dimgray dimgrey dodgerblue firebrick
+    1              0.000010 syn keyword cssColor contained floralwhite forestgreen gainsboro ghostwhite gold
+    1              0.000012 syn keyword cssColor contained goldenrod greenyellow grey honeydew hotpink
+    1              0.000011 syn keyword cssColor contained indianred indigo ivory khaki lavender lavenderblush lawngreen
+    1              0.000007 syn keyword cssColor contained lemonchiffon limegreen linen magenta
+    1              0.000017 syn match cssColor contained /\<light\(blue\|coral\|cyan\|goldenrodyellow\|gray\|green\)\>/
+    1              0.000017 syn match cssColor contained /\<light\(grey\|pink\|salmon\|seagreen\|skyblue\|yellow\)\>/
+    1              0.000015 syn match cssColor contained /\<light\(slategray\|slategrey\|steelblue\)\>/
+    1              0.000016 syn match cssColor contained /\<medium\(aquamarine\|blue\|orchid\|purple\|seagreen\)\>/
+    1              0.000016 syn match cssColor contained /\<medium\(slateblue\|springgreen\|turquoise\|violetred\)\>/
+    1              0.000012 syn keyword cssColor contained midnightblue mintcream mistyrose moccasin navajowhite
+    1              0.000009 syn keyword cssColor contained oldlace olivedrab orange orangered orchid
+    1              0.000015 syn match cssColor contained /\<pale\(goldenrod\|green\|turquoise\|violetred\)\>/
+    1              0.000010 syn keyword cssColor contained papayawhip peachpuff peru pink plum powderblue
+    1              0.000011 syn keyword cssColor contained rosybrown royalblue rebeccapurple saddlebrown salmon
+    1              0.000013 syn keyword cssColor contained sandybrown seagreen seashell sienna skyblue slateblue
+    1              0.000013 syn keyword cssColor contained slategray slategrey snow springgreen steelblue tan
+    1              0.000013 syn keyword cssColor contained thistle tomato turquoise violet wheat
+    1              0.000006 syn keyword cssColor contained whitesmoke yellowgreen
+                            
+                            " FIXME: These are actually case-insensitive too, but (a) specs recommend using
+                            " mixed-case (b) it's hard to highlight the word `Background' correctly in
+                            " all situations
+    1              0.000006 syn case match
+    1              0.000025 syn keyword cssColor contained ActiveBorder ActiveCaption AppWorkspace ButtonFace ButtonHighlight ButtonShadow ButtonText CaptionText GrayText Highlight HighlightText InactiveBorder InactiveCaption InactiveCaptionText InfoBackground InfoText Menu MenuText Scrollbar ThreeDDarkShadow ThreeDFace ThreeDHighlight ThreeDLightShadow ThreeDShadow Window WindowFrame WindowText Background
+    1              0.000004 syn case ignore
+                            
+    1              0.000015 syn match cssImportant contained "!\s*important\>"
+    1              0.000018 syn match cssCustomProp contained "\<--[a-zA-Z0-9-_]*\>"
+                            
+    1              0.000009 syn match cssColor contained "\<transparent\>"
+    1              0.000077 syn match cssColor contained "\<currentColor\>"
+    1              0.000016 syn match cssColor contained "\<white\>"
+    1              0.000022 syn match cssColor contained "#\x\{3,4\}\>" contains=cssUnitDecorators
+    1              0.000015 syn match cssColor contained "#\x\{6\}\>" contains=cssUnitDecorators
+    1              0.000009 syn match cssColor contained "#\x\{8\}\>" contains=cssUnitDecorators
+                            
+    1              0.000042 syn region cssURL contained matchgroup=cssFunctionName start="\<\(uri\|url\|local\|format\)\s*(" end=")" contains=cssStringQ,cssStringQQ oneline
+    1              0.002099 syn region cssMathGroup contained matchgroup=cssMathParens start="(" end=")" containedin=cssFunction,cssMathGroup contains=cssCustomProp,cssValue.*,cssFunction,cssColor,cssStringQ,cssStringQQ oneline
+    1              0.001514 syn region cssFunction contained matchgroup=cssFunctionName start="\<\(var\|calc\)\s*(" end=")" contains=cssCustomProp,cssValue.*,cssFunction,cssColor,cssStringQ,cssStringQQ oneline
+    1              0.000044 syn region cssFunction contained matchgroup=cssFunctionName start="\<\(rgb\|clip\|attr\|counter\|rect\|cubic-bezier\|steps\)\s*(" end=")" oneline  contains=cssValueInteger,cssValueNumber,cssValueLength,cssFunctionComma
+    1              0.000022 syn region cssFunction contained matchgroup=cssFunctionName start="\<\(rgba\|hsl\|hsla\|color-stop\|from\|to\)\s*(" end=")" oneline  contains=cssColor,cssValueInteger,cssValueNumber,cssValueLength,cssFunctionComma,cssFunction
+    1              0.000023 syn region cssFunction contained matchgroup=cssFunctionName start="\<\(linear-\|radial-\|conic-\)\=\gradient\s*(" end=")" oneline  contains=cssColor,cssValueInteger,cssValueNumber,cssValueLength,cssFunction,cssGradientAttr,cssFunctionComma
+    1              0.000049 syn region cssFunction contained matchgroup=cssFunctionName start="\<\(matrix\(3d\)\=\|scale\(3d\|X\|Y\|Z\)\=\|translate\(3d\|X\|Y\|Z\)\=\|skew\(X\|Y\)\=\|rotate\(3d\|X\|Y\|Z\)\=\|perspective\)\s*(" end=")" oneline contains=cssValueInteger,cssValueNumber,cssValueLength,cssValueAngle,cssFunctionComma
+    1              0.000025 syn region cssFunction contained matchgroup=cssFunctionName start="\<\(blur\|brightness\|contrast\|drop-shadow\|grayscale\|hue-rotate\|invert\|opacity\|saturate\|sepia\)\s*(" end=")" oneline contains=cssValueInteger,cssValueNumber,cssValueLength,cssValueAngle,cssFunctionComma
+    1              0.000016 syn keyword cssGradientAttr contained top bottom left right cover center middle ellipse at
+    1              0.000006 syn match cssFunctionComma contained ","
+                            
+                            " Common Prop and Attr
+    1              0.000009 syn keyword cssCommonAttr contained auto none inherit all default normal
+    1              0.000006 syn keyword cssCommonAttr contained top bottom center stretch hidden visible
+    1              0.000010 syn match cssCommonAttr contained "\<\(max-\|min-\|fit-\)content\>"
+                            "------------------------------------------------
+                            " CSS Animations
+                            " http://www.w3.org/TR/css3-animations/
+    1              0.000017 syn match cssAnimationProp contained "\<animation\(-\(delay\|direction\|duration\|fill-mode\|name\|play-state\|timing-function\|iteration-count\)\)\=\>"
+                            
+                            " animation-direction attributes
+    1              0.000005 syn keyword cssAnimationAttr contained alternate reverse
+    1              0.000007 syn match cssAnimationAttr contained "\<alternate-reverse\>"
+                            
+                            " animation-fill-mode attributes
+    1              0.000005 syn keyword cssAnimationAttr contained forwards backwards both
+                            
+                            " animation-play-state attributes
+    1              0.000004 syn keyword cssAnimationAttr contained running paused
+                            
+                            " animation-iteration-count attributes
+    1              0.000002 syn keyword cssAnimationAttr contained infinite
+                            "------------------------------------------------
+                            "  CSS Backgrounds and Borders Module Level 3
+                            "  http://www.w3.org/TR/css3-background/
+    1              0.000016 syn match cssBackgroundProp contained "\<background\(-\(attachment\|clip\|color\|image\|origin\|position\|repeat\|size\)\)\=\>"
+                            " background-attachment attributes
+    1              0.000006 syn keyword cssBackgroundAttr contained scroll fixed local
+                            
+                            " background-position attributes
+    1              0.000006 syn keyword cssBackgroundAttr contained left center right top bottom
+                            
+                            " background-repeat attributes
+    1              0.000006 syn match cssBackgroundAttr contained "\<no-repeat\>"
+    1              0.000010 syn match cssBackgroundAttr contained "\<repeat\(-[xy]\)\=\>"
+                            
+                            " background-size attributes
+    1              0.000004 syn keyword cssBackgroundAttr contained cover contain
+                            
+    1              0.000014 syn match cssBorderProp contained "\<border\(-\(top\|right\|bottom\|left\)\)\=\(-\(width\|color\|style\)\)\=\>"
+    1              0.000014 syn match cssBorderProp contained "\<border\(-\(top\|bottom\)-\(left\|right\)\)\=-radius\>"
+    1              0.000012 syn match cssBorderProp contained "\<border-image\(-\(outset\|repeat\|slice\|source\|width\)\)\=\>"
+    1              0.000011 syn match cssBorderProp contained "\<box-decoration-break\>"
+    1              0.000008 syn match cssBorderProp contained "\<box-shadow\>"
+                            
+                            " border-image attributes
+    1              0.000007 syn keyword cssBorderAttr contained stretch round fill
+                            
+                            " border-style attributes
+    1              0.000012 syn keyword cssBorderAttr contained dotted dashed solid double groove ridge inset outset
+                            
+                            " border-width attributes
+    1              0.000005 syn keyword cssBorderAttr contained thin thick medium
+                            
+                            " box-decoration-break attributes
+    1              0.000005 syn keyword cssBorderAttr contained clone slice
+                            "------------------------------------------------
+                            
+    1              0.000012 syn match cssBoxProp contained "\<padding\(-\(top\|right\|bottom\|left\)\)\=\>"
+    1              0.000011 syn match cssBoxProp contained "\<margin\(-\(top\|right\|bottom\|left\)\)\=\>"
+    1              0.000010 syn match cssBoxProp contained "\<overflow\(-\(x\|y\|style\)\)\=\>"
+    1              0.000010 syn match cssBoxProp contained "\<rotation\(-point\)\=\>"
+    1              0.000009 syn keyword cssBoxAttr contained visible hidden scroll auto
+    1              0.000012 syn match cssBoxAttr contained "\<no-\(display\|content\)\>"
+                            
+    1              0.000005 syn keyword cssCascadeProp contained all
+    1              0.000009 syn keyword cssCascadeAttr contained initial unset revert
+                            
+    1              0.000006 syn keyword cssColorProp contained opacity
+    1              0.000009 syn match cssColorProp contained "\<color-profile\>"
+    1              0.000011 syn match cssColorProp contained "\<rendering-intent\>"
+                            
+                            
+    1              0.000010 syn match cssDimensionProp contained "\<\(min\|max\)-\(width\|height\)\>"
+    1              0.000009 syn keyword cssDimensionProp contained height
+    1              0.000003 syn keyword cssDimensionProp contained width
+                            
+                            " CSS Flexible Box Layout Module Level 1
+                            " http://www.w3.org/TR/css3-flexbox/
+                            " CSS Box Alignment Module Level 3
+                            " http://www.w3.org/TR/css-align-3/
+    1              0.000018 syn match cssFlexibleBoxProp contained "\<flex\(-\(direction\|wrap\|flow\|grow\|shrink\|basis\)\)\=\>"
+    1              0.000014 syn match cssFlexibleBoxProp contained "\<\(align\|justify\)\(-\(items\|self\|content\)\)\=\>"
+    1              0.000004 syn keyword cssFlexibleBoxProp contained order
+                            
+    1              0.000028 syn match cssFlexibleBoxAttr contained "\<\(row\|column\|wrap\)\(-reverse\)\=\>"
+    1              0.000008 syn keyword cssFlexibleBoxAttr contained nowrap stretch baseline center
+    1              0.000008 syn match cssFlexibleBoxAttr contained "\<flex\(-\(start\|end\)\)\=\>"
+    1              0.000011 syn match cssFlexibleBoxAttr contained "\<space\(-\(between\|around\|evenly\)\)\=\>"
+                            
+                            " CSS Fonts Module Level 3
+                            " http://www.w3.org/TR/css-fonts-3/
+    1              0.000034 syn match cssFontProp contained "\<font\(-\(family\|\|feature-settings\|kerning\|language-override\|size\(-adjust\)\=\|stretch\|style\|synthesis\|variant\(-\(alternates\|caps\|east-asian\|ligatures\|numeric\|position\)\)\=\|weight\)\)\=\>"
+                            
+                            " font attributes
+    1              0.000008 syn keyword cssFontAttr contained icon menu caption
+    1              0.000007 syn match cssFontAttr contained "\<message-box\>"
+    1              0.000010 syn match cssFontAttr contained "\<status-bar\>"
+    1              0.000005 syn keyword cssFontAttr contained larger smaller
+    1              0.000016 syn match cssFontAttr contained "\<\(x\{1,2\}-\)\=\(large\|small\)\>"
+    1              0.000012 syn match cssFontAttr contained "\<small-\(caps\|caption\)\>"
+                            " font-family attributes
+    1              0.000007 syn keyword cssFontAttr contained sans-serif serif cursive fantasy monospace
+                            " font-feature-settings attributes
+    1              0.000004 syn keyword cssFontAttr contained on off
+                            " font-stretch attributes
+    1              0.000015 syn match cssFontAttr contained "\<\(\(ultra\|extra\|semi\)-\)\=\(condensed\|expanded\)\>"
+                            " font-style attributes
+    1              0.000006 syn keyword cssFontAttr contained italic oblique
+                            " font-synthesis attributes
+    1              0.000005 syn keyword cssFontAttr contained weight style
+                            " font-weight attributes
+    1              0.000005 syn keyword cssFontAttr contained bold bolder lighter
+                            " TODO: font-variant-* attributes
+                            "------------------------------------------------
+                            
+                            " Webkit specific property/attributes
+    1              0.000007 syn match cssFontProp contained "\<font-smooth\>"
+    1              0.000013 syn match cssFontAttr contained "\<\(subpixel-\)\=\antialiased\>"
+                            
+                            
+                            " CSS Multi-column Layout Module
+                            " http://www.w3.org/TR/css3-multicol/
+    1              0.000012 syn match cssMultiColumnProp contained "\<break-\(after\|before\|inside\)\>"
+    1              0.000019 syn match cssMultiColumnProp contained "\<column-\(count\|fill\|gap\|rule\(-\(color\|style\|width\)\)\=\|span\|width\)\>"
+    1              0.000006 syn keyword cssMultiColumnProp contained columns
+    1              0.000007 syn keyword cssMultiColumnAttr contained balance medium
+    1              0.000008 syn keyword cssMultiColumnAttr contained always left right page column
+    1              0.000011 syn match cssMultiColumnAttr contained "\<avoid\(-\(page\|column\)\)\=\>"
+                            
+                            " http://www.w3.org/TR/css3-break/#page-break
+    1              0.000013 syn match cssMultiColumnProp contained "\<page\(-break-\(before\|after\|inside\)\)\=\>"
+                            
+                            " http://www.w3.org/TR/SVG11/interact.html
+    1              0.000008 syn match cssInteractProp contained "\<pointer-events\>"
+    1              0.000012 syn match cssInteractAttr contained "\<\(visible\)\=\(Painted\|Fill\|Stroke\)\=\>"
+                            
+                            " TODO find following items in w3c docs.
+    1              0.000005 syn keyword cssGeneratedContentProp contained quotes crop
+    1              0.000011 syn match cssGeneratedContentProp contained "\<counter-\(reset\|increment\)\>"
+    1              0.000006 syn match cssGeneratedContentProp contained "\<move-to\>"
+    1              0.000007 syn match cssGeneratedContentProp contained "\<page-policy\>"
+    1              0.000011 syn match cssGeneratedContentAttr contained "\<\(no-\)\=\(open\|close\)-quote\>"
+                            
+                            " https://www.w3.org/TR/css-grid-1/
+    1              0.000007 syn match cssGridProp contained "\<grid\>"
+    1              0.000012 syn match cssGridProp contained "\<grid-template\(-\(columns\|rows\|areas\)\)\=\>"
+    1              0.000014 syn match cssGridProp contained "\<grid-\(column\|row\)\(-\(start\|end\|gap\)\)\=\>"
+    1              0.000011 syn match cssGridProp contained "\<grid-\(area\|gap\)\>"
+    1              0.000008 syn match cssGridProp contained "\<gap\>"
+    1              0.000013 syn match cssGridProp contained "\<grid-auto-\(flow\|rows\|columns\)\>"
+                            
+    1              0.000016 syn match cssHyerlinkProp contained "\<target\(-\(name\|new\|position\)\)\=\>"
+                            
+    1              0.000011 syn match cssListProp contained "\<list-style\(-\(type\|position\|image\)\)\=\>"
+    1              0.000015 syn match cssListAttr contained "\<\(lower\|upper\)-\(roman\|alpha\|greek\|latin\)\>"
+    1              0.000013 syn match cssListAttr contained "\<\(hiragana\|katakana\)\(-iroha\)\=\>"
+    1              0.000013 syn match cssListAttr contained "\<\(decimal\(-leading-zero\)\=\|cjk-ideographic\)\>"
+    1              0.000012 syn keyword cssListAttr contained disc circle square hebrew armenian georgian
+    1              0.000008 syn keyword cssListAttr contained inside outside
+                            
+                            " object-fit https://www.w3.org/TR/css-images-3/#the-object-fit
+    1              0.000012 syn match cssObjectProp contained "\<object-\(fit\|position\)\>"
+    1              0.000011 syn keyword cssObjectAttr contained fill contain cover scale-down
+                            
+    1              0.000027 syn keyword cssPositioningProp contained bottom clear clip display float left
+    1              0.000009 syn keyword cssPositioningProp contained position right top visibility
+    1              0.000008 syn match cssPositioningProp contained "\<z-index\>"
+    1              0.000006 syn keyword cssPositioningAttr contained block compact grid
+    1              0.000024 syn match cssPositioningAttr contained "\<table\(-\(row-group\|\(header\|footer\)-group\|row\|column\(-group\)\=\|cell\|caption\)\)\=\>"
+    1              0.000004 syn keyword cssPositioningAttr contained left right both
+    1              0.000007 syn match cssPositioningAttr contained "\<list-item\>"
+    1              0.000011 syn match cssPositioningAttr contained "\<inline\(-\(block\|box\|table\|grid\|flex\)\)\=\>"
+    1              0.000006 syn match cssPositioningAttr contained "\<flow\(-root\)\=\>"
+    1              0.000010 syn keyword cssPositioningAttr contained static relative absolute fixed subgrid sticky
+                            
+    1              0.000008 syn keyword cssPrintAttr contained landscape portrait crop cross always
+                            
+    1              0.000019 syn match cssTableProp contained "\<\(caption-side\|table-layout\|border-collapse\|border-spacing\|empty-cells\)\>"
+    1              0.000009 syn keyword cssTableAttr contained fixed collapse separate show hide once always
+                            
+                            
+    1              0.000011 syn keyword cssTextProp contained color direction hyphens
+    1              0.000030 syn match cssTextProp "\<\(\(word\|letter\)-spacing\|text\(-\(decoration\|transform\|align\|index\|shadow\)\)\=\|vertical-align\|unicode-bidi\|line-height\)\>"
+    1              0.000020 syn match cssTextProp contained "\<text-\(justify\|outline\|warp\|align-last\|size-adjust\|rendering\|stroke\|indent\)\>"
+    1              0.000012 syn match cssTextProp contained "\<\(word\|line\)-break\|\(overflow\|word\)-wrap\>"
+    1              0.000009 syn match cssTextProp contained "\<white-space\>"
+    1              0.000009 syn match cssTextProp contained "\<hanging-punctuation\>"
+    1              0.000008 syn match cssTextProp contained "\<tab-size\>"
+    1              0.000008 syn match cssTextProp contained "\<punctuation-trim\>"
+    1              0.000007 syn match cssTextAttr contained "\<line-through\>"
+    1              0.000012 syn match cssTextAttr contained "\<\(text-\)\=\(top\|bottom\)\>"
+    1              0.000007 syn keyword cssTextAttr contained ltr rtl embed nowrap
+    1              0.000009 syn keyword cssTextAttr contained underline overline blink sub super middle
+    1              0.000006 syn keyword cssTextAttr contained capitalize uppercase lowercase
+    1              0.000008 syn keyword cssTextAttr contained justify baseline sub super
+    1              0.000008 syn keyword cssTextAttr contained optimizeLegibility optimizeSpeed geometricPrecision
+    1              0.000010 syn match cssTextAttr contained "\<pre\(-\(line\|wrap\)\)\=\>"
+    1              0.000008 syn match cssTextAttr contained "\<\(allow\|force\)-end\>"
+    1              0.000010 syn keyword cssTextAttr contained start end adjacent
+    1              0.000011 syn match cssTextAttr contained "\<inter-\(word\|ideographic\|cluster\)\>"
+    1              0.000006 syn keyword cssTextAttr contained distribute kashida first last
+    1              0.000010 syn keyword cssTextAttr contained clip ellipsis unrestricted suppress
+    1              0.000010 syn match cssTextAttr contained "\<break-all\>"
+    1              0.000006 syn match cssTextAttr contained "\<break-word\>"
+    1              0.000003 syn keyword cssTextAttr contained manual
+    1              0.000007 syn match cssTextAttr contained "\<bidi-override\>"
+                            
+    1              0.000012 syn match cssTransformProp contained "\<transform\(-\(origin\|style\)\)\=\>"
+    1              0.000009 syn match cssTransformProp contained "\<perspective\(-origin\)\=\>"
+    1              0.000008 syn match cssTransformProp contained "\<backface-visibility\>"
+                            
+                            " CSS Transitions
+                            " http://www.w3.org/TR/css3-transitions/
+    1              0.000017 syn match cssTransitionProp contained "\<transition\(-\(delay\|duration\|property\|timing-function\)\)\=\>"
+                            
+                            " transition-time-function attributes
+    1              0.000013 syn match cssTransitionAttr contained "\<linear\(-gradient\)\@!\>"
+    1              0.000012 syn match cssTransitionAttr contained "\<ease\(-\(in-out\|out\|in\)\)\=\>"
+    1              0.000011 syn match cssTransitionAttr contained "\<step\(-start\|-end\)\=\>"
+                            "------------------------------------------------
+                            " CSS Basic User Interface Module Level 3 (CSS3 UI)
+                            " http://www.w3.org/TR/css3-ui/
+    1              0.000008 syn match cssUIProp contained "\<box-sizing\>"
+    1              0.000057 syn match cssUIAttr contained "\<\(content\|padding\|border\)\(-box\)\=\>"
+                            
+    1              0.000009 syn keyword cssUIProp contained cursor
+    1              0.000019 syn match cssUIAttr contained "\<\(\([ns]\=[ew]\=\)\|col\|row\|nesw\|nwse\)-resize\>"
+    1              0.000010 syn keyword cssUIAttr contained crosshair help move pointer alias copy
+    1              0.000007 syn keyword cssUIAttr contained progress wait text cell move
+    1              0.000010 syn match cssUIAttr contained "\<context-menu\>"
+    1              0.000007 syn match cssUIAttr contained "\<no-drop\>"
+    1              0.000005 syn match cssUIAttr contained "\<not-allowed\>"
+    1              0.000006 syn match cssUIAttr contained "\<all-scroll\>"
+    1              0.000008 syn match cssUIAttr contained "\<\(vertical-\)\=text\>"
+    1              0.000007 syn match cssUIAttr contained "\<zoom\(-in\|-out\)\=\>"
+                            
+    1              0.000019 syn match cssUIProp contained "\<ime-mode\>"
+    1              0.000006 syn keyword cssUIAttr contained active inactive disabled
+                            
+    1              0.000011 syn match cssUIProp contained "\<nav-\(down\|index\|left\|right\|up\)\=\>"
+    1              0.000010 syn match cssUIProp contained "\<outline\(-\(width\|style\|color\|offset\)\)\=\>"
+    1              0.000005 syn keyword cssUIAttr contained invert
+                            
+    1              0.000004 syn keyword cssUIProp contained icon resize
+    1              0.000005 syn keyword cssUIAttr contained both horizontal vertical
+                            
+    1              0.000008 syn match cssUIProp contained "\<text-overflow\>"
+    1              0.000005 syn keyword cssUIAttr contained clip ellipsis
+                            
+    1              0.000008 syn match cssUIProp contained "\<image-rendering\>"
+    1              0.000004 syn keyword cssUIAttr contained pixellated
+    1              0.000007 syn match cssUIAttr contained "\<crisp-edges\>"
+                            
+                            "------------------------------------------------
+                            " Webkit/iOS specific attributes
+    1              0.000006 syn match cssUIAttr contained '\<preserve-3d\>'
+                            " IE specific attributes
+    1              0.000005 syn match cssIEUIAttr contained '\<bicubic\>'
+                            
+                            " Webkit/iOS specific properties
+    1              0.000012 syn match cssUIProp contained '\<\(tap-highlight-color\|user-select\|touch-callout\)\>'
+                            " IE specific properties
+    1              0.000010 syn match cssIEUIProp contained '\<\(interpolation-mode\|zoom\|filter\)\>'
+                            
+                            " Webkit/Firebox specific properties/attributes
+    1              0.000004 syn keyword cssUIProp contained appearance
+    1              0.000008 syn keyword cssUIAttr contained window button field icon document menu
+                            
+                            
+    1              0.000013 syn match cssAuralProp contained "\<\(pause\|cue\)\(-\(before\|after\)\)\=\>"
+    1              0.000018 syn match cssAuralProp contained "\<\(play-during\|speech-rate\|voice-family\|pitch\(-range\)\=\|speak\(-\(punctuation\|numeral\|header\)\)\=\)\>"
+    1              0.000012 syn keyword cssAuralProp contained volume during azimuth elevation stress richness
+    1              0.000009 syn match cssAuralAttr contained "\<\(x-\)\=\(soft\|loud\)\>"
+    1              0.000004 syn keyword cssAuralAttr contained silent
+    1              0.000005 syn match cssAuralAttr contained "\<spell-out\>"
+    1              0.000005 syn keyword cssAuralAttr contained non mix
+    1              0.000007 syn match cssAuralAttr contained "\<\(left\|right\)-side\>"
+    1              0.000011 syn match cssAuralAttr contained "\<\(far\|center\)-\(left\|center\|right\)\>"
+    1              0.000005 syn keyword cssAuralAttr contained leftwards rightwards behind
+    1              0.000009 syn keyword cssAuralAttr contained below level above lower higher
+    1              0.000009 syn match cssAuralAttr contained "\<\(x-\)\=\(slow\|fast\|low\|high\)\>"
+    1              0.000006 syn keyword cssAuralAttr contained faster slower
+    1              0.000009 syn keyword cssAuralAttr contained male female child code digits continuous
+                            
+                            " mobile text
+    1              0.000009 syn match cssMobileTextProp contained "\<text-size-adjust\>"
+                            
+    1              0.000007 syn keyword cssMediaProp contained width height orientation scan
+    1              0.000010 syn keyword cssMediaProp contained any-hover any-pointer color-gamut grid hover
+    1              0.000008 syn keyword cssMediaProp contained overflow-block overflow-inline pointer update
+    1              0.000012 syn match cssMediaProp contained /\<\(\(max\|min\)-\)\=\(\(device\)-\)\=aspect-ratio\>/
+    1              0.000012 syn match cssMediaProp contained /\<\(\(max\|min\)-\)\=device-pixel-ratio\>/
+    1              0.000016 syn match cssMediaProp contained /\<\(\(max\|min\)-\)\=device-\(height\|width\)\>/
+    1              0.000019 syn match cssMediaProp contained /\<\(\(max\|min\)-\)\=\(height\|width\|resolution\|monochrome\|color\(-index\)\=\)\>/
+    1              0.000059 syn keyword cssMediaAttr contained portrait landscape progressive interlace
+    1              0.000015 syn keyword cssMediaAttr contained coarse fast fine hover infinite p3 paged
+    1              0.000009 syn keyword cssMediaAttr contained rec2020 scroll slow srgb
+    1              0.000029 syn match cssKeyFrameProp contained /\(\d\+\(\.\d\+\)\?%\|\(\<from\|to\>\)\)/ nextgroup=cssDefinition
+    1              0.000021 syn match cssPageMarginProp /@\(\(top\|left\|right\|bottom\)-\(left\|center\|right\|middle\|bottom\)\)\(-corner\)\=/ contained nextgroup=cssDefinition
+    1              0.000007 syn keyword cssPageProp contained content size
+    1              0.000005 syn keyword cssPageProp contained orphans widows
+    1              0.000004 syn keyword cssFontDescriptorProp contained src
+    1              0.000008 syn match cssFontDescriptorProp contained "\<unicode-range\>"
+                            " unicode-range attributes
+    1              0.000014 syn match cssFontDescriptorAttr contained "U+[0-9A-Fa-f?]\+"
+    1              0.000009 syn match cssFontDescriptorAttr contained "U+\x\+-\x\+"
+                            
+    1              0.000006 syn match cssBraces contained "[{}]"
+    1              0.000011 syn match cssError contained "{@<>"
+    1              0.004406 syn region cssDefinition transparent matchgroup=cssBraces start='{' end='}' contains=cssTagName,cssAttributeSelector,cssClassName,cssIdentifier,cssAtRule,cssAttrRegion,css.*Prop,cssComment,cssValue.*,cssColor,cssURL,cssImportant,cssCustomProp,cssError,cssStringQ,cssStringQQ,cssFunction,cssUnicodeEscape,cssVendor,cssDefinition,cssHacks,cssNoise fold
+    1              0.000017 syn match cssBraceError "}"
+    1              0.000006 syn match cssAttrComma ","
+                            
+                            " Pseudo class
+                            " https://www.w3.org/TR/selectors-4/
+    1              0.000016 syn match cssPseudoClass ":[A-Za-z0-9_-]*" contains=cssNoise,cssPseudoClassId,cssUnicodeEscape,cssVendor,cssPseudoClassFn
+    1              0.000012 syn keyword cssPseudoClassId contained link visited active hover before after left right
+    1              0.000010 syn keyword cssPseudoClassId contained root empty target enabled disabled checked invalid
+    1              0.000009 syn match cssPseudoClassId contained "\<first-\(line\|letter\)\>"
+    1              0.000010 syn match cssPseudoClassId contained "\<\(first\|last\|only\)-\(of-type\|child\)\>"
+    1              0.000009 syn match cssPseudoClassId contained  "\<focus\(-within\|-visible\)\=\>"
+    1              0.000027 syn region cssPseudoClassFn contained matchgroup=cssFunctionName start="\<\(not\|is\|lang\|\(nth\|nth-last\)-\(of-type\|child\)\)(" end=")" contains=cssStringQ,cssStringQQ,cssTagName,cssAttributeSelector,cssClassName,cssIdentifier
+                            " ------------------------------------
+                            " Vendor specific properties
+    1              0.000006 syn match cssPseudoClassId contained  "\<selection\>"
+    1              0.000007 syn match cssPseudoClassId contained  "\<\(input-\)\=placeholder\>"
+                            
+                            " Misc highlight groups
+    1              0.000019 syntax match cssUnitDecorators /\(#\|-\|+\|%\|mm\|cm\|in\|pt\|pc\|em\|ex\|px\|ch\|rem\|vh\|vw\|vmin\|vmax\|dpi\|dppx\|dpcm\|Hz\|kHz\|s\|ms\|deg\|grad\|rad\)/ contained
+    1              0.000005 syntax match cssNoise contained /\(:\|;\|\/\)/
+                            
+                            " Comment
+    1              0.000017 syn region cssComment start="/\*" end="\*/" contains=@Spell fold
+                            
+    1              0.000010 syn match cssUnicodeEscape "\\\x\{1,6}\s\?"
+    1              0.000005 syn match cssSpecialCharQQ +\\\\\|\\"+ contained
+    1              0.000005 syn match cssSpecialCharQ +\\\\\|\\'+ contained
+    1              0.000018 syn region cssStringQQ start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=cssUnicodeEscape,cssSpecialCharQQ
+    1              0.000017 syn region cssStringQ start=+'+ skip=+\\\\\|\\'+ end=+'+ contains=cssUnicodeEscape,cssSpecialCharQ
+                            
+                            " Vendor Prefix
+    1              0.000009 syn match cssVendor contained "-\(webkit\|moz\|o\|ms\)-"
+                            
+                            " Various CSS Hack characters
+                            " In earlier versions of IE (6 and 7), one can prefix property names
+                            " with a _ or * to isolate those definitions to particular versions of IE
+                            " This is purely decorative and therefore we assign to the same highlight
+                            " group to cssVendor, for more information:
+                            " http://www.paulirish.com/2009/browser-specific-css-hacks/
+    1              0.000007 syn match cssHacks contained /\(_\|*\)/
+                            
+                            " Attr Enhance
+                            " Some keywords are both Prop and Attr, so we have to handle them
+                            " cssPseudoClassId is hidden by cssAttrRegion, so we add it here. see #69
+    1              0.006107 syn region cssAttrRegion start=/:/ end=/\ze\(;\|)\|}\|{\)/ contained contains=cssPseudoClassId,css.*Attr,cssColor,cssImportant,cssValue.*,cssFunction,cssString.*,cssURL,cssComment,cssUnicodeEscape,cssVendor,cssError,cssAttrComma,cssNoise
+                            
+                            " Hack for transition
+                            " 'transition' has Props after ':'.
+    1              0.006398 syn region cssAttrRegion start=/transition\s*:/ end=/\ze\(;\|)\|}\)/ contained contains=css.*Prop,css.*Attr,cssColor,cssImportant,cssValue.*,cssFunction,cssString.*,cssURL,cssComment,cssUnicodeEscape,cssVendor,cssError,cssAttrComma,cssNoise
+                            
+    1              0.000024 syn match cssAtKeyword /@\(font-face\|media\|keyframes\|import\|charset\|namespace\|page\|supports\)/
+                            
+    1              0.000008 syn keyword cssAtRuleLogical only not and contained
+                            
+                            " @media
+                            " Reference: http://www.w3.org/TR/css3-mediaqueries/
+    1              0.000027 syn region cssAtRule start=/@media\>/ end=/\ze{/ skipwhite skipnl matchgroup=cssAtKeyword contains=cssMediaProp,cssValueLength,cssAtRuleLogical,cssValueInteger,cssMediaAttr,cssVendor,cssMediaType,cssComment,cssCustomProp,cssFunctionName nextgroup=cssDefinition
+    1              0.000013 syn keyword cssMediaType contained screen print aural braille embossed handheld projection tty tv speech all contained
+                            
+                            " @page
+                            " http://www.w3.org/TR/css3-page/
+    1              0.000015 syn region cssAtRule start=/@page\>/ end=/\ze{/ skipwhite skipnl matchgroup=cssAtKeyword contains=cssPagePseudo,cssComment nextgroup=cssDefinition
+    1              0.000008 syn match cssPagePseudo /:\(left\|right\|first\|blank\)/ contained skipwhite skipnl
+                            " @keyframe
+                            " http://www.w3.org/TR/css3-animations/#keyframes
+    1              0.000017 syn region cssAtRule start=/@\(-[a-z]\+-\)\=keyframes\>/ end=/\ze{/ skipwhite skipnl matchgroup=cssAtKeyword contains=cssVendor,cssComment nextgroup=cssDefinition
+                            
+    1              0.000020 syn region cssAtRule start=/@import\>/    end=/\ze;/ contains=cssStringQ,cssStringQQ,cssUnicodeEscape,cssComment,cssAtKeyword,cssURL,cssMediaProp,cssValueLength,cssAtRuleLogical,cssValueInteger,cssMediaAttr,cssMediaType
+    1              0.000013 syn region cssAtRule start=/@charset\>/   end=/\ze;/ contains=cssStringQ,cssStringQQ,cssUnicodeEscape,cssComment,cssAtKeyword
+    1              0.000012 syn region cssAtRule start=/@namespace\>/ end=/\ze;/ contains=cssStringQ,cssStringQQ,cssUnicodeEscape,cssComment,cssAtKeyword
+                            
+                            " @supports
+                            " https://www.w3.org/TR/css3-conditional/#at-supports
+    1              0.002866 syn region cssAtRule start=/@supports\>/ end=/\ze{/ skipwhite skipnl contains=cssAtRuleLogical,cssAttrRegion,css.*Prop,cssValue.*,cssVendor,cssAtKeyword,cssComment nextgroup=cssDefinition
+                            
+                            
+    1              0.000012 if main_syntax == "css"
+                              syn sync minlines=10
+    1              0.000002 endif
+                            
+                            " Define the default highlighting.
+                            " Only when an item doesn't have highlighting yet
+                            
+    1              0.000005 hi def link cssComment Comment
+    1              0.000002 hi def link cssVendor Comment
+    1              0.000002 hi def link cssHacks Comment
+    1              0.000002 hi def link cssTagName Statement
+    1              0.000002 hi def link cssDeprecated Error
+    1              0.000002 hi def link cssSelectorOp Special
+    1              0.000002 hi def link cssSelectorOp2 Special
+    1              0.000002 hi def link cssAttrComma Special
+                            
+    1              0.000002 hi def link cssAnimationProp cssProp
+    1              0.000002 hi def link cssBackgroundProp cssProp
+    1              0.000002 hi def link cssBorderProp cssProp
+    1              0.000002 hi def link cssBoxProp cssProp
+    1              0.000002 hi def link cssCascadeProp cssProp
+    1              0.000002 hi def link cssColorProp cssProp
+    1              0.000002 hi def link cssContentForPagedMediaProp cssProp
+    1              0.000002 hi def link cssDimensionProp cssProp
+    1              0.000002 hi def link cssFlexibleBoxProp cssProp
+    1              0.000002 hi def link cssFontProp cssProp
+    1              0.000002 hi def link cssGeneratedContentProp cssProp
+    1              0.000002 hi def link cssGridProp cssProp
+    1              0.000002 hi def link cssHyerlinkProp cssProp
+    1              0.000002 hi def link cssInteractProp cssProp
+    1              0.000002 hi def link cssLineboxProp cssProp
+    1              0.000002 hi def link cssListProp cssProp
+    1              0.000001 hi def link cssMarqueeProp cssProp
+    1              0.000002 hi def link cssMultiColumnProp cssProp
+    1              0.000002 hi def link cssPagedMediaProp cssProp
+    1              0.000002 hi def link cssPositioningProp cssProp
+    1              0.000002 hi def link cssObjectProp cssProp
+    1              0.000002 hi def link cssPrintProp cssProp
+    1              0.000002 hi def link cssRubyProp cssProp
+    1              0.000002 hi def link cssSpeechProp cssProp
+    1              0.000002 hi def link cssTableProp cssProp
+    1              0.000002 hi def link cssTextProp cssProp
+    1              0.000002 hi def link cssTransformProp cssProp
+    1              0.000002 hi def link cssTransitionProp cssProp
+    1              0.000002 hi def link cssUIProp cssProp
+    1              0.000002 hi def link cssIEUIProp cssProp
+    1              0.000002 hi def link cssAuralProp cssProp
+    1              0.000002 hi def link cssRenderProp cssProp
+    1              0.000002 hi def link cssMobileTextProp cssProp
+                            
+    1              0.000002 hi def link cssAnimationAttr cssAttr
+    1              0.000002 hi def link cssBackgroundAttr cssAttr
+    1              0.000002 hi def link cssBorderAttr cssAttr
+    1              0.000002 hi def link cssBoxAttr cssAttr
+    1              0.000002 hi def link cssContentForPagedMediaAttr cssAttr
+    1              0.000002 hi def link cssDimensionAttr cssAttr
+    1              0.000002 hi def link cssFlexibleBoxAttr cssAttr
+    1              0.000002 hi def link cssFontAttr cssAttr
+    1              0.000002 hi def link cssGeneratedContentAttr cssAttr
+    1              0.000002 hi def link cssGridAttr cssAttr
+    1              0.000002 hi def link cssHyerlinkAttr cssAttr
+    1              0.000002 hi def link cssInteractAttr cssAttr
+    1              0.000002 hi def link cssLineboxAttr cssAttr
+    1              0.000002 hi def link cssListAttr cssAttr
+    1              0.000002 hi def link cssMarginAttr cssAttr
+    1              0.000002 hi def link cssMarqueeAttr cssAttr
+    1              0.000002 hi def link cssMultiColumnAttr cssAttr
+    1              0.000002 hi def link cssPaddingAttr cssAttr
+    1              0.000002 hi def link cssPagedMediaAttr cssAttr
+    1              0.000002 hi def link cssPositioningAttr cssAttr
+    1              0.000002 hi def link cssObjectAttr cssAttr
+    1              0.000002 hi def link cssGradientAttr cssAttr
+    1              0.000002 hi def link cssPrintAttr cssAttr
+    1              0.000002 hi def link cssRubyAttr cssAttr
+    1              0.000002 hi def link cssSpeechAttr cssAttr
+    1              0.000002 hi def link cssTableAttr cssAttr
+    1              0.000002 hi def link cssTextAttr cssAttr
+    1              0.000002 hi def link cssTransformAttr cssAttr
+    1              0.000002 hi def link cssTransitionAttr cssAttr
+    1              0.000001 hi def link cssUIAttr cssAttr
+    1              0.000002 hi def link cssIEUIAttr cssAttr
+    1              0.000002 hi def link cssAuralAttr cssAttr
+    1              0.000002 hi def link cssRenderAttr cssAttr
+    1              0.000002 hi def link cssCascadeAttr cssAttr
+    1              0.000002 hi def link cssCommonAttr cssAttr
+                            
+    1              0.000002 hi def link cssPseudoClassId PreProc
+    1              0.000002 hi def link cssPseudoClassLang Constant
+    1              0.000002 hi def link cssValueLength Number
+    1              0.000002 hi def link cssValueInteger Number
+    1              0.000002 hi def link cssValueNumber Number
+    1              0.000002 hi def link cssValueAngle Number
+    1              0.000002 hi def link cssValueTime Number
+    1              0.000002 hi def link cssValueFrequency Number
+    1              0.000002 hi def link cssFunction Constant
+    1              0.000002 hi def link cssURL String
+    1              0.000002 hi def link cssFunctionName Function
+    1              0.000002 hi def link cssFunctionComma Function
+    1              0.000001 hi def link cssColor Constant
+    1              0.000002 hi def link cssIdentifier Function
+    1              0.000002 hi def link cssAtRule Include
+    1              0.000002 hi def link cssAtKeyword PreProc
+    1              0.000002 hi def link cssImportant Special
+    1              0.000002 hi def link cssCustomProp Special
+    1              0.000002 hi def link cssBraces Function
+    1              0.000002 hi def link cssBraceError Error
+    1              0.000002 hi def link cssError Error
+    1              0.000006 hi def link cssUnicodeEscape Special
+    1              0.000002 hi def link cssStringQQ String
+    1              0.000001 hi def link cssStringQ String
+    1              0.000002 hi def link cssAttributeSelector String
+    1              0.000002 hi def link cssMediaType Special
+    1              0.000002 hi def link cssMediaComma Normal
+    1              0.000002 hi def link cssAtRuleLogical Statement
+    1              0.000002 hi def link cssMediaProp cssProp
+    1              0.000002 hi def link cssMediaAttr cssAttr
+    1              0.000002 hi def link cssPagePseudo PreProc
+    1              0.000002 hi def link cssPageMarginProp cssAtKeyword
+    1              0.000002 hi def link cssPageProp cssProp
+    1              0.000002 hi def link cssKeyFrameProp Constant
+    1              0.000002 hi def link cssFontDescriptor Special
+    1              0.000002 hi def link cssFontDescriptorProp cssProp
+    1              0.000002 hi def link cssFontDescriptorAttr cssAttr
+    1              0.000002 hi def link cssUnicodeRange Constant
+    1              0.000002 hi def link cssClassName Function
+    1              0.000004 hi def link cssClassNameDot Function
+    1              0.000002 hi def link cssProp StorageClass
+    1              0.000002 hi def link cssAttr Constant
+    1              0.000002 hi def link cssUnitDecorators Number
+    1              0.000002 hi def link cssNoise Noise
+                            
+    1              0.000007 let b:current_syntax = "css"
+                            
+    1              0.000003 if main_syntax == 'css'
+                              unlet main_syntax
+    1              0.000001 endif
+                            
+    1   0.000033   0.000027 let &cpo = s:cpo_save
+    1              0.000004 unlet s:cpo_save
+                            
+                            " vim: ts=8
+
+SCRIPT  /home/yj/.local/share/lunarvim/site/pack/packer/start/fennel.vim/syntax/fennel.vim
+Sourced 1 time
+Total time:   0.000869
+ Self time:   0.000853
+
+count  total (s)   self (s)
+                            " Vim syntax file
+                            " Language: FENNEL
+                            " Maintainer: Calvin Rose
+                            
+    1              0.000014 if exists("b:current_syntax")
+                                finish
+    1              0.000002 endif
+                            
+    1              0.000023 let s:cpo_sav = &cpo
+    1   0.000038   0.000030 set cpo&vim
+                            
+    1              0.000016 if has("folding") && exists("g:fennel_fold") && g:fennel_fold > 0
+                                setlocal foldmethod=syntax
+    1              0.000002 endif
+                            
+    1              0.000017 syntax keyword FennelCommentTodo contained FIXME XXX TODO FIXME: XXX: TODO:
+                            
+                            " FENNEL comments
+    1              0.000019 syn match FennelComment ";.*$" contains=FennelCommentTodo,@Spell
+                            
+    1              0.000027 syntax match FennelStringEscape '\v\\%([abfnrtv'"\\]|x[[0-9a-fA-F]]\{2}|25[0-5]|2[0-4][0-9]|[0-1][0-9][0-9])' contained
+    1              0.000034 syntax region FennelString matchgroup=FennelStringDelimiter start=/"/ skip=/\\\\\|\\"/ end=/"/ contains=FennelStringEscape,@Spell
+                            
+    1              0.000010 syn keyword FennelConstant nil
+                            
+    1              0.000004 syn keyword FennelBoolean true
+    1              0.000003 syn keyword FennelBoolean false
+                            
+                            " Fennel special forms
+    1              0.000004 syn keyword FennelSpecialForm #
+    1              0.000002 syn keyword FennelSpecialForm %
+    1              0.000003 syn keyword FennelSpecialForm *
+    1              0.000003 syn keyword FennelSpecialForm +
+    1              0.000003 syn keyword FennelSpecialForm -
+    1              0.000005 syn keyword FennelSpecialForm ->
+    1              0.000003 syn keyword FennelSpecialForm ->>
+    1              0.000003 syn keyword FennelSpecialForm -?>
+    1              0.000002 syn keyword FennelSpecialForm -?>>
+    1              0.000002 syn keyword FennelSpecialForm .
+    1              0.000003 syn keyword FennelSpecialForm ..
+    1              0.000002 syn keyword FennelSpecialForm /
+    1              0.000003 syn keyword FennelSpecialForm //
+    1              0.000003 syn keyword FennelSpecialForm :
+    1              0.000004 syn keyword FennelSpecialForm <
+    1              0.000003 syn keyword FennelSpecialForm <=
+    1              0.000002 syn keyword FennelSpecialForm =
+    1              0.000002 syn keyword FennelSpecialForm >
+    1              0.000003 syn keyword FennelSpecialForm >=
+    1              0.000002 syn keyword FennelSpecialForm ^
+    1              0.000003 syn keyword FennelSpecialForm accumulate
+    1              0.000003 syn keyword FennelSpecialForm and
+    1              0.000003 syn keyword FennelSpecialForm collect
+    1              0.000003 syn keyword FennelSpecialForm comment
+    1              0.000002 syn keyword FennelSpecialForm do
+    1              0.000002 syn keyword FennelSpecialForm doc
+    1              0.000002 syn keyword FennelSpecialForm doto
+    1              0.000003 syn keyword FennelSpecialForm each
+    1              0.000003 syn keyword FennelSpecialForm eval-compiler
+    1              0.000003 syn keyword FennelSpecialForm fn
+    1              0.000003 syn keyword FennelSpecialForm for
+    1              0.000003 syn keyword FennelSpecialForm global
+    1              0.000003 syn keyword FennelSpecialForm hashfn
+    1              0.000002 syn keyword FennelSpecialForm icollect
+    1              0.000002 syn keyword FennelSpecialForm if
+    1              0.000004 syn keyword FennelSpecialForm import-macros
+    1              0.000003 syn keyword FennelSpecialForm include
+    1              0.000002 syn keyword FennelSpecialForm lambda
+    1              0.000002 syn keyword FennelSpecialForm length
+    1              0.000003 syn keyword FennelSpecialForm let
+    1              0.000003 syn keyword FennelSpecialForm local
+    1              0.000002 syn keyword FennelSpecialForm lua
+    1              0.000002 syn keyword FennelSpecialForm macro
+    1              0.000002 syn keyword FennelSpecialForm macrodebug
+    1              0.000002 syn keyword FennelSpecialForm macros
+    1              0.000002 syn keyword FennelSpecialForm match
+    1              0.000003 syn keyword FennelSpecialForm match-try
+    1              0.000003 syn keyword FennelSpecialForm not
+    1              0.000002 syn keyword FennelSpecialForm not=
+    1              0.000003 syn keyword FennelSpecialForm or
+    1              0.000002 syn keyword FennelSpecialForm partial
+    1              0.000002 syn keyword FennelSpecialForm pick-args
+    1              0.000002 syn keyword FennelSpecialForm pick-values
+    1              0.000002 syn keyword FennelSpecialForm quote
+    1              0.000003 syn keyword FennelSpecialForm require-macros
+    1              0.000002 syn keyword FennelSpecialForm set
+    1              0.000002 syn keyword FennelSpecialForm set-forcibly!
+    1              0.000002 syn keyword FennelSpecialForm tset
+    1              0.000002 syn keyword FennelSpecialForm values
+    1              0.000002 syn keyword FennelSpecialForm var
+    1              0.000002 syn keyword FennelSpecialForm when
+    1              0.000002 syn keyword FennelSpecialForm while
+    1              0.000002 syn keyword FennelSpecialForm ~=
+    1              0.000002 syn keyword FennelSpecialForm with-open
+    1              0.000003 syn keyword FennelSpecialForm λ
+                            
+                            " Lua keywords
+    1              0.000148 syntax keyword LuaSpecialValue
+                            	\ _G
+                            	\ _VERSION
+                            	\ assert
+                            	\ collectgarbage
+                            	\ dofile
+                            	\ error
+                            	\ getmetatable
+                            	\ ipairs
+                            	\ load
+                            	\ loadfile
+                            	\ next
+                            	\ pairs
+                            	\ pcall
+                            	\ print
+                            	\ rawequal
+                            	\ rawget
+                            	\ rawlen
+                            	\ rawset
+                            	\ require
+                            	\ select
+                            	\ setmetatable
+                            	\ tonumber
+                            	\ tostring
+                            	\ type
+                            	\ xpcall
+                            	\ coroutine
+                            	\ coroutine.create
+                            	\ coroutine.isyieldable
+                            	\ coroutine.resume
+                            	\ coroutine.running
+                            	\ coroutine.status
+                            	\ coroutine.wrap
+                            	\ coroutine.yield
+                            	\ debug
+                            	\ debug.debug
+                            	\ debug.gethook
+                            	\ debug.getinfo
+                            	\ debug.getlocal
+                            	\ debug.getmetatable
+                            	\ debug.getregistry
+                            	\ debug.getupvalue
+                            	\ debug.getuservalue
+                            	\ debug.sethook
+                            	\ debug.setlocal
+                            	\ debug.setmetatable
+                            	\ debug.setupvalue
+                            	\ debug.setuservalue
+                            	\ debug.traceback
+                            	\ debug.upvalueid
+                            	\ debug.upvaluejoin
+                            	\ io
+                            	\ io.close
+                            	\ io.flush
+                            	\ io.input
+                            	\ io.lines
+                            	\ io.open
+                            	\ io.output
+                            	\ io.popen
+                            	\ io.read
+                            	\ io.stderr
+                            	\ io.stdin
+                            	\ io.stdout
+                            	\ io.tmpfile
+                            	\ io.type
+                            	\ io.write
+                            	\ math
+                            	\ math.abs
+                            	\ math.acos
+                            	\ math.asin
+                            	\ math.atan
+                            	\ math.ceil
+                            	\ math.cos
+                            	\ math.deg
+                            	\ math.exp
+                            	\ math.floor
+                            	\ math.fmod
+                            	\ math.huge
+                            	\ math.log
+                            	\ math.max
+                            	\ math.maxinteger
+                            	\ math.min
+                            	\ math.mininteger
+                            	\ math.modf
+                            	\ math.pi
+                            	\ math.rad
+                            	\ math.random
+                            	\ math.randomseed
+                            	\ math.sin
+                            	\ math.sqrt
+                            	\ math.tan
+                            	\ math.tointeger
+                            	\ math.type
+                            	\ math.ult
+                            	\ os
+                            	\ os.clock
+                            	\ os.date
+                            	\ os.difftime
+                            	\ os.execute
+                            	\ os.exit
+                            	\ os.getenv
+                            	\ os.remove
+                            	\ os.rename
+                            	\ os.setlocale
+                            	\ os.time
+                            	\ os.tmpname
+                            	\ package
+                            	\ package.config
+                            	\ package.cpath
+                            	\ package.loaded
+                            	\ package.loadlib
+                            	\ package.path
+                            	\ package.preload
+                            	\ package.searchers
+                            	\ package.searchpath
+                            	\ string
+                            	\ string.byte
+                            	\ string.char
+                            	\ string.dump
+                            	\ string.find
+                            	\ string.format
+                            	\ string.gmatch
+                            	\ string.gsub
+                            	\ string.len
+                            	\ string.lower
+                            	\ string.match
+                            	\ string.pack
+                            	\ string.packsize
+                            	\ string.rep
+                            	\ string.reverse
+                            	\ string.sub
+                            	\ string.unpack
+                            	\ string.upper
+                            	\ table
+                            	\ table.concat
+                            	\ table.insert
+                            	\ table.move
+                            	\ table.pack
+                            	\ table.remove
+                            	\ table.sort
+                            	\ table.unpack
+                            	\ utf8
+                            	\ utf8.char
+                            	\ utf8.charpattern
+                            	\ utf8.codepoint
+                            	\ utf8.codes
+                            	\ utf8.len
+                            	\ utf8.offset
+                            
+                            " Fennel Symbols
+    1              0.000034 let s:symcharnodig = '\!\$%\&\#\*\+\-./:<=>?A-Z^_a-z|\x80-\U10FFFF'
+    1              0.000011 let s:symchar = '0-9' . s:symcharnodig
+    1              0.000041 execute 'syn match FennelSymbol "\v<%([' . s:symcharnodig . '])%([' . s:symchar . '])*>"'
+    1              0.000014 execute 'syn match FennelKeyword "\v:%([' . s:symchar . '])*>"'
+    1              0.000005 unlet! s:symchar s:symcharnodig
+                            
+    1              0.000005 syn match FennelQuote "`"
+    1              0.000004 syn match FennelQuote "@"
+                            
+                            " FENNEL numbers
+    1              0.000013 syntax match FennelNumber "\v\c<[-+]?\d*\.?\d*%([eE][-+]?\d+)?>"
+    1              0.000008 syntax match FennelNumber "\v\c<[-+]?0x[0-9A-F]*\.?[0-9A-F]*>"
+                            
+                            " Grammar root
+    1              0.000020 syntax cluster FennelTop contains=@Spell,FennelComment,FennelConstant,FennelQuote,FennelKeyword,LuaSpecialValue,FennelSymbol,FennelNumber,FennelString,FennelList,FennelArray,FennelTable,FennelSpecialForm,FennelBoolean
+                            
+    1              0.000014 syntax region FennelList matchgroup=FennelParen start="("  end=")" contains=@FennelTop fold
+    1              0.000011 syntax region FennelArray matchgroup=FennelParen start="\[" end="]" contains=@FennelTop fold
+    1              0.000008 syntax region FennelTable matchgroup=FennelParen start="{"  end="}" contains=@FennelTop fold
+                            
+                            " Highlight superfluous closing parens, brackets and braces.
+    1              0.000006 syntax match FennelError "]\|}\|)"
+                            
+    1              0.000003 syntax sync fromstart
+                            
+                            " Highlighting
+    1              0.000005 hi def link FennelComment Comment
+    1              0.000003 hi def link FennelSymbol Identifier
+    1              0.000002 hi def link FennelNumber Number
+    1              0.000002 hi def link FennelConstant Constant
+    1              0.000002 hi def link FennelKeyword Keyword
+    1              0.000002 hi def link FennelSpecialForm Special
+    1              0.000002 hi def link LuaSpecialValue Special
+    1              0.000002 hi def link FennelString String
+    1              0.000002 hi def link FennelBuffer String
+    1              0.000002 hi def link FennelStringDelimiter String
+    1              0.000002 hi def link FennelBoolean Boolean
+                            
+    1              0.000002 hi def link FennelQuote SpecialChar
+    1              0.000002 hi def link FennelParen Delimiter
+                            
+    1              0.000004 let b:current_syntax = "fennel"
+                            
+    1   0.000035   0.000027 let &cpo = s:cpo_sav
+    1              0.000008 unlet! s:cpo_sav
+
+FUNCTION  CursorHold_Cb()
+    Defined: ~/.local/share/lunarvim/site/pack/packer/start/FixCursorHold.nvim/plugin/fix_cursorhold_nvim.vim:19
+Called 2 times
+Total time:   0.000685
+ Self time:   0.000215
+
+count  total (s)   self (s)
+    2              0.000051   if v:exiting isnot v:null
+                                return
+    2              0.000005   endif
+    2   0.000144   0.000084   set eventignore-=CursorHold
+    2   0.000421   0.000025   doautocmd <nomodeline> CursorHold
+    2   0.000043   0.000029   set eventignore+=CursorHold
+
+FUNCTION  <SNR>19_Highlight_Matching_Pair()
+    Defined: ~/.local/nvim-linux64/share/nvim/runtime/plugin/matchparen.vim:40
+Called 7 times
+Total time:   0.001387
+ Self time:   0.001213
+
+count  total (s)   self (s)
+                              " Remove any previous match.
+    7   0.000306   0.000132   call s:Remove_Matches()
+                            
+                              " Avoid that we remove the popup menu.
+                              " Return when there are no colors (looks like the cursor jumps).
+    7              0.000065   if pumvisible() || (&t_Co < 8 && !has("gui_running"))
+                                return
+    7              0.000007   endif
+                            
+                              " Get the character under the cursor and check if it's in 'matchpairs'.
+    7              0.000049   let c_lnum = line('.')
+    7              0.000030   let c_col = col('.')
+    7              0.000016   let before = 0
+                            
+    7              0.000034   let text = getline(c_lnum)
+    7              0.000238   let matches = matchlist(text, '\(.\)\=\%'.c_col.'c\(.\=\)')
+    7              0.000035   if empty(matches)
+                                let [c_before, c] = ['', '']
+    7              0.000010   else
+    7              0.000066     let [c_before, c] = matches[1:2]
+    7              0.000008   endif
+    7              0.000174   let plist = split(&matchpairs, '.\zs[:,]')
+    7              0.000043   let i = index(plist, c)
+    7              0.000015   if i < 0
+                                " not found, in Insert mode try character before the cursor
+    7              0.000052     if c_col > 1 && (mode() == 'i' || mode() == 'R')
+    4              0.000016       let before = strlen(c_before)
+    4              0.000008       let c = c_before
+    4              0.000012       let i = index(plist, c)
+    7              0.000007     endif
+    7              0.000012     if i < 0
+                                  " not found, nothing to do
+    7              0.000013       return
+                                endif
+                              endif
+                            
+                              " Figure out the arguments for searchpairpos().
+                              if i % 2 == 0
+                                let s_flags = 'nW'
+                                let c2 = plist[i + 1]
+                              else
+                                let s_flags = 'nbW'
+                                let c2 = c
+                                let c = plist[i - 1]
+                              endif
+                              if c == '['
+                                let c = '\['
+                                let c2 = '\]'
+                              endif
+                            
+                              " Find the match.  When it was just before the cursor move it there for a
+                              " moment.
+                              if before > 0
+                                let has_getcurpos = exists("*getcurpos")
+                                if has_getcurpos
+                                  " getcurpos() is more efficient but doesn't exist before 7.4.313.
+                                  let save_cursor = getcurpos()
+                                else
+                                  let save_cursor = winsaveview()
+                                endif
+                                call cursor(c_lnum, c_col - before)
+                              endif
+                            
+                              if !has("syntax") || !exists("g:syntax_on")
+                                let s_skip = "0"
+                              else
+                                " Build an expression that detects whether the current cursor position is
+                                " in certain syntax types (string, comment, etc.), for use as
+                                " searchpairpos()'s skip argument.
+                                " We match "escape" for special items, such as lispEscapeSpecial, and
+                                " match "symbol" for lispBarSymbol.
+                                let s_skip = '!empty(filter(map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''), ' . '''v:val =~? "string\\|character\\|singlequote\\|escape\\|symbol\\|comment"''))'
+                                " If executing the expression determines that the cursor is currently in
+                                " one of the syntax types, then we want searchpairpos() to find the pair
+                                " within those syntax types (i.e., not skip).  Otherwise, the cursor is
+                                " outside of the syntax types and s_skip should keep its value so we skip
+                                " any matching pair inside the syntax types.
+                                " Catch if this throws E363: pattern uses more memory than 'maxmempattern'.
+                                try
+                                  execute 'if ' . s_skip . ' | let s_skip = "0" | endif'
+                                catch /^Vim\%((\a\+)\)\=:E363/
+                                  " We won't find anything, so skip searching, should keep Vim responsive.
+                                  return
+                                endtry
+                              endif
+                            
+                              " Limit the search to lines visible in the window.
+                              let stoplinebottom = line('w$')
+                              let stoplinetop = line('w0')
+                              if i % 2 == 0
+                                let stopline = stoplinebottom
+                              else
+                                let stopline = stoplinetop
+                              endif
+                            
+                              " Limit the search time to 300 msec to avoid a hang on very long lines.
+                              " This fails when a timeout is not supported.
+                              if mode() == 'i' || mode() == 'R'
+                                let timeout = exists("b:matchparen_insert_timeout") ? b:matchparen_insert_timeout : g:matchparen_insert_timeout
+                              else
+                                let timeout = exists("b:matchparen_timeout") ? b:matchparen_timeout : g:matchparen_timeout
+                              endif
+                              try
+                                let [m_lnum, m_col] = searchpairpos(c, '', c2, s_flags, s_skip, stopline, timeout)
+                              catch /E118/
+                                " Can't use the timeout, restrict the stopline a bit more to avoid taking
+                                " a long time on closed folds and long lines.
+                                " The "viewable" variables give a range in which we can scroll while
+                                " keeping the cursor at the same position.
+                                " adjustedScrolloff accounts for very large numbers of scrolloff.
+                                let adjustedScrolloff = min([&scrolloff, (line('w$') - line('w0')) / 2])
+                                let bottom_viewable = min([line('$'), c_lnum + &lines - adjustedScrolloff - 2])
+                                let top_viewable = max([1, c_lnum-&lines+adjustedScrolloff + 2])
+                                " one of these stoplines will be adjusted below, but the current values are
+                                " minimal boundaries within the current window
+                                if i % 2 == 0
+                                  if has("byte_offset") && has("syntax_items") && &smc > 0
+                            	let stopbyte = min([line2byte("$"), line2byte(".") + col(".") + &smc * 2])
+                            	let stopline = min([bottom_viewable, byte2line(stopbyte)])
+                                  else
+                            	let stopline = min([bottom_viewable, c_lnum + 100])
+                                  endif
+                                  let stoplinebottom = stopline
+                                else
+                                  if has("byte_offset") && has("syntax_items") && &smc > 0
+                            	let stopbyte = max([1, line2byte(".") + col(".") - &smc * 2])
+                            	let stopline = max([top_viewable, byte2line(stopbyte)])
+                                  else
+                            	let stopline = max([top_viewable, c_lnum - 100])
+                                  endif
+                                  let stoplinetop = stopline
+                                endif
+                                let [m_lnum, m_col] = searchpairpos(c, '', c2, s_flags, s_skip, stopline)
+                              endtry
+                            
+                              if before > 0
+                                if has_getcurpos
+                                  call setpos('.', save_cursor)
+                                else
+                                  call winrestview(save_cursor)
+                                endif
+                              endif
+                            
+                              " If a match is found setup match highlighting.
+                              if m_lnum > 0 && m_lnum >= stoplinetop && m_lnum <= stoplinebottom 
+                                if exists('*matchaddpos')
+                                  call matchaddpos('MatchParen', [[c_lnum, c_col - before], [m_lnum, m_col]], 10, 3)
+                                else
+                                  exe '3match MatchParen /\(\%' . c_lnum . 'l\%' . (c_col - before) . 'c\)\|\(\%' . m_lnum . 'l\%' . m_col . 'c\)/'
+                                endif
+                                let w:paren_hl_on = 1
+                              endif
+
+FUNCTION  CursorHoldTimer()
+    Defined: ~/.local/share/lunarvim/site/pack/packer/start/FixCursorHold.nvim/plugin/fix_cursorhold_nvim.vim:37
+Called 2 times
+Total time:   0.000058
+ Self time:   0.000058
+
+count  total (s)   self (s)
+    2              0.000015   call timer_stop(g:fix_cursorhold_nvim_timer)
+    2              0.000007   if mode() == 'n'
+    2              0.000028     let g:fix_cursorhold_nvim_timer = timer_start(g:cursorhold_updatetime, 'CursorHold_Cb')
+    2              0.000003   endif
+
+FUNCTION  <SNR>36_try()
+    Defined: ~/.local/share/lunarvim/site/pack/packer/start/indent-blankline.nvim/plugin/indent_blankline.vim:7
+Called 2 times
+Total time:   0.001616
+ Self time:   0.001616
+
+count  total (s)   self (s)
+    2              0.000004     try
+    2              0.001597         execute a:cmd
+                                catch /E12/
+                                    return
+    2              0.000003     endtry
+
+FUNCTION  <SNR>19_Remove_Matches()
+    Defined: ~/.local/nvim-linux64/share/nvim/runtime/plugin/matchparen.vim:197
+Called 8 times
+Total time:   0.000209
+ Self time:   0.000209
+
+count  total (s)   self (s)
+    8              0.000099   if exists('w:paren_hl_on') && w:paren_hl_on
+                                silent! call matchdelete(3)
+                                let w:paren_hl_on = 0
+    8              0.000018   endif
+
+FUNCTION  CursorHoldITimer()
+    Defined: ~/.local/share/lunarvim/site/pack/packer/start/FixCursorHold.nvim/plugin/fix_cursorhold_nvim.vim:44
+Called 2 times
+Total time:   0.000035
+ Self time:   0.000035
+
+count  total (s)   self (s)
+    2              0.000011   call timer_stop(g:fix_cursorhold_nvim_timer)
+    2              0.000021   let g:fix_cursorhold_nvim_timer = timer_start(g:cursorhold_updatetime, 'CursorHoldI_Cb')
+
+FUNCTION  CursorHoldI_Cb()
+    Defined: ~/.local/share/lunarvim/site/pack/packer/start/FixCursorHold.nvim/plugin/fix_cursorhold_nvim.vim:28
+Called 1 time
+Total time:   0.000060
+ Self time:   0.000050
+
+count  total (s)   self (s)
+    1              0.000014   if v:exiting isnot v:null
+                                return
+    1              0.000002   endif
+    1   0.000024   0.000017   set eventignore-=CursorHoldI
+    1              0.000004   doautocmd <nomodeline> CursorHoldI
+    1   0.000010   0.000007   set eventignore+=CursorHoldI
+
+FUNCTIONS SORTED ON TOTAL TIME
+count  total (s)   self (s)  function
+    2   0.001616             <SNR>36_try()
+    7   0.001387   0.001213  <SNR>19_Highlight_Matching_Pair()
+    2   0.000685   0.000215  CursorHold_Cb()
+    8   0.000209             <SNR>19_Remove_Matches()
+    1   0.000060   0.000050  CursorHoldI_Cb()
+    2   0.000058             CursorHoldTimer()
+    2   0.000035             CursorHoldITimer()
+
+FUNCTIONS SORTED ON SELF TIME
+count  total (s)   self (s)  function
+    2              0.001616  <SNR>36_try()
+    7   0.001387   0.001213  <SNR>19_Highlight_Matching_Pair()
+    2   0.000685   0.000215  CursorHold_Cb()
+    8              0.000209  <SNR>19_Remove_Matches()
+    2              0.000058  CursorHoldTimer()
+    1   0.000060   0.000050  CursorHoldI_Cb()
+    2              0.000035  CursorHoldITimer()
+
