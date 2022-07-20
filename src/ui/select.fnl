@@ -11,7 +11,7 @@
             (map (fn [v i] (.. i " " (tostring v))))) 
         "\n") 
       "\nEOL\n" 
-      "cat /tmp/select | rofi -dmenu -dpi " (. (awful.screen.focused ) :dpi) " -p " 
+      "cat /tmp/select | rofi -i -dmenu -dpi " (. (awful.screen.focused ) :dpi) " -p " 
       (or prompt "Select") 
       "'") 
     (fn [stdout stderr resason code] 

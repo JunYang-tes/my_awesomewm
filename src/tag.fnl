@@ -89,26 +89,16 @@
                                             " " 
                                             t.name)))) 
   (print :select-tag-rofi-dpi (. (awful.screen.focused ) :dpi))
-  (awful.spawn.easy_async 
-    (..
-      "bash -c '"
-       "cat > /tmp/tags << EOL\n" 
-       (table.concat tags-name "\n")
-      "\nEOL\n"
-      "cat /tmp/tags | rofi -dmenu -dpi " (. (awful.screen.focused ) :dpi) " -p "
-      (or prompt "Select tag")
-      "'") 
-
-    (fn [stdout stderr reason code] 
-      (local ind (-> stdout
-                     (string.match "(%d+)%s") 
-                     (tonumber))) 
-      (if ind 
-        (-> (. tags ind) 
-            (on-selected)))))) 
-            
-                           
-
+  (select-item
+    {
+      :items tags-name
+      :prompt "Select tag" 
+      :on-selected 
+        (fn [index] 
+          (if index
+            (-> (. tags index) 
+                on-selected)))})) 
+      
 (fn switch-tag [tag] 
   (set tag.selected false)
   (tag:view_only)) 
