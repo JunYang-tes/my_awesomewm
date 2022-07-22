@@ -3,7 +3,7 @@
 (local { : find 
          : filter
          : map 
-         : max-by} 
+         : min-by} 
        (require :utils.list)) 
 (local inspect (require :inspect)) 
  
@@ -25,7 +25,7 @@
     (or (find (tag:clients ) (fn [c] c.fullscreen)) 
         (. (tag:clients) 1)))) 
 
-(fn get-by-direct [item items dir geometry-accessor]
+(fn get-by-direct [item items dir {: width : height} geometry-accessor]
   (local geometry-accessor (or geometry-accessor 
                                #{:x $1.x :y $1.y :width $1.width :height $1.height})) 
 
@@ -33,40 +33,36 @@
     (match dir 
       "up" (fn [a b]
              ;; b is above a
-             (if (>= a.y (+ b.y b.height))
-               (do 
-                 (local intersection-x (- (+ a.x a.width) b.x)) 
-                 (math.abs intersection-x)) 
-               -1)) 
+             (local y (- a.y (+ b.y b.height))) 
+             (local x (math.abs (- a.x b.x))) 
+             (+ (* 10 (/ y height)) 
+                (/ x width))) 
               
       "down" (fn [a b]
-               (if (<= (+ a.y a.height) b.y)
-                   (do 
-                     (local intersection-x (- (+ a.x a.width) b.x)) 
-                     (math.abs intersection-x)) 
-                   -1)) 
+               (local y (- b.y (+ a.y a.height))) 
+               (local x (math.abs (- a.x b.x))) 
+               (+ (* 10 (/ y height)) 
+                  (/ x width))) 
       "left" (fn [a b]
-               (if (>= a.x (+ b.x b.width))
-                 (do 
-                   (local intersection-y (- (+ a.y a.height) b.y)) 
-                   (math.abs intersection-y)) 
-                 -1)) 
+               (local x (- a.x (+ b.x b.width))) 
+               (local y (math.abs (- a.y b.y))) 
+               (+ (* 10 (/ x width))
+                  (/ y height))) 
       "right" (fn [a b]
-                (if (<= (+ a.x a.width) b.x)
-                  (do 
-                    (local intersection-y (- (+ a.y a.height) b.y)) 
-                    (math.abs intersection-y)) 
-                  -1)))) 
+               (local x (- b.x (+ a.x a.width))) 
+               (local y (math.abs (- a.y b.y))) 
+               (+ (* 10 (/ x width))
+                  (/ y height))))) 
           
   (local checked
     (-> items 
       (map (fn [i] 
              (if (= i item) 
-                 [0 i] 
+                 [(/ 1 0) i] 
                  [(overlap-weight (geometry-accessor item) (geometry-accessor i)) i]))) 
-      (filter (fn [[weight]] (> weight 0)))))
+      (filter (fn [[i]] (> i 0))))) 
   (if (> (length checked) 0) 
-      (. (max-by checked #(. $1 1)) 2) 
+      (. (min-by checked #(. $1 1)) 2) 
       item)) 
 
 (fn get-current-tag []

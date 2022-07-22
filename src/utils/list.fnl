@@ -74,6 +74,17 @@
           acc))
     (. list 1))) 
 
+(fn min-by [list accessor] 
+  (reduce 
+    list
+    (fn [item acc] 
+      (local a (accessor item)) 
+      (local b (accessor acc)) 
+      (if (> a b) 
+          acc
+          item)) 
+    (. list 1))) 
+
 { 
   : filter
   : map
@@ -84,5 +95,6 @@
   : find 
   : remove-value!
   : reduce
-  : max-by       
+  : max-by    
+  : min-by 
   : zip} 

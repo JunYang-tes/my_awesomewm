@@ -13,10 +13,10 @@
          clients (if client 
                      (client.first_tag:clients) 
                      [])] 
-    (print :client client)
            
+    (local geometry (. (awful.screen.focused ) :geometry))
     (if client 
-        (wm.focus (wm.get-by-direct client clients dir))))) 
+        (wm.focus (wm.get-by-direct client clients dir geometry))))) 
 
 (fn tag-untaged []
   (local tag (-> (awful.screen.focused)
