@@ -48,7 +48,6 @@
   (local tag-info (or tag-info {:name "(Anonymous)"
                                 :screen ":focused" 
                                 :selected true})) 
-  (print :will-create-tag (inspect tag-info))
   (local t (tag.add tag-info.name 
                     {
                       :selected tag-info.selected
@@ -61,8 +60,7 @@
         (do
           (signal.emit "tag::selected" tag) 
           (save-tags) 
-          (awful.screen.focus tag.screen)
-          (print :focus-that-screen))))) 
+          (awful.screen.focus tag.screen)))))
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
@@ -88,7 +86,6 @@
                                             (screen-utils.get-name t.screen)
                                             " " 
                                             t.name)))) 
-  (print :select-tag-rofi-dpi (. (awful.screen.focused ) :dpi))
   (select-item
     {
       :items tags-name
@@ -124,12 +121,10 @@
         (fn [index] 
           (local s (. screens index)) 
           (local tag (wm.get-current-tag))
-          (print :move-to (screen-utils.get-name s)) 
           (set tag.screen s))})) 
            
 
 (fn init []
-  (print (inspect (cfg.load-cfg :tag {})))
   (local def-tags (icollect [k _ (pairs (screen-utils.get-screens))]
                     {:name "Default" 
                      :screen (.. "interface:" k)})) 

@@ -9,10 +9,10 @@
 
 (local inferaces 
   [
-   #(stringx.starts-with $1 "HDMI-")
-   #(stringx.starts-with $1 "DP-") 
-   #(stringx.starts-with $1 "eDP-") 
-   #(stringx.starts-with $1 "VGA-")]) 
+   #(stringx.starts-with $1 "HDMI")
+   #(stringx.starts-with $1 "DP") 
+   #(stringx.starts-with $1 "eDP") 
+   #(stringx.starts-with $1 "VGA")]) 
 
 (fn parse-interface [screen]
   (var interface screen.index)

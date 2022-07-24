@@ -9,6 +9,7 @@
 (local signal (require :utils.signal))                         
 (local { : dpi} (require :utils.wm))                   
 (local screen-utils (require :utils.screen))                         
+(local battery (require :components.battery)) 
 
 (local bar-height (dpi 40))
 (local bar-offset-y (dpi 30)) 
@@ -57,6 +58,7 @@
                           { 
                             :spacing (dpi 16)}
                           (tag-indicator)
+                          (battery.widget)
                           (layout.fixed-horizontal
                             { :spacing (dpi 2)}
                             (widget.font-icon "date_range")

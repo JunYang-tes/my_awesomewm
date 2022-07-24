@@ -31,7 +31,6 @@
 
 (fn save-cfg [cfg name]
   (local path (.. cfg_path name ".json")) 
-  (print :save (json.encode cfg) path)
   (let [(file msg) (io.open path "w")] 
     (if file 
       (do 
