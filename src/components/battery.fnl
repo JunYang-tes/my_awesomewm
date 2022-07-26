@@ -54,18 +54,26 @@
 
 (fn get-battery-info [bat]
   (fn []
-    (local charging? (= (read-prop bat :status)
-                        :Charging)) 
-    {
-      :capacity (get-capacity bat)
-      :percentage (calc-percentage bat)
-      : charging? 
-      ;; Charging/Dischargin/Full
-      :status (read-prop bat :status)
-      :remaining-time (if charging? 
-                          (calc-charging-time bat) 
-                          (calc-discharging-time bat))})) 
-       
+    (fn go []
+      (local charging? (= (read-prop bat :status)
+                          :Charging)) 
+      {
+        :capacity (get-capacity bat)
+        :percentage (calc-percentage bat)
+        : charging? 
+        ;; Charging/Discharging/Full
+        :status (read-prop bat :status)
+        :remaining-time (if charging? 
+                            (calc-charging-time bat) 
+                            (calc-discharging-time bat))} 
+      (let [(ok ret) (go)] 
+        (if ok 
+            ret 
+            {:capacity 0 
+             :percentage 0 
+             :charging? false 
+             :status :Discharging
+             :remaining-time 0}))))) 
 
 (fn battery-count [] 
   (local lines (icollect [i _ (-> (io.popen  "ls -1 /sys/class/power_supply/")

@@ -203,4 +203,7 @@
          :group :tag}) 
   (key [modkey "Shift"] "d" toggle-desktop 
        { :description "Toggle desktop" 
+         :group "awesome"}) 
+  (key [ modkey "Shift" ] "a" #(awful.spawn "flameshot gui")
+       { :description "Screenshot" 
          :group "awesome"})) 
