@@ -68,9 +68,9 @@
                             {:top (dpi 8) :right (dpi 10)}
                             (do 
                               (local systray (wibox.widget.systray)) 
-                              (systray:set_base_size (dpi 20)) 
-			      (volume.widget)
-                              systray)))))) 
+                              (systray:set_base_size (dpi 20) 
+                               systray))) 
+                          (volume.widget)))))
         :border_width 0
         :bg :#fff00000
         :type "dock" 

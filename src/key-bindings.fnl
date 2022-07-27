@@ -170,10 +170,10 @@
   (key [modkey "Shift"] "space" #(awful.layout.inc -1)
        { :description "select previous"
          :group "layout"})
-  (key [modkey] "r" #(awful.util.spawn (.. "rofi -show drun -dpi " (. (awful.screen.focused) :dpi)))
+  (key [modkey] "r" #(awful.util.spawn (.. "rofi -show drun -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
-  (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (. (awful.screen.focused) :dpi)))
+  (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
   (key [modkey] "c" (fn [] 
