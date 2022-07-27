@@ -61,14 +61,18 @@
      
 
   (fn update-volume [] 
-    (set tb.markup (tostring (get-volume)))) 
+    (local volume (get-volume))
+    (set icon.markup (if (> volume 0)
+                         "volume_up" 
+                         "volume_off")) 
+    (set tb.markup (tostring volume))) 
 
   (slider:connect_signal "property::value"
     (fn [] 
       (local value slider.value) 
       (print value) 
       (awful.spawn (.."amixer set Master " value "%")) 
-      (set tb.markup (tostring value)))) 
+      (update-volume)))
        
   (signal.connect-signal "volume::update"
     update-volume) 
