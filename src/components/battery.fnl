@@ -1,7 +1,12 @@
 (local awful (require :awful))
 (local wibox (require :wibox))
 (local inspect (require :inspect))
-(local { : range : map : filter } (require :utils.list))
+(local { 
+        : range 
+        : map 
+        : filter 
+        : some} 
+  (require :utils.list))
 (local gears (require :gears)) 
 (local builder (require :ui.builder)) 
 (local { : dpi : on-idle} (require :utils.wm))                   
@@ -10,12 +15,19 @@
 (local naughty (require :naughty)) 
 
 (fn is-battery [name] 
-  (= (-> (io.popen (.. "cat " 
-                     "/sys/class/power_supply/" 
-                     name 
-                     "/type")) 
-         (: :read)) 
-     "Battery")) 
+  (local lines (-> (io.popen (.. "ls -1"
+                               "/sys/class/power_supply/" 
+                               name)) 
+                   (: :lines))) 
+  (local lines (icollect [i v lines] v))
+  (and
+    (= (-> (io.popen (.. "cat " 
+                       "/sys/class/power_supply/" 
+                       name 
+                       "/type")) 
+           (: :read)) 
+       "Battery") 
+    (some lines #(= $1 :charge_full)))) 
 
 (fn read-prop [bat prop] 
   (-> (io.open (.. "/sys/class/power_supply/" 
@@ -65,15 +77,15 @@
         :status (read-prop bat :status)
         :remaining-time (if charging? 
                             (calc-charging-time bat) 
-                            (calc-discharging-time bat))} 
-      (let [(ok ret) (go)] 
-        (if ok 
-            ret 
-            {:capacity 0 
-             :percentage 0 
-             :charging? false 
-             :status :Discharging
-             :remaining-time 0}))))) 
+                            (calc-discharging-time bat))}) 
+    (let [(ok ret) (pcall go)] 
+      (if ok 
+          ret 
+          {:capacity 0 
+           :percentage 0 
+           :charging? false 
+           :status :Discharging
+           :remaining-time 0})))) 
 
 (fn battery-count [] 
   (local lines (icollect [i _ (-> (io.popen  "ls -1 /sys/class/power_supply/")
