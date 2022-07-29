@@ -53,9 +53,14 @@
   (local workarea s.workarea)
   { :x (+ x workarea.x) 
     :y (+ y workarea.y)}) 
-
+(fn center [screen w h]
+  (local {: width : height} screen.geometry)
+  (local pos (calc-pos screen (/ (- width w) 2) 
+                              (/ (- height h) 2))) 
+  pos) 
 { : get-prefered-screen
   : parse-interface 
   : get-name 
   : calc-pos 
+  : center 
   : get-screens} 

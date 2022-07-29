@@ -10,6 +10,7 @@
 (local wibox  (require :wibox))
 (local {: prompt } (require :ui.prompt))                           
 (local bar (require :components.function-bar))                    
+(local jd (require :components.jd))
 (local client (require :client))                                
 (local naughty (require :naughty)) 
 
@@ -206,4 +207,7 @@
          :group "awesome"}) 
   (key [ modkey "Shift" ] "a" #(awful.spawn "flameshot gui")
        { :description "Screenshot" 
-         :group "awesome"})) 
+         :group "awesome"}) 
+  (key [ modkey] "z" jd.toggle-visible
+       { :description "JD keymap" 
+         :group :other})) 
