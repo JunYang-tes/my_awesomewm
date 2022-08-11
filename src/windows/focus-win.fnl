@@ -32,7 +32,6 @@
                                          :on-selected handle-selected})))
                                         
             (select-win {
-                         :ignore-focus (not make-it-fullscreen)
                          :on-selected handle-selected})))) 
                           
 

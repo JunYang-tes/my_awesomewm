@@ -108,20 +108,34 @@
 (fn view-tag []
   (select-tag { :on-selected switch-tag}))
 
+(fn move-to-another-screen []
+  (local [s1 s2] (screen-utils.get-screen-list))
+  (local tag (wm.get-current-tag)) 
+  (local tgt-screen
+    (if (= tag.screen s1) 
+        s2 
+        s1)) 
+  (set tag.screen tgt-screen) 
+  (switch-tag tag)
+  (awful.screen.focus tgt-screen)) 
+         
 (fn move-to-screen []
   (local screens (icollect [ k v (pairs (screen-utils.get-screens))]
                    v)) 
-  (select-item 
-    { 
-      :items (-> screens 
-                 (map (fn [s] 
-                        (screen-utils.get-name s)))) 
-      :prompt "Select screen" 
-      :on-selected 
-        (fn [index] 
-          (local s (. screens index)) 
-          (local tag (wm.get-current-tag))
-          (set tag.screen s))})) 
+  (if (= (length screens)
+         2) 
+      (move-to-another-screen) 
+      (select-item 
+        { 
+          :items (-> screens 
+                     (map (fn [s] 
+                            (screen-utils.get-name s)))) 
+          :prompt "Select screen" 
+          :on-selected 
+            (fn [index] 
+              (local s (. screens index)) 
+              (local tag (wm.get-current-tag))
+              (set tag.screen s))}))) 
            
 
 (fn init []

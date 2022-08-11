@@ -49,6 +49,10 @@
 (fn get-screens []
   screens) 
 
+(fn get-screen-list []
+  (icollect [_ v (pairs screens)] 
+    v)) 
+
 (fn calc-pos [s x y]
   (local workarea s.workarea)
   { :x (+ x workarea.x) 
@@ -63,4 +67,5 @@
   : get-name 
   : calc-pos 
   : center 
+  : get-screen-list
   : get-screens} 

@@ -13,11 +13,13 @@
           
 
 (fn get-volume []
-  (-> 
-    (io.popen "amixer sget Master") 
-    (: :read "*a") 
-    (string.match "(%d?%d?%d?)%%") 
-    (tonumber))) 
+  (or 
+    (-> 
+     (io.popen "amixer sget Master") 
+     (: :read "*a") 
+     (string.match "(%d?%d?%d?)%%") 
+     (tonumber)) 
+    0)) 
 
 (fn vol-widget []
   (local volume (get-volume))
