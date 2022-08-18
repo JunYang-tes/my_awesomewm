@@ -4,7 +4,7 @@
 (local inspect (require :inspect))            
 
 (fn normalize-client [client]
-  (if (or client.fullscreen c.maximized c.maximized_vertical c.maximized_horizontal) 
+  (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal) 
       (do
        (set client.fullscreen false) 
        (set client.maximized false) 
@@ -46,6 +46,7 @@
     (print :no-tag-yet))) 
 
 {
+ : normalize-client
  : focus-by-direction
  : tag-untaged} 
  

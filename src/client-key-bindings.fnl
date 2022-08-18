@@ -5,6 +5,8 @@
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const)) 
 (local {: select-tag} (require :tag)) 
+(local wm (require :utils.wm))
+(local {: normalize-client } (require :client)) 
 
 (gears.table.join 
   (key [modkey "Shift"] :c 
@@ -18,5 +20,10 @@
      (fn [c]
        (select-tag { :on-selected (fn [tag]
                                     (c:move_to_tag tag) 
-                                    (tag:view_only))                  
+                                    (tag:view_only)                  
+                                    (wm.focus c) 
+                                    (local clients (tag:clients))
+                                    (each [_ client (ipairs clients)] 
+                                      (if (not= c client) 
+                                          (normalize-client client)))) 
                      :prompt "Move to "})))) 

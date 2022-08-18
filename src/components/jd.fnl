@@ -1,9 +1,10 @@
 (local awful (require :awful))
 (local {: widget } (require :ui.builder))
 (local screen-utils (require :utils.screen))
+(local {: dpi} (require :utils.wm))          
 (local { : assign! } (require :utils.table))                    
-(local width 1589)
-(local height 315) 
+(local width (dpi 1589))
+(local height (dpi 315)) 
 (local inspect (require :inspect))
 
 (local jd-keymap (awful.popup 
