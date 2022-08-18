@@ -9,8 +9,9 @@
 (local inspect (require :inspect))                       
 (local modkey "Mod4")
 (local tag (require :tag))
-(local {: tag-untaged} (require :client)) 
+(local {: tag-untaged} (require :client))  
  
+(require :notification)
 (require :rules)
 (require :components.function-bar) 
 (require :autorun)

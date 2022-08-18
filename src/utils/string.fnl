@@ -4,8 +4,11 @@
                 
 (fn starts-with [str prefix]
   (stringx.startswith str prefix)) 
-                               
+(fn includes [str sub]                               
+  (not= (stringx.lfind str sub) 
+        nil)) 
 {
  : split
- : starts-with} 
+ : starts-with 
+ : includes } 
  
