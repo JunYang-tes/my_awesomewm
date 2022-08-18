@@ -7,9 +7,10 @@
 (local {: map : find } (require :utils.list)) 
 (local {: filesystem } (require :gears)) 
 (local {: get-prefered-screen 
+        : is-screen
         : parse-interface} (require :utils.screen))
+(local wp (require :utils.wallpapers))
 (local wm (require :utils.wm))
-;;(local wallpaper (require :utils.wallpapers)) 
 (local gears (require :gears)) 
 (local signal (require :utils.signal)) 
 (local cfg (require :utils.cfg)) 
@@ -51,7 +52,9 @@
   (local t (tag.add tag-info.name 
                     {
                       :selected tag-info.selected
-                      :screen (get-prefered-screen tag-info.screen)
+                      :screen (if (is-screen tag-info.screen)
+                                  tag-info.screen 
+                                  (get-prefered-screen tag-info.screen))
                       :layout awful.layout.suit.tile})) 
   (t:connect_signal "property::selected" handle-switch-tag-focus)
   (t:connect_signal "property::selected"
@@ -60,7 +63,8 @@
         (do
           (signal.emit "tag::selected" tag) 
           (save-tags) 
-          (awful.screen.focus tag.screen)))))
+          (awful.screen.focus tag.screen)
+          (wp.set-wallpaper tag))))) 
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
@@ -136,7 +140,12 @@
               (local s (. screens index)) 
               (local tag (wm.get-current-tag))
               (set tag.screen s))}))) 
-           
+(fn handle-screen-change []           
+  (awful.screen.connect_for_each_screen 
+    (fn [screen] 
+      ;; may be restore tags?
+      (create {:name "Default"
+               :screen screen})))) 
 
 (fn init []
   (local def-tags (icollect [k _ (pairs (screen-utils.get-screens))]

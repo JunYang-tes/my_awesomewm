@@ -32,17 +32,12 @@
         (local wp (. wallpapers (random 1 (+ 1 (length wallpapers))))) 
         (tset memoed key wp) 
         wp))) 
-         
 
-(fn auto-switch []
-  (gears.timer
-    { :timeout (* 30 60) 
-      :call_now true
-      :callback (fn [] 
-                  (print :switch-wallpaper)
-                  (each [id screen (pairs (screen-utils.get-screens))]
-                    (local wp (. wallpapers (random 1 (+ 1 (length wallpapers))))) 
-                    (gears.wallpaper.maximized wp screen)))})) 
-        
+(fn set-wallpaper [tag]
+  (print :set-wallpaper-for tag.name)
+  (gears.wallpaper.maximized
+    (get-random tag) 
+    tag.screen)) 
+
 { : get-random
-  : auto-switch} 
+  : set-wallpaper}

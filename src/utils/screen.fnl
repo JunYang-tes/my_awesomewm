@@ -26,12 +26,15 @@
     (print :new-screen screen)
     (print :screen-interface (parse-interface screen)) 
     (tset screens (parse-interface screen) screen))) 
+     
 (awful.screen.disconnect_for_each_screen
   (fn [screen] 
     (print :remove-screen screen) 
     (tset screens (parse-interface screen) nil))) 
      
-
+(fn is-screen [in]
+  (and (= (type in ) :table) 
+       (= (type (. :screen in)) :function))) 
 
 (fn get-prefered-screen [query]
   (if query
@@ -65,6 +68,7 @@
 { : get-prefered-screen
   : parse-interface 
   : get-name 
+  : is-screen 
   : calc-pos 
   : center 
   : get-screen-list

@@ -9,7 +9,6 @@
 (local inspect (require :inspect))                       
 (local modkey "Mod4")
 (local tag (require :tag))
-(local { : auto-switch } (require :utils.wallpapers)) 
 (local {: tag-untaged} (require :client)) 
  
 (require :rules)
@@ -28,5 +27,4 @@
 ;; exit fullscreen when new window was opened 
 (setup-global-keys)
 (tag:init)
-(auto-switch) 
 (tag-untaged) 
