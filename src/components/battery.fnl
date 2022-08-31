@@ -15,11 +15,11 @@
 (local naughty (require :naughty)) 
 
 (fn is-battery [name] 
-  (local lines (-> (io.popen (.. "ls -1"
+  (local lines (-> (io.popen (.. "ls -1 "
                                "/sys/class/power_supply/" 
                                name)) 
                    (: :lines))) 
-  (local lines (icollect [i v lines] v))
+  (local lines (icollect [i v lines] i))
   (and
     (= (-> (io.popen (.. "cat " 
                        "/sys/class/power_supply/" 
@@ -250,6 +250,7 @@
   (local bs (-> (range 1 (+ (battery-count) 1) 1)
                 (map battery-indicator))) 
              
+  (print :batteris (length bs))
   (monitor.add-callback 
     (fn [info]
       (each [i v (ipairs info)] 

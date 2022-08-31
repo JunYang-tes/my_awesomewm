@@ -64,15 +64,11 @@
                             { :spacing (dpi 2)}
                             (widget.font-icon "date_range")
                             (widget.text-clock)) 
-                          (do 
-                            (local systray (wibox.widget.systray)) 
-                            (systray:set_base_size (dpi 10)) 
-                            systray) 
                           (container.margin
                             {:top (dpi 8) :right (dpi 10)}
                             (do 
                               (local systray (wibox.widget.systray)) 
-                              (systray:set_base_size (dpi 20)) 
+                              (systray:set_base_size (dpi 10)) 
                               systray)) 
                           (volume.widget)))))
         :border_width 0
