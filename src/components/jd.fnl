@@ -3,26 +3,38 @@
 (local screen-utils (require :utils.screen))
 (local {: dpi} (require :utils.wm))          
 (local { : assign! } (require :utils.table))                    
-(local width (dpi 1589))
-(local height (dpi 315)) 
+(local width 1589)
+(local height 315)
 (local inspect (require :inspect))
+(local ratio (/ height width))
 
-(local jd-keymap (awful.popup 
+(var jd-keymap nil) 
+
+(fn toggle-visible []
+  (local screen (awful.screen.focused ))
+  (local w screen.geometry.width)
+  (local h (* ratio w))
+  (print w h (/ w h))
+  (if jd-keymap 
+    (do
+      (set jd-keymap.visible false)
+      (set jd-keymap nil))
+    (do
+      (set jd-keymap
+           (awful.popup 
                   {
                    :widget 
                      (widget.image-box 
                        {
                         :image (.. (os.getenv "HOME")
                                    "/.config/awesome/src/components/jd.png") 
-                        :forced_width width 
-                        :forced_height height}) 
+                        :forced_width w 
+                        :forced_height h}) 
                    :ontop true 
-                   :visible false})) 
+                   :visible true}))
 
-(fn toggle-visible []
-  (assign! jd-keymap (screen-utils.center
+        (assign! jd-keymap (screen-utils.center
                        (awful.screen.focused) 
-                       width height)) 
-  (set jd-keymap.visible (not jd-keymap.visible))) 
-                                              
+                       w h)))))
+
 { : toggle-visible}

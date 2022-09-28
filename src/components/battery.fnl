@@ -14,27 +14,27 @@
 (local timer (require :utils.timer))                                   
 (local naughty (require :naughty)) 
 
+(fn read-popen [cmd]
+ (with-open [in (io.popen cmd)]
+  (icollect [i v (in:lines)] i)))
+
 (fn is-battery [name] 
-  (local lines (-> (io.popen (.. "ls -1 "
-                               "/sys/class/power_supply/" 
-                               name)) 
-                   (: :lines))) 
-  (local lines (icollect [i v lines] i))
-  (and
-    (= (-> (io.popen (.. "cat " 
-                       "/sys/class/power_supply/" 
-                       name 
-                       "/type")) 
-           (: :read)) 
-       "Battery") 
-    (some lines #(= $1 :charge_full)))) 
+  (let [ lines (read-popen (..
+                            "ls -1"
+                            "/sys/class/power_supply/" name))
+         type (read-popen (.. "cat /sys/class/power_supply/" name "/type"))]
+    (and 
+      (= type :Battery)
+      (some lines #(= $1 :charge_full)))))
 
 (fn read-prop [bat prop] 
-  (-> (io.open (.. "/sys/class/power_supply/" 
-                   bat 
-                   "/" 
-                   prop)) 
-      (: :read))) 
+  (with-open [in (io.open (.. "/sys/class/power_supply/" bat "/" prop))]
+   (in:read)))
+  ;(-> (io.open (.. "/sys/class/power_supply/" 
+  ;                bat 
+  ;                "/" 
+  ;                prop 
+  ;   (: :read)))) 
 (fn read-num-prop [bat prop]                 
   (-> bat 
       (read-prop prop) 
@@ -72,6 +72,7 @@
       {
         :capacity (get-capacity bat)
         :percentage (calc-percentage bat)
+        :name bat
         : charging? 
         ;; Charging/Discharging/Full
         :status (read-prop bat :status)
@@ -81,30 +82,27 @@
     (let [(ok ret) (pcall go)] 
       (if ok 
           ret 
-          {:capacity 0 
-           :percentage 0 
-           :charging? false 
-           :status :Discharging
-           :remaining-time 0})))) 
+          (do
+            (print "Faield to get batter info")
+            (print bat)
+            (print ret)
+            {:capacity 0 
+             :name bat
+             :percentage 0 
+             :charging? false 
+             :status :Discharging
+             :remaining-time 0}))))) 
 
-(fn battery-count [] 
-  (local lines (icollect [i _ (-> (io.popen  "ls -1 /sys/class/power_supply/")
-                                  (: :lines))] 
-                  i)) 
-  (local batteris 
-    (-> lines 
-        (filter is-battery)))
-  (length batteris)) 
-   
+(fn battery-count []
+  (let [lines (read-popen "ls -1 /sys/class/power_supply")]
+    (let [batteris (filter lines is-battery)]
+      (length batteris)))) 
 
 (fn discover []
-  (local lines (icollect [i _ (-> (io.popen  "ls -1 /sys/class/power_supply/")
-                                  (: :lines))] 
-                  i)) 
-  (-> lines 
-      (filter is-battery)
-      (map get-battery-info))) 
-          
+  (let [lines (read-popen "ls -1 /sys/class/power_supply/")]
+    (-> lines 
+        (filter is-battery)
+        (map get-battery-info)))) 
 
 (local monitor 
   (do
@@ -162,7 +160,9 @@
             (do 
               (naughty.notify 
                 {
-                 :title "Power low"})
+                 :preset naughty.config.presets.critical
+                 :title (.. "Power low:" v.name)})
+                         
               (set should-show-notify false)))))))                
 
 (fn get-battery-color [info]
@@ -176,7 +176,7 @@
   (local {: layout  
           : container
           : widget} builder)
-  (local tb (wibox.widget (widget.textbox {:markup "TEST"}))) 
+  (local tb (wibox.widget (widget.textbox {:markup ""}))) 
   (local bolt (wibox.widget
                 (container.background
                   {:fg :#00ff00}
@@ -220,7 +220,6 @@
       {:spacing (dpi 1)} 
       icon
       tb))
-   
 
   (fn update [info] 
     (set battery-percentage.percentage info.percentage)
@@ -239,6 +238,7 @@
       (set bolt.visible true) 
       (set bolt.visible false)) 
     (set tb.markup (.. (math.ceil (* 100 info.percentage)) 
+                       (or info.name "no name")
                        "%"))) 
   { :widget bt-widget
     : update}) 
@@ -250,7 +250,6 @@
   (local bs (-> (range 1 (+ (battery-count) 1) 1)
                 (map battery-indicator))) 
              
-  (print :batteris (length bs))
   (monitor.add-callback 
     (fn [info]
       (each [i v (ipairs info)] 

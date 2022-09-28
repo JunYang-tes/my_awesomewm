@@ -12,11 +12,14 @@
   (require :utils.wm))                   
           
 
+(fn read-popen [cmd]
+ (with-open [in (io.popen cmd)]
+   (in:read "*a")))
+
 (fn get-volume []
   (or 
     (-> 
-     (io.popen "amixer sget Master") 
-     (: :read "*a") 
+     (read-popen "amixer sget Master") 
      (string.match "(%d?%d?%d?)%%") 
      (tonumber)) 
     0)) 
