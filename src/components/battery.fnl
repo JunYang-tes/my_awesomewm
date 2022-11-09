@@ -18,15 +18,6 @@
  (with-open [in (io.popen cmd)]
   (icollect [i v (in:lines)] i)))
 
-(fn is-battery [name] 
-  (let [ lines (read-popen (..
-                            "ls -1"
-                            "/sys/class/power_supply/" name))
-         type (read-popen (.. "cat /sys/class/power_supply/" name "/type"))]
-    (and 
-      (= type :Battery)
-      (some lines #(= $1 :charge_full)))))
-
 (fn read-prop [bat prop] 
   (with-open [in (io.open (.. "/sys/class/power_supply/" bat "/" prop))]
    (in:read)))
@@ -40,6 +31,22 @@
       (read-prop prop) 
       tonumber)) 
         
+
+(fn is-battery [name] 
+  (let [ lines (read-popen (..
+                            "ls -1 "
+                            "/sys/class/power_supply/" name))
+         type (read-prop name :type)]
+    (print :is-battery name
+      type
+      (and 
+        (= type :Battery)
+        (some lines #(= $1 :charge_full))))
+     
+    (and 
+      (= type :Battery)
+      (some lines #(= $1 :charge_full)))))
+
 (fn get-capacity [bat] 
   (fn get [] 
     (/ (tonumber (read-prop bat :charge_full)) 
@@ -238,7 +245,6 @@
       (set bolt.visible true) 
       (set bolt.visible false)) 
     (set tb.markup (.. (math.ceil (* 100 info.percentage)) 
-                       (or info.name "no name")
                        "%"))) 
   { :widget bt-widget
     : update}) 

@@ -63,8 +63,8 @@
         (do
           (signal.emit "tag::selected" tag) 
           (save-tags) 
-          (awful.screen.focus tag.screen)
-          (wp.set-wallpaper tag))))) 
+          (awful.screen.focus tag.screen)))))
+          ;(wp.set-wallpaper tag))))) 
   ;;(t:connect_signal "property::selected"
   ;;  (fn [tag] 
   ;;    (if tag.selected
