@@ -10,6 +10,7 @@
 (local modkey "Mod4")
 (local tag (require :tag))
 (local {: tag-untaged} (require :client))  
+(local wp (require :utils.wallpapers))
  
 (require :notification)
 (require :rules)
@@ -29,3 +30,4 @@
 (setup-global-keys)
 (tag:init)
 (tag-untaged) 
+(wp.wp-each-screen)
