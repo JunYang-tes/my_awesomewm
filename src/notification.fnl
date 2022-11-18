@@ -14,7 +14,6 @@
                                     title 
                                     text) 
                                 r.pattern)))) 
-  (print r)
   (if (and r 
            (= r.action "hide")) 
       {: title 
@@ -24,7 +23,7 @@
 (local notify naughty.notify)
 (set naughty.notify 
   (fn [param]
-    (print "New notification") 
+    (print "New notification" param.title param.text) 
     (local r (modifiy-notification {:title param.title :text param.text})) 
     (if r 
         (notify (assign param r))))) 
