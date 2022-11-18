@@ -6,5 +6,8 @@
                 :wheel-down 5} 
                 
  :terminal :kitty
+ ;; Mod1 = Alt_L 
+ ;; Mod2 = Num_Lock
+ ;; Mod4 = Super_L Super_R
  :modkey :Mod4} 
  
