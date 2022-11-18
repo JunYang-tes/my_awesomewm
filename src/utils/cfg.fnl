@@ -17,9 +17,12 @@
                     (do 
                       (print :failed-to-parse content) 
                       def)))) 
-            (-> file 
-              (: :read "*a") 
-              decode)) 
+            (local cfg 
+              (-> file 
+               (: :read "*a") 
+               decode)) 
+            (file:close)
+            cfg)
           (do 
             (print :failed-to-open-config)
             (print path)
