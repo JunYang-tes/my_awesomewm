@@ -31,8 +31,8 @@
                    :keys key-bindings
                    :buttons mouse-buttons
                    :screen awful.screen.preferred
-                   ;;:titlebars_enabled false
-                   :placement (+ awful.placement.no_overlap awful.placement.no_offscreen)}}
+                   :placement (+ awful.placement.no_overlap awful.placement.no_offscreen)}
+      :callback awful.client.setslave}
     ;; Floating              
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
@@ -41,6 +41,7 @@
                          "MessageWin" "Sxiv" "Wpa_gui" "veromix"
                          "xtightvncviewer"]
                  :name ["Event Tester"]          
+                 :type [:dialog]
                  :role ["AlarmWindow" "ConfigManager" "pop-up"]}
       :properties {
                    :floating true
