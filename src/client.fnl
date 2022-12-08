@@ -13,14 +13,13 @@
        true) 
       false)) 
 
-;; When a client exited,select a client in the same tag focus to it
-(awesome-global.client.connect_signal :unmanage
-  (fn [client] 
-    (wm.focus (wm.get-focusable-client client.first_tag)))) 
 
 (awesome-global.client.connect_signal :manage 
   (fn [client] 
-    (print :new-client) 
+    (local tag client.first_tag)
+    ;; When a client exited,select a client in the same tag focus to it
+    (client:connect_signal :unmanage 
+                           (fn [] (wm.focus (wm.get-focusable-client tag))))
     (local clients (-> client 
                      (. :first_tag) 
                      (: :clients))) 
