@@ -135,10 +135,10 @@
   (key [modkey "Shift"] "q" #(awesome-global.awesome.quit)
        { :description "quit awesome"
          :group "awesome"})
-  (key [modkey] "<" #(awful.tag.incmwfact 0.05)
+  (key [modkey] "=" #(awful.tag.incmwfact 0.05)
        { :description "increase master width factor"
          :group "layout"})
-  (key [modkey] ">" #(awful.tag.incmwfact -0.05)
+  (key [modkey] "-" #(awful.tag.incmwfact -0.05)
        { :description "decrease master width factor"
          :group "layout"})
   (key [modkey] "h" #(client.focus-by-direction :left)
