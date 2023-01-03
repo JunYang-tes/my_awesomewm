@@ -29,5 +29,4 @@
 ;; exit fullscreen when new window was opened 
 (setup-global-keys)
 (tag:init)
-(tag-untaged) 
 (wp.wp-each-screen)

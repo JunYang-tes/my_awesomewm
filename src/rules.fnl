@@ -44,5 +44,5 @@
                  :type [:dialog]
                  :role ["AlarmWindow" "ConfigManager" "pop-up"]}
       :properties {
-                   :floating true
-                   :titlebars_enabled true}}])
+                   :border_width 1
+                   :floating true}}])

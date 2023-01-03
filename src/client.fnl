@@ -2,6 +2,8 @@
 (local awesome-global (require :awesome-global))
 (local wm (require :utils.wm))
 (local inspect (require :inspect))            
+(local list (require :utils.list))
+(local {: select-tag} (require :tag))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal) 
@@ -23,8 +25,16 @@
     (local clients (-> client 
                      (. :first_tag) 
                      (: :clients))) 
-    (each [_ v (ipairs clients)] 
-      (normalize-client v)))) 
+
+    (if (= client.type :normal)
+        (each [_ v (ipairs clients)]
+              (normalize-client v))))) 
+; (awesome-global.client.connect_signal 
+;   "property::floating"
+;   (fn [client]
+;     (if (and client.floating (not client.fullscreen))
+;         (awful.titlebar.show client)
+;         (awful.titlebar.hide client))))
 
 (fn focus-by-direction [dir]
   (let [ client awesome-global.client.focus
@@ -37,12 +47,14 @@
         (wm.focus (wm.get-by-direct client clients dir geometry))))) 
 
 (fn tag-untaged []
-  (local tag (-> (awful.screen.focused)
-                 (. :tags 1))) 
-  (if tag
-    (each [_ c (ipairs (awesome-global.client.get))]
-      (c:move_to_tag tag)) 
-    (print :no-tag-yet))) 
+  (local untaged
+    (-> (awesome-global.client.get)
+      (list.filter (fn [c] (= c.first_tag nil)))))
+  (if (> (length untaged) 0)
+      (select-tag { :on-selected (fn [tag] 
+                                   (-> untaged
+                                       (list.map (fn [c] (c:move_to_tag tag)))))})))
+      
 
 {
  : normalize-client

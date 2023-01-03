@@ -13,6 +13,7 @@
 (local jd (require :components.jd))
 (local client (require :client))                                
 (local naughty (require :naughty)) 
+(local {: tag-untaged} (require :client))  
 
 (fn run-lua []
   (prompt {
@@ -188,6 +189,9 @@
        { :description "Name a tag" 
          :group "tag"}) 
   (key [modkey] "t" tag.view-tag
+       { :description "Name a tag" 
+         :group "tag"}) 
+  (key [modkey "Shift"] "t" tag-untaged
        { :description "Name a tag" 
          :group "tag"}) 
   (key [modkey] "m" tag.move-to-screen
