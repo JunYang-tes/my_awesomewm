@@ -84,6 +84,19 @@
           acc
           item)) 
     (. list 1))) 
+(fn is-list [obj]
+  (and (= (type obj) :table)
+       (> (length obj) 0)))
+
+(fn flatten [list]
+  (fn flatten-impl [ret list]
+    (each [_ v (ipairs list)]
+      (if (is-list v)
+          (flatten-impl ret v)
+          (table.insert ret v))))
+  (let [ret []]
+    (flatten-impl ret list)
+    ret))
 
 { 
   : filter
@@ -93,6 +106,8 @@
   : concat
   : find-index 
   : find 
+  : is-list
+  : flatten
   : remove-value!
   : reduce
   : max-by    

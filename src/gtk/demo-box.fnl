@@ -1,41 +1,59 @@
-(local {: Gtk} (require :lgi))
+(local {: Gtk : Gdk} (require :lgi))
 (local {: window
         : label
         : is-widget
         : box
-        : box-item
         : check-button
         : button} (require :gtk.widgets))
+(local list (require :utils.list))
 (local r (require :gtk.observable))
 (local btn1-expand (r.value true))
 (local btn1-fill (r.value true))
+(local btn2-expand (r.value true))
+(local btn2-fill (r.value true))
+(local btn3-expand (r.value true))
+(local btn3-fill (r.value true))
+(local homegeneous (r.value true))
+(local dialog (r.value true))
+
+(fn box-item-setting [expand fill]
+  (print expand fill)
+  [ 
+    (check-button
+      { :label "Expand"
+        :active expand
+        :on_toggled #(expand $1.active)})
+    (check-button
+      { :label "Fill"
+        :active fill
+        :on_toggled #(fill $1.active)})])
 (local win 
        (window
+         { :type_hint (r.map dialog #(if $1 Gdk.WindowTypeHint.DIALOG Gdk.WindowTypeHint.NORMAL))}
          (box
-           {:orientation Gtk.Orientation.VERTICAL}
-           [
-            (box
-              [(box-item
-                 (check-button
-                  {:label (r.map btn1-expand (fn [v] (.. "Button 1 expand:" (tostring v))))
-                   :active btn1-expand
-                   :on_toggled (fn [data]
-                                 (btn1-expand.set data.active))}))
-               (box-item
-                 (check-button
-                   {:label "Button 1 fill"
-                    :active btn1-fill
-                    :on_toggled (fn [btn]
-                                  (btn1-fill.set btn.active))}))])
-            (box 
-              [(box-item
-                 (button {:label :button1})
-                 {:expand btn1-expand 
-                  :fill btn1-fill})
-               (box-item
-                 (button {:label "This is button2"})
-                 {:expand false :fill false})
-               (box-item
-                 (button {:label :button3})
-                 {:expand false :fill false})])])))
-(win:show_all)
+           {:orientation Gtk.Orientation.VERTICAL
+            :valign Gtk.Align.CENTER}
+           (box
+             (box-item-setting btn1-expand btn1-fill)
+             (box-item-setting btn2-expand btn2-fill)
+             (box-item-setting btn3-expand btn3-fill)
+             (check-button
+               {:label :Homegeneous
+                :active homegeneous
+                :on_toggled #(homegeneous (. $1 :active))})
+             (check-button 
+               {:label :dialog
+                :active dialog
+                :on_toggled #(dialog (. $1.active))}))
+           (box
+             {: homogeneous}
+             (button {:label :button1
+                      :-expand btn1-expand
+                      :-fill btn1-fill})
+             (button {:label "This is button2"
+                      :-expand btn2-expand
+                      :-fill btn2-fill})
+             (button {:label :button3
+                      :-expand btn3-expand
+                      :-fill btn3-fill})))))
+
