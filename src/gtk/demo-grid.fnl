@@ -5,25 +5,10 @@
         : grid-item
         : button} (require :gtk.widgets))
 (window
-  {:window_type Gtk.Window.POPUP
-   :role :dialog
-   :type_hint Gdk.WindowTypeHint.DIALOG}
   (grid
-    [(grid-item
-       {:left 0 :top 0 :width 1 :height 1}
-       (button {:label :button1}))
-     (grid-item
-       {:left 1 :top 0 :width 2 :height 1}
-       (button {:label :button2}))
-     (grid-item
-       {:left 0 :top 1 :width 1 :height 2}
-       (button {:label :button3}))
-     (grid-item
-       {:left 1 :top 1 :width 2 :height 1}
-       (button {:label :button4}))
-     (grid-item
-       {:left 1 :top 2 :width 1 :height 1}
-       (button {:label :button5}))
-     (grid-item
-       {:left 2 :top 2 :width 1 :height 1}
-       (button {:label :button4}))]))
+      (button {:hexpand true :label :button1 :-left 0 :-top 0 :-width 1 :-height 1})
+      (button {:hexpand true :label :button2 :-left 1 :-top 0 :-width 2 :-height 1})
+      (button {:halign Gtk.Align.CENTER :label :button3 :-left 0 :-top 1 :-width 1 :-height 2})
+      (button {:label :button4 :-left 1 :-top 1 :-width 2 :-height 1})
+      (button {:label :button5 :-left 1 :-top 2 :-width 1 :-height 1})
+      (button {:label :button4 :-left 2 :-top 2 :-width 1 :-height 1})))

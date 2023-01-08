@@ -19,9 +19,9 @@
               {:orientation Gtk.Orientation.VERTICAL
                :halign Gtk.Align.CENTER
                :valign Gtk.Align.CENTER}
-              [(entry {:text text 
-                       :completion completion
-                       :on_key_release_event #(text.set (. $1 :text))})
-               (entry {:text text :on_key_release_event #(text.set (. $1 :text))})
-               (label {:text (r.map text #(.. "length:" (length $1)))})])))
+              (entry {:text text 
+                      :completion completion
+                      :on_key_release_event #(text.set (. $1 :text))})
+              (entry {:text text :on_key_release_event #(text.set (. $1 :text))})
+              (label {:text (r.map text #(.. "length:" (length $1)))}))))
 (win:show_all)

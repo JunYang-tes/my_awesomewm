@@ -12,6 +12,13 @@
     (each [i v (ipairs list)]
       (tset r i v))
     (assign! r table)))
+(fn weak-key-table []
+  (setmetatable {} {:__mode :k}))
+(fn weak-value-table []
+  (setmetatable {} {:__mode :v}))
+
 { : assign!
-  : assign
-  : hybrid}
+  : assign 
+  : hybrid
+  : weak-key-table
+  : weak-value-table}

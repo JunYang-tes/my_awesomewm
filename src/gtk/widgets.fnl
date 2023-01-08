@@ -4,6 +4,9 @@
         : type-of} (require :utils.type))
 (local strings (require :utils.string))
 (local utils (require :utils.utils))
+(local {: assign
+        : weak-key-table } (require :utils.table)) 
+(local list (require :utils.list))
 
 (fn is-widget [obj]
   (or (= :widget (type-of obj))
@@ -11,39 +14,73 @@
         (and (strings.starts-with str :lgi.obj)
              (strings.includes str :Gtk)))))
 
+(local observer-refs (weak-key-table))
 (fn apply-property [target property value setter]        
-  (let [set-prop (or setter (fn [value] (tset target property value)))]
+  (let [set-prop (utils.catched (or setter (fn [value] (tset target property value))))]
     (if (is-observable value)
         (do 
+          (fn handle-change [new] (set-prop new))
+          (tset observer-refs target handle-change)
           (set-prop (value))
-          (value.add-observer (fn [new] (set-prop new))))
+          (value.add-weak-observer handle-change))
         (set-prop value))))
 
 (fn is-array [obj]  
   (and (= (type obj) :table)
        (not= nil (. obj 1))))
+
+(fn is-props-table [obj]
+  (and (= (type obj) :table)
+       (not (list.is-list obj))))
+
+(local widget-extra-props (weak-key-table))
+
 (local widget-type (make-type :widget)) 
+(fn make-children [child]
+  (list.flatten (if (list.is-list child) child [child])))
 (fn make-widget [Ctr props_setter]
   (local props_setter (or props_setter {}))
   (fn find-setter [prop]
     (or (. props_setter prop)
         (fn [widget value]
             (tset widget prop value))))
-  (fn [props child]
-    (let [props (if (not= nil child)
-                    (do (tset props :child child)
-                        props)
-                    (or (is-widget props)
-                        (is-observable props)
-                        (is-array props))
-                    {:child props}
-                    props)]
+  ;; [props] | [child]
+  ;; [children] | [child]
+  ;; [props,children] | [child, child]
+  ;; [props-or-child ...]
+  (fn [...]
+    (fn prepare-props [...]
+      (let [all [...]]
+        (if 
+          (= (length all) 1)
+          (let [[first] all] 
+            (if (is-props-table first)
+              first 
+              {:children (make-children first)}))
+          (= (length all ) 2)
+          (let [[props children] all]
+            (if (is-props-table props)
+                (assign props {:children (make-children children)})
+                {:children (make-children all)}))
+          (let [[first & others] all]
+            (if (is-props-table first)
+              (if (> (length others) 0)
+                (assign first {:children (make-children others)})
+                first)
+              {:children (make-children all)})))))
+    (let [props (prepare-props ...)]
       ;; set default to visible
       (tset props :visible (utils.not-nil props.visible true))
-
-      (let [widget (Ctr)]
+      (let [widget (Ctr)
+            extra {:on-extra-change (fn [])}]
         (each [prop value (pairs (or props {}))]
-          (apply-property widget prop value (fn [value] ((find-setter prop) widget value))))
+          (if (strings.starts-with prop :-)
+            (let [prop (string.sub prop 2)]
+              (apply-property widget prop value (fn [value]
+                                                 (tset extra prop value)
+                                                 (extra.on-extra-change))))
+            (apply-property widget prop value (fn [value] ((find-setter prop) widget value)))))
+        (tset widget-extra-props widget extra)
         (widget-type.mark-it widget)
         widget))))
 (fn make-setter [prop]
@@ -62,88 +99,71 @@
 
 (local button (make-widget Gtk.Button))
 (local check-button (make-widget Gtk.CheckButton))
-(local window (make-widget Gtk.Window))
+(local window (make-widget Gtk.Window
+                           {:children (fn [win [child]]
+                                        (assert (is-widget child) "Child of window should be a widget")
+                                        (tset win :child child))}))
 (local entry (make-widget Gtk.Entry))
-(local scrolled-window (make-widget Gtk.ScrolledWindow))
+(local scrolled-window (make-widget Gtk.ScrolledWindow
+                                    {:children (fn [win [child]]
+                                                (assert (is-widget child) "Child of window should be a widget")
+                                                (tset win :child child))}))
 (local flow-box (make-widget Gtk.FlowBox
-                             {:child (fn [flow-box child]
-                                      (clear-child flow-box)
-                                      (let [children (if (is-widget child) [child] child)]  
-                                        (each [i child (ipairs children)]
-                                          (flow-box:insert child i))))}))
+                             {:children (fn [flow-box child]
+                                         (clear-child flow-box)
+                                         (let [children (if (is-widget child) [child] child)]  
+                                           (each [i child (ipairs children)]
+                                             (flow-box:insert child i))))}))
 (local image (make-widget Gtk.Image))
 
-(local box-item-type (make-type "box-item"))  
-(fn box-item [widget props]
-  (fn re-packing [r]
-    (let [parent (widget:get_parent)]
-      (if (not= nil parent)
-        (do
-          (parent:set_child_packing
-            widget
-            r.expand
-            r.fill
-            r.spacing
-            0)))))
-        
-  (let [
-        props (or props {})
-        r {: widget}]
-    (each [_ [prop def] (ipairs [ 
-                                  [:expand true]
-                                  [:fill true]
-                                  [:spacing 0]])]
-      (apply-property
-        r prop (utils.not-nil (. props prop) def)
-        (fn [value]
-          (tset r prop value)
-          (re-packing r))))
-    
-    (box-item-type.mark-it r)
-    r))
+(fn box-repack [widget item props]
+  (widget:set_child_packing
+    item
+    (or props.expand false)
+    (or props.fill false)
+    (or props.spacing 0)
+    0))
 (local box (make-widget Gtk.Box
                         {
                           :homogeneous (make-setter :homogeneous)
-                          :child (fn [widget value]
-                                    (each [_ child (ipairs (widget:get_children))]
-                                      (widget:remove child))
-                                    (match (child-type value)
-                                      :box-item (widget:pack_start value.widget value.expand value.fill value.spacing)
-                                      :widget (widget:pack_start value true true 0)
-                                      ;; let's suppose it is list of box-item/widget
-                                      _ (each [_ child (ipairs value)]
-                                          (print :here child)
-                                          (if (box-item-type.is child)
-                                              (widget:pack_start child.widget child.expand child.fill child.spacing)
-                                              (widget:pack_start child true true 0)))))}))
-(local grid-item-type (make-type :grid-item))                         
-(fn grid-item [props widget]
-  (fn re-attach [r]
-    (let [parent (widget:get_parent)]
-      (if (not= nil parent)
-        (parent:attach widget r.left r.top r.width r.height))))
-  (let [ props (or props {})
-         r {: widget}]
-    (each [_ prop (ipairs [ :left :top :width :height])]
-      (apply-property
-        r prop (. props prop)
-        (fn [value]
-          (print :grid-item prop value)
-          (tset r prop value)
-          (re-attach))))
-    (grid-item-type.mark-it r)
-    r))
-(local grid (make-widget Gtk.Grid
-                         {:child (fn [grid child]
-                                    (clear-child grid)
-                                    (let [children (if (is-array child) child [child])]
-                                      (each [_ child (ipairs children)]
-                                        (print :grid-child child.widget)
-                                        (grid:attach child.widget child.left child.top child.width child.height))))}))
+                          :children (fn [widget value]
+                                       (each [_ child (ipairs (widget:get_children))]
+                                         (widget:remove child))
+                                       (each [_ child (ipairs value)]
+                                         (print :child-is child)
+                                         (let [extra (or (. widget-extra-props child)
+                                                         {:expand false
+                                                          :fill false
+                                                          :spacing 0})]
+                                           (tset extra :on-extra-change #(box-repack widget child extra))
+                                           (widget:pack_start 
+                                             child 
+                                             (or extra.expand false) 
+                                             (or extra.fill false)
+                                             (or extra.spacing 0)))))}))
+(local grid 
+       (make-widget 
+         Gtk.Grid
+         {:children 
+          (fn [grid children]
+             (clear-child grid)
+             (each [_ child (ipairs children)]
+              (let [extra (assign
+                            {:left 0
+                             :top 0
+                             :width 1
+                             :height 1}
+                            (. widget-extra-props child))]
+                (tset extra :on-extra-change #(grid:attach child 
+                                                           extra.left
+                                                           extra.top
+                                                           extra.height
+                                                           extra.height))
+                (grid:attach child extra.left extra.top extra.width extra.height))))}))
 (local label (make-widget Gtk.Label 
                           {
                             :text (make-setter :text) 
-                            :justify (make-setter :justify) 
+                            ;; :justify (make-setter :justify) 
                             ;; :xalign (make-setter :xalign)
                             ;; :yalign (make-setter :yalign)
                             :markup (make-setter :markup)}))
@@ -158,8 +178,8 @@
  : check-button
  : box
  : flow-box
- : box-item
  : grid
- : grid-item
- : is-widget}
+ : is-widget
+ : make-widget
+ : apply-property}
  
