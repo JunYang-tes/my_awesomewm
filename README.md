@@ -8,6 +8,8 @@ penlight 1.12.0-2
 
 inspect 3.1.3
 
+u-test 1.1.0-0
+
 # Compositor
 
 [picom](https://github.com/yshui/picom)

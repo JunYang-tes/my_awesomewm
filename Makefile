@@ -1,5 +1,5 @@
-SRC=$(shell ls src/*.fnl src/*/*.fnl)
-
+# SRC=$(shell ls src/*.fnl src/*/*.fnl)
+SRC=$(filter-out $(shell ls src/macros/*.fnl),$(shell ls src/*.fnl src/*/*.fnl))
 all: $(SRC)
 
 $(SRC):
