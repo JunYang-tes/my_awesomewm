@@ -7,6 +7,11 @@
   (assign! r tgt) 
   (assign! r src) 
   r) 
-
+(fn hybrid [list table]
+  (let [r {}]
+    (each [i v (ipairs list)]
+      (tset r i v))
+    (assign! r table)))
 { : assign!
-  : assign} 
+  : assign
+  : hybrid}

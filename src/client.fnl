@@ -4,6 +4,8 @@
 (local inspect (require :inspect))            
 (local list (require :utils.list))
 (local {: select-tag} (require :tag))
+(local wibox (require :wibox))
+(local tbl (require :utils.table))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal) 
@@ -29,12 +31,30 @@
     (if (= client.type :normal)
         (each [_ v (ipairs clients)]
               (normalize-client v))))) 
-; (awesome-global.client.connect_signal 
-;   "property::floating"
-;   (fn [client]
-;     (if (and client.floating (not client.fullscreen))
-;         (awful.titlebar.show client)
-;         (awful.titlebar.hide client))))
+
+;; (awesome-global.client.connect_signal
+;;   "request::titlebars"
+;;   (fn [c]
+;;     (-> c
+;;       awful.titlebar
+;;       (: :setup 
+;;          (tbl.hybrid
+;;            [
+;;             (tbl.hybrid [(awful.titlebar.widget.iconwidget c)]
+;;                         {:layout wibox.layout.fixed.horizontal})
+;;             (tbl.hybrid [{:align :center
+;;                           :widget (awful.titlebar.widget.titlewidget c)}]
+;;               {:layout wibox.layout.flex.horizontal})] 
+;;            {:layout wibox.layout.align.horizontal})))))
+          
+               
+(awesome-global.client.connect_signal
+  :focus (fn [client]
+          (tset client :ontop true)))
+(awesome-global.client.connect_signal
+  :unfocus (fn [client]
+            (tset client :ontop false)))
+          
 
 (fn focus-by-direction [dir]
   (let [ client awesome-global.client.focus

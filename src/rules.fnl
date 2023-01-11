@@ -45,4 +45,8 @@
                  :role ["AlarmWindow" "ConfigManager" "pop-up"]}
       :properties {
                    :border_width 1
+                   :raise true
+                   :keys key-bindings
+                   :titlebars_enabled   true
+                   :placement (+ awful.placement.centered awful.placement.no_offscreen)
                    :floating true}}])
