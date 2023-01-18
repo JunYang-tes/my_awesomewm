@@ -12,10 +12,14 @@
     (each [i v (ipairs list)]
       (tset r i v))
     (assign! r table)))
+(fn weak-table [mode]
+  (let [tbl {}]
+    (setmetatable tbl {:__mode mode})
+    tbl))
 (fn weak-key-table []
-  (setmetatable {} {:__mode :k}))
+  (weak-table :k))
 (fn weak-value-table []
-  (setmetatable {} {:__mode :v}))
+  (weak-table :v))
 
 { : assign!
   : assign 

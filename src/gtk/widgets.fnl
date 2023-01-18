@@ -1,4 +1,5 @@
-(local {: is-observable} (require :gtk.observable))
+(local {: is-observable : of} (require :gtk.observable))
+(local observable (require :gtk.observable))
 (local {: Gtk } (require :lgi))
 (local {: make-type 
         : type-of} (require :utils.type))
@@ -7,6 +8,7 @@
 (local {: assign
         : weak-key-table } (require :utils.table)) 
 (local list (require :utils.list))
+(local inspect (require :inspect))
 
 (fn is-widget [obj]
   (or (= :widget (type-of obj))
@@ -36,8 +38,24 @@
 (local widget-extra-props (weak-key-table))
 
 (local widget-type (make-type :widget)) 
+
 (fn make-children [child]
-  (list.flatten (if (list.is-list child) child [child])))
+  (let [children (list.flatten (if (list.is-list child ) child [child]))]
+    ;; child O<W,W>
+    ;; children [O<W,W>]
+    ;; observables [O<W,W>]
+    ;; r O<[W,W]>
+    (if (list.some children #(is-observable $1))
+        (let [observables (list.map children of)
+              r (observable.value (observable.flat-collect observables))]
+          (print :===== (observable.flat-collect observables))
+          (observable.observe-list-deep
+            observables (fn [] 
+                          (print :------children-changed)
+                          (r (observable.flat-collect observables))))
+          r)
+        children)))
+
 (fn make-widget [Ctr props_setter]
   (local props_setter (or props_setter {}))
   (fn find-setter [prop]
@@ -129,6 +147,7 @@
                           :children (fn [widget value]
                                        (each [_ child (ipairs (widget:get_children))]
                                          (widget:remove child))
+                                       (print (length value))
                                        (each [_ child (ipairs value)]
                                          (print :child-is child)
                                          (let [extra (or (. widget-extra-props child)
@@ -167,7 +186,27 @@
                             ;; :xalign (make-setter :xalign)
                             ;; :yalign (make-setter :yalign)
                             :markup (make-setter :markup)}))
+                        
+(fn page [{: title} child]
+  (let [child (of child)]
+    (let [child-value (child)]
+      (child.add-observer (fn [new])))
+
+                            
                           
+    (child))
+  (tset widget-extra-props child {: title})
+
+
+  child) 
+  
+(local notebook (make-widget Gtk.Notebook
+                             {:children
+                              (fn [notebook children]                          
+                                (clear-child notebook)
+                                (each [_ child (ipairs children)]
+                                  (let [extra (. widget-extra-props child)]
+                                    (notebook:append_page child extra.title))))}))
 
 {: button
  : window
@@ -181,5 +220,8 @@
  : grid
  : is-widget
  : make-widget
- : apply-property}
+ : notebook
+ : page
+ : apply-property
+ : make-children}
  
