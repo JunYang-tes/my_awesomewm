@@ -57,11 +57,23 @@
       (table.remove list ind)) 
   list) 
 
+(fn push [list value]
+  (let [r (map list (fn [a] a))]
+    (table.insert r value)
+    r))
+
 (fn reduce [list accumulator init]
   (var ret init) 
   (each [i v (ipairs list)] 
     (set ret (accumulator v ret))) 
   ret)
+     
+(fn every [list predict?]
+  (reduce
+    list
+    (fn [item acc]
+      (and acc (predict? item)))
+    true))
      
 (fn max-by [list accessor]
   (reduce 
@@ -102,6 +114,7 @@
   : filter
   : map
   : some
+  : every
   : range 
   : concat
   : find-index 
@@ -112,4 +125,5 @@
   : reduce
   : max-by    
   : min-by 
-  : zip} 
+  : zip
+  : push} 
