@@ -6,6 +6,7 @@
 (local strings (require :utils.string))
 (local utils (require :utils.utils))
 (local {: assign
+        : weak-table
         : weak-key-table } (require :utils.table)) 
 (local list (require :utils.list))
 (local inspect (require :inspect))
@@ -41,17 +42,11 @@
 
 (fn make-children [child]
   (let [children (list.flatten (if (list.is-list child ) child [child]))]
-    ;; child O<W,W>
-    ;; children [O<W,W>]
-    ;; observables [O<W,W>]
-    ;; r O<[W,W]>
     (if (list.some children #(is-observable $1))
         (let [observables (list.map children of)
               r (observable.value (observable.flat-collect observables))]
-          (print :===== (observable.flat-collect observables))
           (observable.observe-list-deep
             observables (fn [] 
-                          (print :------children-changed)
                           (r (observable.flat-collect observables))))
           r)
         children)))
@@ -147,9 +142,7 @@
                           :children (fn [widget value]
                                        (each [_ child (ipairs (widget:get_children))]
                                          (widget:remove child))
-                                       (print (length value))
                                        (each [_ child (ipairs value)]
-                                         (print :child-is child)
                                          (let [extra (or (. widget-extra-props child)
                                                          {:expand false
                                                           :fill false
@@ -196,8 +189,6 @@
                           
     (child))
   (tset widget-extra-props child {: title})
-
-
   child) 
   
 (local notebook (make-widget Gtk.Notebook
@@ -207,6 +198,21 @@
                                 (each [_ child (ipairs children)]
                                   (let [extra (. widget-extra-props child)]
                                     (notebook:append_page child extra.title))))}))
+(fn foreach [items render]
+  (local cache (weak-table "kv")) 
+  (let [
+        memoed-render (fn [data]
+                        (let [r (. cache data)]
+                          (if (not= r nil)
+                              r
+                              (let [r (render data)]
+                                 (tset cache data r)
+                                 r))))
+        children (observable.map (of items)
+                        (fn [items]
+                          (assert (list.is-list items))
+                          (list.map items memoed-render)))]
+    children))
 
 {: button
  : window
@@ -223,5 +229,6 @@
  : notebook
  : page
  : apply-property
+ : foreach
  : make-children}
  

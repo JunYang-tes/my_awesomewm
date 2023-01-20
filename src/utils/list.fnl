@@ -96,9 +96,20 @@
           acc
           item)) 
     (. list 1))) 
+(fn no-key? [obj]
+  (var no-key true)
+  (each [k v (pairs obj)]
+    (set no-key false))
+  no-key)
+    
 (fn is-list [obj]
-  (and (= (type obj) :table)
-       (> (length obj) 0)))
+  (let [t (type obj)]
+    (and
+      (= t :table)
+      (or
+        (. obj :--is-list)
+        (> (length obj) 0)
+        (no-key? obj)))))
 
 (fn flatten [list]
   (fn flatten-impl [ret list]
