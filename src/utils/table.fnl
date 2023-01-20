@@ -24,5 +24,6 @@
 { : assign!
   : assign 
   : hybrid
+  : weak-table
   : weak-key-table
   : weak-value-table}

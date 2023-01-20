@@ -72,7 +72,6 @@
       (v.add-weak-observer observer))
     (tset r :observer observer)
     r))
-    
   ;; (let [list [...]
   ;;       f (. list (length list))]
   ;;   (table.remove list)
