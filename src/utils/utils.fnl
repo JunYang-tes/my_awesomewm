@@ -1,3 +1,5 @@
+(local {: weak-table} (require :utils.table))
+(local inspect (require :inspect))
 (fn not-nil [val def]
   (if (not= val nil)
       val
@@ -12,6 +14,21 @@
             (do
               (handle ret)
               nil))))))
-
+(fn memoed [f]
+  (let [cache (weak-table "kv")] 
+    (setmetatable 
+      {:clean (fn [a] (tset cache a nil))} 
+      {:__call
+        (fn [_ a]
+          (let [r (. cache a)]
+            (if (not= nil r)
+              r
+              (let [r (f a)]
+                (if (and (not= nil a)
+                         (not= nil r))
+                  (tset cache a r))
+                r))))})))
+            
 {: not-nil
- : catched}
+ : catched
+ : memoed}

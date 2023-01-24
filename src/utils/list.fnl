@@ -121,6 +121,16 @@
     (flatten-impl ret list)
     ret))
 
+(fn partition [list predicate?]
+  (reduce
+    list
+    (fn [item acc]
+      (if (predicate? item)
+        (table.insert (. acc 1) item)
+        (table.insert (. acc 2) item))
+      acc)
+    [[] []]))
+
 { 
   : filter
   : map
@@ -136,5 +146,6 @@
   : reduce
   : max-by    
   : min-by 
+  : partition
   : zip
   : push} 

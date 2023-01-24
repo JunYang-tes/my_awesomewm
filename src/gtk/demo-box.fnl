@@ -1,12 +1,12 @@
 (local {: Gtk : Gdk} (require :lgi))
+(local {: run } (require :lite-reactive.app))
 (local {: window
         : label
-        : is-widget
         : box
         : check-button
-        : button} (require :gtk.widgets))
+        : button} (require :gtk.node))
 (local list (require :utils.list))
-(local r (require :gtk.observable))
+(local r (require :lite-reactive.observable))
 (local btn1-expand (r.value true))
 (local btn1-fill (r.value true))
 (local btn2-expand (r.value true))
@@ -27,7 +27,7 @@
       { :label "Fill"
         :active fill
         :on_toggled #(fill $1.active)})])
-(local win 
+(run
        (window
          { :type_hint (r.map dialog #(if $1 Gdk.WindowTypeHint.DIALOG Gdk.WindowTypeHint.NORMAL))}
          (box

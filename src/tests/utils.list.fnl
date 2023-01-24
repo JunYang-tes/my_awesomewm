@@ -88,3 +88,12 @@
     (table.concat
       (list.filter [1 2 3 4 5] #(< 2 $1)))
     (table.concat [3 4 5])))
+(mk-test
+  :partition
+  (let [[a b] (list.partition [1 2 3 4] #(< $1 3))]
+    (test.equal 
+      (table.concat a)
+      (table.concat [1 2]))
+    (test.equal 
+      (table.concat b)
+      (table.concat [3 4]))))

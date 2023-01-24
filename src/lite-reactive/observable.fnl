@@ -4,8 +4,18 @@
 (local observable_type (make-type :observable))
 (local list (require :utils.list))
 
-(fn is-observable [obj]
-  (observable_type.is obj))
+(fn is-observable [a]
+  (and
+    (= :table (type a))
+    (. a :--observable)))
+(fn apply-property [value setter]
+  (if (is-observable value)
+    (do
+      (setter (value))
+      (value.add-observer #(setter $1 $2)))
+    (do
+      (setter value)
+      #$)))
 
 (fn value [initial] 
   (var value initial)
@@ -36,7 +46,8 @@
                                            (table.insert weak-observers observer)
                                            (fn remove []
                                              (list.remove-value! weak-observers observer)))
-                      :weak-observer-count #(length weak-observers)}
+                      :weak-observer-count #(length weak-observers)
+                      :--observable true}
                     {:__call (fn [_ new] 
                                (if (not= nil new)
                                    (set-value new)
@@ -64,7 +75,7 @@
       (add-observer obserable val observer)
       val)
     (f obserable)))
-;; (O<T1> ... O<Tn>, ([T1...Tn])=>U) => O<U>
+;; ([O<T1> ... O<Tn>], ([T1...Tn])=>U) => O<U>
 (fn mapn [observables f]
   (let [r (value (f (list.map observables #($1))))]
     (fn observer [] (r.set (f (list.map observables #($1)))))
@@ -72,15 +83,9 @@
       (v.add-weak-observer observer))
     (tset r :observer observer)
     r))
-  ;; (let [list [...]
-  ;;       f (. list (length list))]
-  ;;   (table.remove list)
-  ;;   (let [r (value (f (table.unpack (icollect [_ v (ipairs list)] (v)))))]
-  ;;     (fn observer [] (r.set (f (table.unpack (icollect [_ v (ipairs list)] (v))))))
-  ;;     (each [_ v (ipairs list)]
-  ;;       (v.add-weak-observer observer)) 
-  ;;     (tset r :observe observer)
-  ;;     r)))
+;; (O<Array<T>>, T=>U) => O<Array<U>>
+(fn map-list [o f]
+  (map o #(list.map $1 #(f $1)))) 
 
 ;; Observable<Observable<T>> => Observable<T>
 (fn flat [obj]
@@ -186,9 +191,11 @@
   : observe-deep
   : observe-list-deep
   : map
+  : map-list
   : flat-map
   : get
   : flat-collect
   : pick
   : is-observable
+  : apply-property
   : mapn}

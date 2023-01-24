@@ -1,7 +1,7 @@
 (import-macros { : mk-test } :test)
 (local inspect (require :inspect))
 (local test (require :u-test))
-(local r (require :gtk.observable))
+(local r (require :lite-reactive.observable))
 (mk-test
   :observable.get/set
   (let [value (r.value 0)]
