@@ -9,6 +9,7 @@
         : button
         : check-button
         : make-children
+        : event-box
         : box} (require :gtk.node))
 (local list (require :utils.list))
 (local r (require :lite-reactive.observable))
@@ -53,14 +54,19 @@
                           {:title curr.title
                            :done $1.active}))})
       
-    (label {
-            :hexpand true
-            :-fill true
-            :halign Gtk.Align.LEFT
-            :markup (r.map todo (fn [{: done : title}] 
-                                  (if done 
-                                      (.. "<s>" title "</s>")
-                                      title)))})
+    (event-box
+      {:on_button_press_event #(todo 
+                                 (let [curr (todo)]
+                                  {:title curr.title
+                                   :done (not curr.done)}))}
+      (label {
+              :hexpand true
+              :-fill true
+              :halign Gtk.Align.LEFT
+              :markup (r.map todo (fn [{: done : title}] 
+                                    (if done 
+                                        (.. "<s>" title "</s>")
+                                        title)))}))
     (button
       {:label :Delete
        :on_clicked on-delete})))

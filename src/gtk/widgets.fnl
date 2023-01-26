@@ -44,4 +44,5 @@
  :window (make-builder Gtk.Window)
  :scrolled-window (make-builder Gtk.ScrolledWindow)
  :grid (make-builder Gtk.Grid)
- :notebook (make-builder Gtk.Notebook)}
+ :notebook (make-builder Gtk.Notebook)
+ :event-box (make-builder Gtk.EventBox)}

@@ -99,7 +99,14 @@
               (notebook:append_page child (if title 
                                               (ctx.run title))))))
         #$))
-  
+(local event-box  
+  (container-node
+    widgets.event-box
+    (fn [children box ctx]
+      (clear-child box)
+      (let [[child] children]
+        (box:add child)))
+    #$))
 
 { :button (atom-node widgets.button :Button)
   :check-button (atom-node widgets.check-button :CheckButton)
@@ -111,6 +118,7 @@
   : window
   : scrolled-window
   : grid
-  : notebook}
+  : notebook
+  : event-box}
  
 
