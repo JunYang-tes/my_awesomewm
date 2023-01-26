@@ -3,7 +3,7 @@
 (local test (require :u-test))
 (local {: value} (require :lite-reactive.observable))
 (local {: run} (require :lite-reactive.app))
-(import-macros { : defc } :lite-reactive)
+(import-macros { : defn } :lite-reactive)
 
 (mk-test
   :gtk.node.button
@@ -23,7 +23,7 @@
     (test.equal (length children) 1)))
 (mk-test
   :gtk.node.custom
-  (defc custom-node 
+  (defn custom-node 
         (nodes.button {:label props.hello}))
   (let [r (run (custom-node :hello))]
     (test.equal r.label :hello)

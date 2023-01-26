@@ -1,4 +1,4 @@
-(fn catched [msg def ...]
+(fn catch [msg def ...]
   (let [f `(fn [])]
     (each [_ e (ipairs [...])]
       (table.insert f e))
@@ -8,8 +8,8 @@
             (do 
               (print ,msg ret#)
               ,def)))))
-(fn catched-ignore [msg ...]
-  (catched msg nil ...))
+(fn catch-ignore [msg ...]
+  (catch msg nil ...))
 
-{ : catched
-  : catched-ignore}
+{ : catch
+  : catch-ignore}

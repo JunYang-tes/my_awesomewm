@@ -1,4 +1,4 @@
-(import-macros {: catched } :utils)
+(import-macros {: catch } :utils)
 (local observable (require :lite-reactive.observable))
 (local {: apply-property } (require :lite-reactive.observable))
 (local list (require :utils.list))
@@ -8,11 +8,14 @@
 (local {: memoed} (require :utils.utils))
 (local strings (require :utils.string))
 (local inspect (require :inspect))
+(local {: destroy : inspect-node } (require :lite-reactive.node))
 ;;
 ;; type AtomNode = {
 ;;  :type :atom
 ;;  :build (props) => GtkWidget
 ;;  :props
+;;  :name
+;;  :parent Node
 ;; }
 
 ;; type ContainerNode = {
@@ -22,12 +25,14 @@
 ;;   :relayout (container w ctx)=>void
 ;;   :props 
 ;;   :children Array<Node>| O<Array<Node>>
+;;  :parent Node
 ;;}
 ;; type CustomNode = {
 ;;   :type :custom
 ;;   :build (props,ctx)=>Node|Array<Node>
 ;;   :props 
 ;;   :children? Array<Node> | O<Array<Node>>
+;;   :build-result Array<Node>
 ;;}
 ;; type Node = AtomNode | ContainerNode | CustomNode
 
@@ -59,7 +64,17 @@
     { :set (fn [ctx]  (tset env :ctx ctx))
       :get (fn [] 
              (. env :ctx))}))
-
+(fn set-diposeable! [node disposeable]
+  (if (= nil node.disposeable)
+    (tset node :disposeable []))
+  (each [_ f (ipairs disposeable)]
+    (table.insert node.disposeable f)))
+  
+(fn clean [node]
+  (let [disposeable (. node :disposeable)]
+    (if disposeable
+      (each [_ f (ipairs disposeable)]
+        (catch "" nil (f))))))
 (fn make-runer [ctx]
   (var fns nil)
   (set fns
@@ -72,7 +87,7 @@
                             (apply-xprop node w ctx (string.sub name 2) value))]
           (setmetatable node
             { :__call #w})
-          ;; TODO dispose
+          (set-diposeable! node disposeable)
           w))
 
               
@@ -85,9 +100,9 @@
           (fn observer [nodes previous]
             (each [_ n (ipairs (difference nodes (or previous [])))]
               (tset n :parent nil)
-              (catched "Failed to clean" nil
+              (catch "Failed to clean" nil
                 (ctx.clean n))
-              (catched "Failed to clean run" nil
+              (catch "Failed to clean run" nil
                 (fns.run.clean n)))
             (each [_ n (ipairs nodes)]
               (tset n :parent node))
@@ -96,7 +111,8 @@
                 list.flatten
                 (node.update-children container ctx)))
             ;;TODO dispose
-          (children.add-observer observer)
+          (set-diposeable! node [
+                                  (children.add-observer observer)])
           (observer (children))
           container))
      :run-custom-node
@@ -108,18 +124,36 @@
                           nil)
              call-build (fn [props]
                           (CURRENT_CTX.set ctx)
-                          (let [result (node.build props)]
+                          (let [
+                                result (node.build props)]
                             (CURRENT_CTX.set nil)
+                            ;; (if (list.is-list result)
+                            ;;   (each [_ child (ipairs result)]
+                            ;;     (tset child :parent node))
+                            ;;   (tset result :parent node))
                             result))
-             w (-> (assign {: children } props)
-                   call-build
-                   fns.run)
+             returned-node (call-build (assign {: children } props))
+             w (if (list.is-list returned-node)
+                   (list.map returned-node fns.run)
+                   (fns.run returned-node))
              ;; pass down xprops
              disposeable (if (not (list.is-list w))
                              (icollect [name value (pairs xprops)]
                                 (apply-xprop node w ctx name value))
                              [])]
-          (print :returned w)
+          (setmetatable node
+            {:__call #w})
+          ;; (table.insert disposeable 
+          ;;               (fn []
+          ;;                 (if (list.is-list returned-node)
+          ;;                   (each [_ n (ipairs returned-node)]
+          ;;                     (destroy n))
+          ;;                   (destroy returned-node))))
+          (tset node :build-result 
+                (if (list.is-list returned-node)
+                    returned-node
+                    [returned-node]))
+          (set-diposeable! node disposeable)
           w))
     :run
     (memoed
@@ -134,7 +168,7 @@
           (ctx.node-stack.pop)
           result)))})
   fns.run)
-(fn build-ctx []
+(fn build-ctx [root]
   (local node-stack 
          (let [stack {}]
             {
@@ -157,32 +191,41 @@
     (or
       (.? xprops-cache key name)
       def))
-  (fn clean [node]
-    (let [disposeable (. node :disposeable)]
-      (if disposeable
-        (each [_ f (ipairs disposeable)]
-          (catched "" nil (f))))))
+  (fn get-root [] root)
   { : add-xprops
     : node-stack
     : get-xprop
     : get-xprops
+    : get-root
     : clean})
 
 (fn run [node]
-  ((-> (build-ctx)
+  ((-> (build-ctx node)
      make-runer) node))
 
 (fn unmount [f]
-  (catched 
-    "unmount must be call inside a widget"
+  (catch
+    "unmount must be called inside a node"
     nil
     (let [ctx  (CURRENT_CTX.get)
           node (ctx.node-stack.current)]
       (if (= nil node.disposeable)
           (tset node :disposeable []))
       (table.insert node.disposeable f))))
+(fn use-root []
+  (catch
+    "use-root must be called inside a node"
+    nil
+    (let [ctx (CURRENT_CTX.get)
+          root (ctx.get-root)]
+      root)))
+(fn use-destroy []
+  (let [root (use-root)]
+    (fn []
+      (destroy root))))
   
 
 {: run  
  : unmount
+ : use-destroy
  :_tests { : difference}}

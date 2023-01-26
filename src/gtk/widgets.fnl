@@ -24,8 +24,8 @@
           disposeable (icollect [k v (pairs props)]
                         (apply-property 
                           v 
-                          (utils.catched (fn [value]
-                                          ((find-setter k) widget value)))))]
+                          (utils.catch (fn [value]
+                                        ((find-setter k) widget value)))))]
       widget)))
 (fn make-setter [prop]
   (fn [widget value]

@@ -5,7 +5,7 @@
       val
       def))
 
-(fn catched [f handle]
+(fn catch [f handle]
   (let [handle (or handle #(print :error-occured $1))]
     (fn [...]
       (let [(ok ret) (xpcall f debug.traceback ...)]
@@ -30,5 +30,5 @@
                 r))))})))
             
 {: not-nil
- : catched
+ : catch
  : memoed}
