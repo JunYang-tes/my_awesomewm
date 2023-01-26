@@ -1,7 +1,9 @@
 (import-macros {: catch } :utils)
+(import-macros {: defn } :lite-reactive)
 (local observable (require :lite-reactive.observable))
 (local {: apply-property } (require :lite-reactive.observable))
 (local list (require :utils.list))
+(local utils (require :utils.utils))
 (local {: weak-table 
         : assign
         : partition} (require :utils.table))
@@ -49,9 +51,10 @@
   (apply-property value
                   (fn [value]
                     (ctx.add-xprops widget name value)
-                    (let [parent (. node :parent)
-                          container (parent)]
-                      (parent.relayout container widget ctx)))))
+                    (catch "" ""
+                      (let [parent (. node :parent)
+                            container (parent)]
+                        (parent.relayout container widget ctx))))))
 (fn difference [nodes previous]
   (let [dict (collect [_ v (ipairs nodes)]
                v true)]
@@ -93,8 +96,12 @@
               
      :run-container-node 
      (fn [node]
-        (let [container (node.build node.props)
-              children (observable.of node.children)]
+        (let [
+              [xprops props] (partition node.props #(is-xprops $1))
+              container (node.build props)
+              children (observable.of node.children)
+              disposeable (icollect [name value (pairs xprops)]
+                            (apply-xprop node container ctx (string.sub name 2) value))]
           (setmetatable node
             { :__call #container})
           (fn observer [nodes previous]
@@ -110,7 +117,7 @@
                 (list.map #(fns.run $1))
                 list.flatten
                 (node.update-children container ctx)))
-            ;;TODO dispose
+          (set-diposeable! node disposeable)
           (set-diposeable! node [
                                   (children.add-observer observer)])
           (observer (children))
@@ -199,11 +206,13 @@
     : get-root
     : clean})
 
-(fn run [node]
-  ((-> (build-ctx node)
-     make-runer) node))
+(lambda run [node]
+  (let [ctx (build-ctx node)
+        run (make-runer ctx)]
+    (tset ctx :run run)
+    (run node)))
 
-(fn unmount [f]
+(lambda unmount [f]
   (catch
     "unmount must be called inside a node"
     nil
@@ -223,9 +232,17 @@
   (let [root (use-root)]
     (fn []
       (destroy root))))
-  
+(lambda foreach [items render]
+  (let [memoed-render (utils.memoed (fn [data] (render data)))
+        items (observable.of items)]
+    (observable.map-list items memoed-render)))
+    ;; (observable.map 
+    ;;   items
+    ;;   (fn [items])
+    ;;   #(list.map $1 memoed-render))))
 
 {: run  
  : unmount
+ : foreach
  : use-destroy
  :_tests { : difference}}

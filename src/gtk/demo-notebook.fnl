@@ -1,10 +1,13 @@
+(local {: run } (require :lite-reactive.app))
 (local {: window
         : notebook
-        : page
-        : label} (require :gtk.widgets))
-(window
-  (notebook
-    (page {:title (label {:text :First})}
-      (label {:text :First-Content}))
-    (page {:title (label {:text :Second})}
-      (label {:text :Second-Content}))))
+        : label} (require :gtk.node))
+(run
+  (window
+    (notebook
+      (label {
+              :-title (label {:text :First})
+              :text :First-Content})
+      (label {
+              :-title (label {:text :Second})
+              :text :Second-Content}))))

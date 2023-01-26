@@ -1,4 +1,5 @@
 (import-macros {: catch} :utils)
+(import-macros {: defn } :lite-reactive)
 (local { : atom-node
          : custom-node
          : destroy
@@ -36,7 +37,26 @@
               (container:set_child_packing
                 w layout-props.expand layout-props.fill layout-props.spacing 0)))
           :box))
-          
+(local flow-box
+  (container-node
+    widgets.flow-box
+    (fn [children container]
+      (clear-child container)
+      (each [i child (ipairs children)]
+        (container:insert child i)))
+    #$
+    :flow-box))
+(local grid
+  (container-node
+    widgets.grid
+    (fn [children grid ctx]
+      (clear-child grid)
+      (each [_ child (ipairs children)]
+        (let [def {:left 0 :top 0 :width 1 :height 1}
+              layout (assign def (ctx.get-xprops child def))]
+          (grid:attach child layout.left layout.top layout.width layout.height))))
+      
+    #$))
 (local window_
        (container-node
          widgets.window
@@ -45,6 +65,13 @@
             (tset container :child (. children 1))))
          #$
          :window))
+(local scrolled-window
+       (container-node
+         widgets.scrolled-window
+         (fn [children container ctx]
+          (if (= (length children) 1)
+            (tset container :child (. children 1))))
+         #$))
 (local window
  (custom-node 
    (fn [props]
@@ -61,11 +88,29 @@
                 children)]
       win))
    :window))
+(local notebook
+       (container-node
+         widgets.notebook
+        (fn [children notebook ctx]
+          (print ::: children notebook)
+          (clear-child notebook)
+          (each [_ child (ipairs children)]
+            (let [{: title} (ctx.get-xprops child)]
+              (notebook:append_page child (if title 
+                                              (ctx.run title))))))
+        #$))
+  
 
 { :button (atom-node widgets.button :Button)
   :check-button (atom-node widgets.check-button :CheckButton)
   :entry (atom-node widgets.entry :Entry)
   : box
+  : flow-box
   :label (atom-node widgets.label :Label)
-  : window}
-  
+  :image (atom-node widgets.image :Image)
+  : window
+  : scrolled-window
+  : grid
+  : notebook}
+ 
+

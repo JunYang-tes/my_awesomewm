@@ -1,4 +1,6 @@
-(import-macros {: <- } :assign)
+(import-macros {: defn
+                : unmount } :lite-reactive)
+(import-macros {: catch } :utils)
 (local {: Gtk } (require :lgi))
 (local {: window
         : scrolled-window
@@ -7,18 +9,19 @@
         : button
         : check-button
         : make-children
-        : foreach
-        : box} (require :gtk.widgets))
+        : box} (require :gtk.node))
 (local list (require :utils.list))
-(local r (require :gtk.observable))
+(local r (require :lite-reactive.observable))
 (local inspect (require :inspect))
+(local {: run
+        : foreach } (require :lite-reactive.app))
 
 (local todos (r.value [
                        (r.value {:title :hello :done false})
                        (r.value {:title :world :done true})]))
-(fn new-todo [{: on-new}]
+(defn new-todo
   (let [
-        on-new (r.of on-new)
+        on-new props.on-new
         emit-on-new (fn [entry]
                       (when (> (length entry.text) 0)
                           ((on-new) entry.text)
@@ -28,17 +31,19 @@
                   :on_key_release_event (fn [widget event]
                                           (if (= event.keyval
                                                  65293)
-                                              (emit-on-new e)))})]
+                                              (emit-on-new (e))))})]
     (box
       e
       (button 
         {:label :Add
          :on_clicked 
           (fn []
-            (emit-on-new e))}))))
+            (emit-on-new (e)))}))))
 
-(fn list-item [{: todo : on-delete}]
-  (print :build-new-list-item)
+(defn list-item
+  (local {: todo : on-delete} props)
+  (unmount
+    (print :unmount-list-item))
   (box
     (check-button
       {
@@ -46,11 +51,11 @@
         :on_toggled #(todo 
                        (let [curr (todo)]
                           {:title curr.title
-                           :done (not curr.done)}))})
+                           :done $1.active}))})
       
     (label {
             :hexpand true
-            :fill true
+            :-fill true
             :halign Gtk.Align.LEFT
             :markup (r.map todo (fn [{: done : title}] 
                                   (if done 
@@ -63,19 +68,39 @@
             ;;                      {:title v.title
             ;;                       :done (not v.done)}))})))
     
-(fn todo-list [{: todos}]
+(defn todo-list
+  (local {: todos} props)
   (scrolled-window
     {:-expand true
      :-fill true}
     (box
       {:orientation Gtk.Orientation.VERTICAL}
-      ;; O<[label,label]>
-      (foreach todos
-        (fn [item]
-          (list-item {:todo item
-                      :on-delete #(todos 
+      (catch "foreach failed" (label {:text :ERROR})
+        (foreach todos
+                 (fn [item]
+                   (list-item
+                     {:todo item
+                      :on-delete #(todos
                                     (let [curr (todos)]
-                                      (list.filter curr #(not= $1 item))))}))))))
+                                      (list.filter curr #(not= $1 item))))})))))))
+      ;;-------------------
+
+      ;; (r.map-list todos
+      ;;   (fn [item]
+      ;;     (list-item 
+      ;;       {:todo item
+      ;;        :on-delete #(todos
+      ;;                      (let [curr (todos)]
+      ;;                        (print :!!!!!!-delete)
+      ;;                        (list.filter curr #(not= $1 item))))}))))))
+      ;;;;;
+      ;; O<[label,label]>
+      ;; (foreach todos
+      ;;   (fn [item]
+      ;;     (list-item {:todo item
+      ;;                 :on-delete #(todos 
+      ;;                               (let [curr (todos)]
+      ;;                                 (list.filter curr #(not= $1 item))))}))))))
       ;; (r.map todos
       ;;   (fn [todos]
       ;;     (print :todos-change)
@@ -84,16 +109,13 @@
       ;;               #(list-item {:todo $1})))))))
 
 
-(window
-  (box
-    {:orientation Gtk.Orientation.VERTICAL}
-    (new-todo
-      {:on-new #(todos (let [current (todos)]
-                         (list.push current (r.value {:title $1
-                                                      :done false}))))})
-    (todo-list 
-      {: todos})))
-    
-    
-    
-                         
+(run
+  (window
+    (box
+      {:orientation Gtk.Orientation.VERTICAL}
+      (new-todo
+        {:on-new #(todos (let [current (todos)]
+                           (list.push current (r.value {:title $1
+                                                        :done false}))))})
+      (todo-list 
+        {: todos}))))

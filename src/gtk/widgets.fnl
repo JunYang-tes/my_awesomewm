@@ -36,7 +36,12 @@
  :label (make-builder Gtk.Label { :text (make-setter :text)
                                   :markup (make-setter :markup)})
  :button (make-builder Gtk.Button)
+ :image (make-builder Gtk.Image)
  :entry (make-builder Gtk.Entry)
  :check-button (make-builder Gtk.CheckButton)
  :box (make-builder Gtk.Box)
- :window (make-builder Gtk.Window)}
+ :flow-box (make-builder Gtk.FlowBox)
+ :window (make-builder Gtk.Window)
+ :scrolled-window (make-builder Gtk.ScrolledWindow)
+ :grid (make-builder Gtk.Grid)
+ :notebook (make-builder Gtk.Notebook)}
