@@ -46,11 +46,12 @@
 ;;                           :widget (awful.titlebar.widget.titlewidget c)}]
 ;;               {:layout wibox.layout.flex.horizontal})] 
 ;;            {:layout wibox.layout.align.horizontal})))))
-          
-               
 (awesome-global.client.connect_signal
   :focus (fn [client]
-          (tset client :ontop true)))
+           (let [fullscreen client.fullscreen]
+             ;; don't know why set ontop to true will close fullscreen
+            (tset client :ontop true)
+            (tset client :fullscreen fullscreen))))
 (awesome-global.client.connect_signal
   :unfocus (fn [client]
             (tset client :ontop false)))
