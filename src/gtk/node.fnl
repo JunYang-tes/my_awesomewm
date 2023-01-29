@@ -1,12 +1,15 @@
 (import-macros {: catch} :utils)
-(import-macros {: defn } :lite-reactive)
+(import-macros {: defn
+                : unmount
+                : effect } :lite-reactive)
 (local { : atom-node
          : custom-node
          : destroy
          : find-root
          : inspect-node
          : container-node } (require :lite-reactive.node))
-(local { : use-destroy } (require :lite-reactive.app))
+(local { : use-destroy
+         : use-run } (require :lite-reactive.app))
 (local inspect (require :inspect))
 (local widgets (require :gtk.widgets))
 (local {: assign } (require :utils.table))
@@ -92,7 +95,6 @@
        (container-node
          widgets.notebook
         (fn [children notebook ctx]
-          (print ::: children notebook)
           (clear-child notebook)
           (each [_ child (ipairs children)]
             (let [{: title} (ctx.get-xprops child)]
@@ -107,8 +109,37 @@
       (let [[child] children]
         (box:add child)))
     #$))
+(local popover_
+  (container-node
+    widgets.popover
+    (fn [children popover]
+      ;(clear-child popover)
+      ;;(popover:add (widgets.button {:label :HELLo})))
+      (let [[child] children]
+        (tset popover :child child)))
+    #$))
+(defn popover
+  (let [{: visible : relative_to : children & rest } props 
+        run-it (use-run)]
+    (var p nil)
+    (effect
+      [visible relative_to children]
+      (if (= p nil)
+        (let [
+              relative_to (relative_to)]
+          (do
+            (set p (run-it
+                     (popover_
+                       (assign rest
+                         {:visible visible
+                          :relative_to (relative_to)})
+                       (children))))))))
+    nil))
+                   
+      
 
 { :button (atom-node widgets.button :Button)
+  :menu-button (atom-node widgets.menu-button :MenuButton)
   :check-button (atom-node widgets.check-button :CheckButton)
   :entry (atom-node widgets.entry :Entry)
   : box
@@ -119,6 +150,7 @@
   : scrolled-window
   : grid
   : notebook
+  : popover
   : event-box}
  
 

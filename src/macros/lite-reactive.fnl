@@ -12,6 +12,19 @@
       (table.insert f e))
     `(let [{:unmount unmt#} (require :lite-reactive.app)]
        (unmt# ,f))))
+(fn effect [obs ...]
+  (let [run-effect `(fn [])]
+    (each [_ e (ipairs [...])]
+      (table.insert run-effect e))
+    `(let [dispose# (icollect [_# k# (ipairs ,obs)]
+                       (k#.add-observer ,run-effect))]
+        (unmount
+          (each [_# f# (ipairs dispose#)]
+             (f#))))))
+
+     
+  
 
 { : defn
-  : unmount}
+  : unmount
+  : effect}

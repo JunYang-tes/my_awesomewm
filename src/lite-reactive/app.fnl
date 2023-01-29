@@ -31,7 +31,7 @@
 ;;}
 ;; type CustomNode = {
 ;;   :type :custom
-;;   :build (props,ctx)=>Node|Array<Node>
+;;   :build (props,ctx)=>nil| Node|Array<Node>
 ;;   :props 
 ;;   :children? Array<Node> | O<Array<Node>>
 ;;   :build-result Array<Node>
@@ -39,11 +39,17 @@
 ;; type Node = AtomNode | ContainerNode | CustomNode
 
 (fn is-atom-node [node] 
-  (= (. node :type) :atom))
+  (and 
+    (= (type node) :table)
+    (= (. node :type) :atom)))
 (fn is-container-node [node]
-  (= (. node :type) :container))
+  (and 
+    (= (type node) :table)
+    (= (. node :type) :container)))
 (fn is-custom-node [node]
-  (= (. node :type) :custom))
+  (and 
+    (= (type node) :table)
+    (= (. node :type) :custom)))
 (fn is-xprops [prop]
  (strings.starts-with prop :-)) 
 
@@ -105,18 +111,20 @@
           (setmetatable node
             { :__call #container})
           (fn observer [nodes previous]
-            (each [_ n (ipairs (difference nodes (or previous [])))]
-              (tset n :parent nil)
-              (catch "Failed to clean" nil
-                (ctx.clean n))
-              (catch "Failed to clean run" nil
-                (fns.run.clean n)))
-            (each [_ n (ipairs nodes)]
-              (tset n :parent node))
-            (-> nodes
-                (list.map #(fns.run $1))
-                list.flatten
-                (node.update-children container ctx)))
+            (let [nodes (list.filter nodes #$)
+                  previous (list.filter (or previous []) #$)]
+              (each [_ n (ipairs (difference nodes (or previous [])))]
+                (tset n :parent nil)
+                (catch "Failed to clean" nil
+                  (ctx.clean n))
+                (catch "Failed to clean run" nil
+                  (fns.run.clean n)))
+              (each [_ n (ipairs nodes)]
+                (tset n :parent node))
+              (-> nodes
+                  (list.map #(fns.run $1))
+                  list.flatten
+                  (node.update-children container ctx))))
           (set-diposeable! node disposeable)
           (set-diposeable! node [
                                   (children.add-observer observer)])
@@ -134,12 +142,14 @@
                           (let [
                                 result (node.build props)]
                             (CURRENT_CTX.set nil)
+                            (if (= result nil)
+                                []
+                                result)))
                             ;; (if (list.is-list result)
                             ;;   (each [_ child (ipairs result)]
                             ;;     (tset child :parent node))
                             ;;   (tset result :parent node))
-                            result))
-             returned-node (call-build (assign {: children } props))
+             returned-node (-> (call-build (assign {: children } props)))
              w (if (list.is-list returned-node)
                    (list.map returned-node fns.run)
                    (fns.run returned-node))
@@ -170,7 +180,9 @@
               ((if
                 (is-container-node node) fns.run-container-node 
                 (is-custom-node node) fns.run-custom-node
-                (is-atom-node node) fns.run-atom-node)
+                (is-atom-node node) fns.run-atom-node
+                (fn []
+                  (error (.. "unknow node: " (tostring node)))))
                node ctx)]
           (ctx.node-stack.pop)
           result)))})
@@ -232,6 +244,10 @@
   (let [root (use-root)]
     (fn []
       (destroy root))))
+(fn use-run []
+  (let [ctx (CURRENT_CTX.get)]
+    (lambda [node]
+      (ctx.run node))))
 (lambda foreach [items render]
   (let [memoed-render (utils.memoed (fn [data] (render data)))
         items (observable.of items)]
@@ -245,4 +261,5 @@
  : unmount
  : foreach
  : use-destroy
+ : use-run
  :_tests { : difference}}

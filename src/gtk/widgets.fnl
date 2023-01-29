@@ -1,3 +1,4 @@
+(import-macros {: catch } :utils)
 (local {: Gtk } (require :lgi))
 (local {: apply-property
         : is-observable} (require :lite-reactive.observable))
@@ -15,7 +16,9 @@
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
-            (tset widget prop value))))
+            (catch (.. "Failed to set " prop " to " (tostring value)) 
+              nil
+              (tset widget prop value)))))
   (fn [props]
     (let [
           props (assign {:visible true}
@@ -36,6 +39,7 @@
  :label (make-builder Gtk.Label { :text (make-setter :text)
                                   :markup (make-setter :markup)})
  :button (make-builder Gtk.Button)
+ :menu-button (make-builder Gtk.MenuButton)
  :image (make-builder Gtk.Image)
  :entry (make-builder Gtk.Entry)
  :check-button (make-builder Gtk.CheckButton)
@@ -45,4 +49,8 @@
  :scrolled-window (make-builder Gtk.ScrolledWindow)
  :grid (make-builder Gtk.Grid)
  :notebook (make-builder Gtk.Notebook)
- :event-box (make-builder Gtk.EventBox)}
+ :event-box (make-builder Gtk.EventBox)
+ :popover (make-builder Gtk.Popover {:visible (fn [w visible]
+                                                (if visible 
+                                                    (w:popup)
+                                                    (w:popdown)))})}
