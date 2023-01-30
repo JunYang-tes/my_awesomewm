@@ -3,6 +3,7 @@
 (local {: apply-property
         : is-observable} (require :lite-reactive.observable))
 (local strings (require :utils.string))
+(local list (require :utils.list))
 (local utils (require :utils.utils))
 (local inspect (require :inspect))
 (local {: assign} (require :utils.table))
@@ -13,6 +14,20 @@
          (strings.includes str :Gtk))))
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
+  (tset props-setter :class 
+        (fn [w cls old]
+          (let [ctx (w:get_style_context)
+                old-cls (list.filter
+                          (list.flatten [old-cls])
+                          #$1)
+                cls (list.filter 
+                      (list.flatten [cls])
+                      #$1)]
+            (each [_ i (ipairs old-cls)]
+              (print :remove i)
+              (ctx:remove_class i))
+            (each [_ i (ipairs cls)]
+              (ctx:add_class i)))))
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
@@ -27,8 +42,8 @@
           disposeable (icollect [k v (pairs props)]
                         (apply-property 
                           v 
-                          (utils.catch (fn [value]
-                                        ((find-setter k) widget value)))))]
+                          (utils.catch (fn [value old]
+                                        ((find-setter k) widget value old)))))]
       widget)))
 (fn make-setter [prop]
   (fn [widget value]
