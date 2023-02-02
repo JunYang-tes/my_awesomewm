@@ -3,7 +3,7 @@
 (local beautiful (require :beautiful))
 (local gears (require :gears))                  
 (local { : modkey : mouse-button} (require :const))                    
-          
+(local inspect (require :inspect))
 
 (local activate #($1:emit_signal "request::activate" "mouse_click" { :raise true}))
 (local mouse-buttons
@@ -33,6 +33,14 @@
                    :screen awful.screen.preferred
                    :placement (+ awful.placement.no_overlap awful.placement.no_offscreen)}
       :callback awful.client.setslave}
+
+    { :rule_any { :role [:prompt]}
+      :properties {
+                    :raise true
+                    :floating true
+                    :width 500
+                    :height 48
+                    :placement awful.placement.top}}
     ;; Floating              
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
@@ -50,3 +58,4 @@
                    :titlebars_enabled   true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)
                    :floating true}}])
+                   

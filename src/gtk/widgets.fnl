@@ -56,11 +56,15 @@
  :button (make-builder Gtk.Button)
  :menu-button (make-builder Gtk.MenuButton)
  :image (make-builder Gtk.Image)
- :entry (make-builder Gtk.Entry)
+ :entry (make-builder Gtk.Entry {:auto-focus (fn [w auto-focus]
+                                               (print :focus auto-focus)
+                                               (if auto-focus
+                                                 (w:grab_focus)))})
  :check-button (make-builder Gtk.CheckButton)
  :box (make-builder Gtk.Box)
  :flow-box (make-builder Gtk.FlowBox)
- :window (make-builder Gtk.Window)
+ :window (make-builder Gtk.Window {:default_size (fn [w [width height]]
+                                                   (w:set_default_size width height))})
  :scrolled-window (make-builder Gtk.ScrolledWindow)
  :grid (make-builder Gtk.Grid)
  :notebook (make-builder Gtk.Notebook)

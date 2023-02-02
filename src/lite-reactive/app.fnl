@@ -91,7 +91,12 @@
      :run-atom-node
      (fn [node]
         (let [[xprops props] (partition node.props #(is-xprops $1))
-              w (node.build props)
+              call-build (fn []
+                          (CURRENT_CTX.set ctx)
+                          (let [r (node.build props)]
+                            (CURRENT_CTX.set nil)
+                            r))
+              w (call-build)
               disposeable (icollect [name value (pairs xprops)]
                             (apply-xprop node w ctx (string.sub name 2) value))]
           (setmetatable node

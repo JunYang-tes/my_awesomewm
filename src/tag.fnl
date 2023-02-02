@@ -78,6 +78,7 @@
   (prompt {
            :prompt "<b>Tag Name:</b>"
            :on-finished (fn [name]
+                          (print :on-finished-called name)
                           (local tag (-> (awful.screen.focused)
                                          (. :selected_tag))) 
                           (signal.emit "tag::rename" tag tag.name name)

@@ -11,12 +11,13 @@
         : make-children
         : event-box
         : box} (require :gtk.node))
+(local {: is-enter-event } :gtk)
 (local list (require :utils.list))
 (local r (require :lite-reactive.observable))
 (local inspect (require :inspect))
 (local {: run
         : foreach } (require :lite-reactive.app))
-
+(print :++++++++++++++++ is-enter-event)
 (local todos (r.value [
                        (r.value {:title :hello :done false})
                        (r.value {:title :world :done true})]))
