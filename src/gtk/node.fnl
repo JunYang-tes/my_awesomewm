@@ -135,15 +135,22 @@
                           :relative_to (relative_to)})
                        (children))))))))
     nil))
-                   
-      
 
+(local list-box
+  (container-node
+    widgets.list-box
+    (fn [children list]
+      (clear-child list)
+      (each [i child (ipairs children)]
+        (list:insert child i)))
+    #$))
 { :button (atom-node widgets.button :Button)
   :menu-button (atom-node widgets.menu-button :MenuButton)
   :check-button (atom-node widgets.check-button :CheckButton)
   :entry (atom-node widgets.entry :Entry)
   : box
   : flow-box
+  : list-box
   :label (atom-node widgets.label :Label)
   :image (atom-node widgets.image :Image)
   : window
