@@ -18,7 +18,7 @@
         (fn [w cls old]
           (let [ctx (w:get_style_context)
                 old-cls (list.filter
-                          (list.flatten [old-cls])
+                          (list.flatten [old])
                           #$1)
                 cls (list.filter 
                       (list.flatten [cls])
