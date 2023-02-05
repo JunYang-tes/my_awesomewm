@@ -1,13 +1,13 @@
 (local awesome-global (require :awesome-global))
 (local hotkeys-popup (require :awful.hotkeys_popup))
 (local reload 
-       {:label "Reload awesome"
+       {:label "reload-awesome"
         :exec awesome-global.awesome.restart})
 (local quit
-       {:label "Quit awesome"
+       {:label "quit-awesome"
         :exec awesome-global.awesome.quit})
 (local help
-       {:label "Show keybindings"
+       {:label "show-keybindings"
         :exec hotkeys-popup.show_help})
   
-[reload quit]
+[reload quit help]

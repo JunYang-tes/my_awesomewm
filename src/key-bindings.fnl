@@ -10,7 +10,6 @@
 (local wibox  (require :wibox))
 (local {: prompt } (require :ui.prompt))                           
 (local bar (require :components.function-bar))                    
-(local jd (require :components.jd))
 (local client (require :client))                                
 (local naughty (require :naughty)) 
 (local {: tag-untaged} (require :client))  
@@ -75,9 +74,6 @@
   (key [modkey] "p" cmd-palette.run
        {:description "Open command palette"
         :group "awesome"})
-  (key [modkey] "x" run-lua
-       { :description "Lua execute prompt" 
-         :group "awesome"}) 
   (key [modkey] "Left" awful.tag.viewprev 
        { :description "View previous" 
          :group "tag"}) 
@@ -87,12 +83,6 @@
   (key [modkey] "Escape" awful.tag.history.restore 
        { :description "Go back" 
          :group "tag"}) 
-  ;; (key [modkey] "j" #(awful.client.focus.byidx 1)
-  ;;      { :description "Focus next by index" 
-  ;;        :group "client"}) 
-  ;; (key [modkey] "k" #(awful.client.focus.byidx -1)
-  ;;      { :description "Focus previous by index" 
-  ;;        :group "client"}) 
   (key [modkey] "f" #(focus-win.launch false) 
        { :description "Focus window"
          :group "client"}) 
@@ -158,12 +148,12 @@
   ;;(key [modkey "Control"] "l" #(awful.tag.incncol -1 nil true)
        ;; { :description "decrease the number of columns"
        ;;   :group "layout"})
-  (key [modkey] "space" #(awful.layout.inc 1)
-       { :description "select next"
-         :group "layout"})
-  (key [modkey "Shift"] "space" #(awful.layout.inc -1)
-       { :description "select previous"
-         :group "layout"})
+  ;; (key [modkey] "space" #(awful.layout.inc 1)
+  ;;      { :description "select next"
+  ;;        :group "layout"})
+  ;; (key [modkey "Shift"] "space" #(awful.layout.inc -1)
+  ;;      { :description "select previous"
+  ;;        :group "layout"})
   (key [modkey] "r" #(awful.util.spawn (.. "rofi -show drun -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
@@ -193,10 +183,4 @@
          :group :tag}) 
   (key [modkey "Shift"] "d" toggle-desktop 
        { :description "Toggle desktop" 
-         :group "awesome"}) 
-  (key [ modkey "Shift" ] "a" #(awful.spawn "flameshot gui")
-       { :description "Screenshot" 
-         :group "awesome"}) 
-  (key [ modkey] "z" jd.toggle-visible
-       { :description "JD keymap" 
-         :group :other})) 
+         :group "awesome"})) 

@@ -178,19 +178,19 @@
           (set-diposeable! node disposeable)
           w))
     :run
-    (memoed
-      (fn [node]
-        (ctx.node-stack.push node)
-        (let [result
-              ((if
-                (is-container-node node) fns.run-container-node 
-                (is-custom-node node) fns.run-custom-node
-                (is-atom-node node) fns.run-atom-node
-                (fn []
-                  (error (.. "unknow node: " (tostring node)))))
-               node ctx)]
-          (ctx.node-stack.pop)
-          result)))})
+    ;(memoed)
+    (fn [node]
+      (ctx.node-stack.push node)
+      (let [result
+            ((if
+              (is-container-node node) fns.run-container-node 
+              (is-custom-node node) fns.run-custom-node
+              (is-atom-node node) fns.run-atom-node
+              (fn []
+                (error (.. "unknow node: " (tostring node)))))
+             node ctx)]
+        (ctx.node-stack.pop)
+        result))})
   fns.run)
 (fn build-ctx [root]
   (local node-stack 
