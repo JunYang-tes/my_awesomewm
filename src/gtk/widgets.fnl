@@ -24,7 +24,6 @@
                       (list.flatten [cls])
                       #$1)]
             (each [_ i (ipairs old-cls)]
-              (print :remove i)
               (ctx:remove_class i))
             (each [_ i (ipairs cls)]
               (ctx:add_class i)))))

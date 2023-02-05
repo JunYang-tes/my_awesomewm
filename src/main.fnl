@@ -12,6 +12,7 @@
 (local {: tag-untaged} (require :client))  
 (local wp (require :utils.wallpapers))
  
+(require :command-palette.load-cmds)
 (require :notification)
 (require :rules)
 (require :components.function-bar) 

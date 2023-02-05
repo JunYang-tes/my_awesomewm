@@ -34,12 +34,12 @@
                    :placement (+ awful.placement.no_overlap awful.placement.no_offscreen)}
       :callback awful.client.setslave}
 
-    { :rule_any { :role [:prompt]}
+    { :rule_any { :role [:prompt :popup]}
       :properties {
                     :raise true
                     :floating true
                     :width 500
-                    :height 48
+                    ;;:height 48
                     :placement awful.placement.top}}
     ;; Floating              
     { :rule_any {

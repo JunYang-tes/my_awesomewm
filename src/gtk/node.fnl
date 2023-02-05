@@ -142,7 +142,7 @@
     (fn [children list]
       (clear-child list)
       (each [i child (ipairs children)]
-        (list:insert child i)))
+        (print child.label)))
     #$))
 { :button (atom-node widgets.button :Button)
   :menu-button (atom-node widgets.menu-button :MenuButton)

@@ -28,7 +28,8 @@
                      (. :first_tag) 
                      (: :clients))) 
 
-    (if (= client.type :normal)
+    (if (and (= client.type :normal)
+             (not= client.role :prompt))
         (each [_ v (ipairs clients)]
               (normalize-client v))))) 
 

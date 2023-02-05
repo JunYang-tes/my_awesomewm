@@ -14,6 +14,7 @@
 (local client (require :client))                                
 (local naughty (require :naughty)) 
 (local {: tag-untaged} (require :client))  
+(local cmd-palette (require :command-palette.palette))
 
 (fn run-lua []
   (prompt {
@@ -71,9 +72,9 @@
      (key [modkey] (.. "#" (+ i 9)) #(tag.switch-by-index i) 
        { :description (.. "Switch to tag " i) 
          :group "tag"}))                                  
-  (key [modkey "Shift"] "h" hotkeys-popup.show_help 
-        { :description "Show help"
-          :group "awesome"}) 
+  (key [modkey] "p" cmd-palette.run
+       {:description "Open command palette"
+        :group "awesome"})
   (key [modkey] "x" run-lua
        { :description "Lua execute prompt" 
          :group "awesome"}) 
@@ -99,9 +100,6 @@
                              (local client awesome-global.client.focus)
                              (if client 
                                (do (set client.fullscreen (not client.fullscreen))))) 
-       { :description "Focus window"
-         :group "client"}) 
-  (key [modkey] "w" #(print :TODO-Main-Menu) 
        { :description "Focus window"
          :group "client"}) 
   (key [modkey] "s" swap-win)
@@ -130,12 +128,6 @@
   (key [modkey ] "Return" #(awful.spawn terminal)
        { :description "open a terminal"
          :group "launcher"})
-  (key [modkey "Control"] "r" #(awesome-global.awesome.restart)
-       { :description "reload awesome"
-         :group "awesome"})
-  (key [modkey "Shift"] "q" #(awesome-global.awesome.quit)
-       { :description "quit awesome"
-         :group "awesome"})
   (key [modkey] "=" #(awful.tag.incmwfact 0.05)
        { :description "increase master width factor"
          :group "layout"})
@@ -178,13 +170,6 @@
   (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
-  (key [modkey] "c" (fn [] 
-                      (tag.create)
-                      (naughty.notify {
-                                       :title "Tag created"}))
-                                        
-       { :description "New tag"
-         :group "tag"})
   (key [modkey] "n" tag.name-tag 
        { :description "Name a tag" 
          :group "tag"}) 
