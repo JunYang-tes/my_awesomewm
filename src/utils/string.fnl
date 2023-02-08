@@ -7,8 +7,19 @@
 (fn includes [str sub]                               
   (not= (stringx.lfind str sub) 
         nil)) 
+(fn replace [str old new]
+  (stringx.replace str old new))
+(fn is-empty [str]
+  (or 
+    (= nil str)
+    (= 0
+      (length
+        (-> str
+            stringx.strip)))))
 {
  : split
  : starts-with 
- : includes } 
+ : includes
+ : replace
+ : is-empty}
  

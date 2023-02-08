@@ -9,10 +9,8 @@
 (local {: normalize-client } (require :client)) 
 
 (gears.table.join 
-  (key [modkey "Shift"] :c 
-       ;;#($1 :kill)
+  (key [modkey] :q 
        (fn [c]
-         (print "close")
          (c:kill)) 
     {:description :close-window 
      :group :client}) 

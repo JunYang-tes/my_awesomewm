@@ -182,4 +182,5 @@
   : swap           
   : switch-by-index 
   : view-tag           
-  : move-to-screen} 
+  : move-to-screen 
+  : move-to-another-screen}

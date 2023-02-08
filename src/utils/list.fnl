@@ -131,6 +131,27 @@
       acc)
     [[] []]))
 
+(fn split-by [list predicate?]
+  (print :list list)
+  (let [{: collecting : splited}
+        (reduce
+          list
+          (fn [item acc]
+            (if (predicate? item)
+              (do
+                (if (> (length acc.collecting) 0)
+                    (do
+                      (table.insert acc.splited acc.collecting)
+                      (tset acc :collecting [])))
+                (table.insert acc.collecting item))
+              (table.insert acc.collecting item))
+            acc)
+          {:collecting []
+           :splited []})]
+    (if (> (length collecting) 0)
+        (table.insert splited collecting))
+    splited))
+
 { 
   : filter
   : map
@@ -148,4 +169,5 @@
   : min-by 
   : partition
   : zip
-  : push} 
+  : push 
+  : split-by}

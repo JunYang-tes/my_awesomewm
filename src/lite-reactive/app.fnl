@@ -121,9 +121,9 @@
               (each [_ n (ipairs (difference nodes (or previous [])))]
                 (tset n :parent nil)
                 (catch "Failed to clean" nil
-                  (ctx.clean n))
-                (catch "Failed to clean run" nil
-                  (fns.run.clean n)))
+                  (ctx.clean n)))
+                ;; (catch "Failed to clean run" nil
+                ;;   (fns.run.clean n)))
               (each [_ n (ipairs nodes)]
                 (tset n :parent node))
               (-> nodes

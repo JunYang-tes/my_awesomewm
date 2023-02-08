@@ -14,6 +14,7 @@
 (local list (require :utils.list))
 (local stringx (require :utils.string))
 (local {: value
+        : map-list
         : map
         : mapn} (require :lite-reactive.observable))
 (local inspect (require :inspect))
@@ -21,8 +22,6 @@
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
-;;  input-required: bool
-;;  input-prompt: string
 ;;  exec: (input:string) => Command[] | nil
 ;; }
 ;;
@@ -59,6 +58,7 @@
     {:register (fn [cmd]
                   (print :register cmd.label)
                   (table.insert state.commands cmd))
+     ;; return true mean has sub-cmds
      :run (fn [cmd input]
             (assert-is-a-cmd cmd)
             (if cmd.input-required
@@ -68,8 +68,10 @@
               (if (list.is-list r)
                   (do
                     (push r)
-                    r)
-                  (clean))))
+                    true)
+                  (do
+                    (clean)
+                    false))))
      : is-cmdstack-empty 
      : pop
      :reset (fn [] (clean))
@@ -85,8 +87,6 @@
 ;;       (box))
 (defn pallet-node
   (let [{: visible} props
-        pending-cmd (value nil) ;; a cmd which is waiting input
-        has-pending-cmd (fn [] (not= nil (pending-cmd)))
         selected-index (value 1)
         input (value "")
         cmds (map input #(command-mgr.match (input)))
@@ -113,36 +113,21 @@
                 (input "")
                 (visible false))
         handle-esc (fn []
-                     (if (has-pending-cmd)
-                         (pending-cmd.set nil)
-                         (not (command-mgr.is-cmdstack-empty )) (command-mgr.pop)
+                     (if (not (command-mgr.is-cmdstack-empty))
+                         (do
+                           (command-mgr.pop)
+                           (refresh-cmds))
                          (close)))
-        run-pending-cmd (fn [input]
-                          (let [cmd (pending-cmd)
-                                r (command-mgr.run cmd input)]
-                           (pending-cmd.set nil)
-                           (if (= nil r)
-                               (close)
-                               (do 
-                                 (input "")
-                                 (refresh-cmds)))))
-        run-cmd (fn [cmd]
-                  (if cmd.input-required
-                      (do
-                        (input "")
-                        (pending-cmd cmd))
-                      (let [result (command-mgr.run cmd)]
-                        (print :cmd-result result)
-                        (if (= nil result)
-                            (close)
-                            (do
-                              (input "")
-                              (refresh-cmds))))))
         run (fn [current-text]
-              (if (has-pending-cmd)
-                  (run-pending-cmd current-text)
-                  (run-cmd (selected-cmd))))
-        item-cls (css [:border-bottom "1px solid #ccc"])
+              (let [[_ args] (split-input current-text)
+                    result (command-mgr.run (selected-cmd) args)]
+                (if result
+                    (do
+                      (input "")
+                      (refresh-cmds))
+                    (close))))
+        item-cls (css [:border-bottom "1px solid #ccc"
+                       :padding-left :8px])
         win
         (window
           {:keep-alive true
@@ -156,11 +141,10 @@
                :class [entry-css]
                :on_key_release_event
                (fn [w e]
-                 (print e.keyval (inspect e.state))
                  (if e.state.CONTROL_MASK
                    (match e.keyval
                      keys.j (inc-selected-index)
-                     keys.h (dec-selected-index)))
+                     keys.k (dec-selected-index)))
                  (catch-ignore
                    ""
                    (match e.keyval
@@ -168,42 +152,36 @@
                      keys.esc (handle-esc)
                      _ (input w.text))))
                :text input})
-            (map pending-cmd
-              (fn [pending-cmd]
-                (if (= nil pending-cmd)
-                  (scrolled-window
-                    {:-expand true
-                     :class (css [:min-height :400px])
-                     :-fill true}
+            (label {:label (map cmds #(.. "Commands:" (length $1)))})
+            (scrolled-window
+              {:-expand true
+               :class (css [:min-height :400px])
+               :-fill true}
+              (box
+                {:orientation Gtk.Orientation.VERTICAL}
+                (foreach cmds 
+                  (fn [cmd]
                     (box
-                      {:orientation Gtk.Orientation.VERTICAL}
-                      (foreach cmds 
-                        (fn [cmd]
-                          (box
-                            {:orientation Gtk.Orientation.VERTICAL
-                             :class item-cls} 
-                            (label 
-                              {:label (map selected-cmd
-                                           (fn [item] 
-                                            (if (= cmd item)
-                                              (.. ">" cmd.label)
-                                              (.. " " cmd.label))))
-                               :halign Gtk.Align.LEFT
-                               :class (map selected-cmd 
-                                           (fn [item]
-                                              (if (= cmd item)
-                                                  selected-cmd-css
-                                                  "")))})
-                            (label
-                              {:label (map input
-                                        (fn [input]
-                                          (let [[_ args] (split-input input)]
-                                            (if cmd.real-time
-                                                (catch "" ""
-                                                  (cmd.real-time args))
-                                                "")))) 
-                               :halign Gtk.Align.LEFT}))))))
-                  (label {:label pending-cmd.input-prompt}))))))]
+                      {:orientation Gtk.Orientation.VERTICAL
+                       :class item-cls} 
+                      (label 
+                        {:label cmd.label 
+                         :xalign 0
+                         :class (map selected-cmd 
+                                     (fn [item]
+                                        (if (= cmd item)
+                                            selected-cmd-css
+                                            "")))})
+                      (label
+                        {:label (map input
+                                  (fn [input]
+                                    (let [[_ args] (split-input input)]
+                                      (if cmd.real-time
+                                          (catch "" ""
+                                            (cmd.real-time args))
+                                          "")))) 
+                         :wrap true
+                         :xalign 0}))))))))]
     (effect [visible]
       (refresh-cmds))
     win))

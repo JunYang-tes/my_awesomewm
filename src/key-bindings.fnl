@@ -93,18 +93,6 @@
        { :description "Focus window"
          :group "client"}) 
   (key [modkey] "s" swap-win)
-  (key [modkey "Shift"] "j" #(awful.client.swap.byidx 1) 
-       { :description "swap with next client by index"
-         :group "client"}) 
-  (key [modkey "Shift"] "k" #(awful.client.swap.byidx -1) 
-       { :description "swap with previous client by index"
-         :group "client"}) 
-  (key [modkey "Control"] "j" #(awful.client.swap.byidx 1) 
-       { :description "swap with next client by index"
-         :group "client"}) 
-  (key [modkey "Control"] "k" #(awful.client.swap.byidx -1) 
-       { :description "swap with previous client by index"
-         :group "client"}) 
   (key [modkey "Control"] "u" awful.client.urgent.jmpto 
        { :description "jump to urgent client"
          :group "client"})
@@ -160,20 +148,11 @@
   (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
-  (key [modkey] "n" tag.name-tag 
-       { :description "Name a tag" 
-         :group "tag"}) 
   (key [modkey] "t" tag.view-tag
        { :description "Name a tag" 
          :group "tag"}) 
   (key [modkey "Shift"] "t" tag-untaged
        { :description "Name a tag" 
-         :group "tag"}) 
-  (key [modkey] "m" tag.move-to-screen
-       { :description "Move a tag" 
-         :group "tag"}) 
-  (key [modkey "Shift"] "s" tag.swap
-       { :description "Swap tag" 
          :group "tag"}) 
   (key [modkey] "b" bar.toggle-visible 
        { :description "Toggle function bar" 

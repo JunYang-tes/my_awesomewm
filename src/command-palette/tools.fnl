@@ -1,3 +1,4 @@
+(local timer (require :utils.timer))                                   
 (local jd-map (require :components.jd))
 (local awful (require :awful))
 (local date {:label :date
@@ -9,7 +10,8 @@
              :real-time (fn [input] ((load (.. "return " input))))})
 (local screenshot
        {:label :screen-shot
-        :exec #(awful.spawn "flameshot gui")})
+        ;; start flameshot after command palette hidden
+        :exec #(timer.set-timeout #(awful.spawn "flameshot gui") 0.1)})
 (local jd
        (do 
          (var visible false)
