@@ -16,7 +16,6 @@
         btn (button {:label (o.map show #(if $1 :Hide :Show))
                      :on_clicked 
                      (fn []
-                        (print :Button (btn))
                         (show (not (show))))})]
           
       ;; (if (show)

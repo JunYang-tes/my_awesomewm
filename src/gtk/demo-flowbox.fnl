@@ -15,7 +15,6 @@
       "face-sick"
       "face-kiss"
       "face-smile"])
-(print :image image)
 (run
   (window 
     (scrolled-window

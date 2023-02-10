@@ -37,11 +37,6 @@
                             "ls -1 "
                             "/sys/class/power_supply/" name))
          type (read-prop name :type)]
-    (print :is-battery name
-      type
-      (and 
-        (= type :Battery)
-        (some lines #(= $1 :charge_full))))
      
     (and 
       (= type :Battery)
@@ -118,7 +113,7 @@
     (fn emit []
       (local info (map batteris #($1))) 
       (each [_ f (ipairs callbacks)] 
-        (print (pcall f info)))) 
+        (pcall f info))) 
      
     (fn monitor []
       (fn start []
@@ -128,7 +123,6 @@
             :autostart true
             :callback 
               (fn [] 
-                (print :timer)
                 (emit))})) 
       (if (> (length batteris) 0) 
           (start)))
@@ -136,7 +130,6 @@
     (awful.spawn.with_line_callback
       "udevadm monitor -k --subsystem-match=power_supply " 
       {:stdout (fn [line] 
-                  (print line)
                   (timer.set-timeout emit 5))
        :stderr (fn [err] 
                  (print :err err))}) 
@@ -158,9 +151,6 @@
       (each [i v (ipairs info)] 
         (if (= v.status :Charging)
             (set should-show-notify true)) 
-        (print :check-alert (= v.status :Discharging)
-                            (< v.percentage 0.8) 
-                            should-show-notify) 
         (if (and (= v.status :Discharging) 
                  (< v.percentage 0.15) 
                  should-show-notify) 
@@ -194,7 +184,6 @@
   (set battery-percentage.fit (fn [] (values 10 24))) 
   (set battery-percentage.draw 
     (fn [widget ctx cr w h]
-      (print :draw widget.percentage)
       (local x 0)
       (local y (- h
                   (* h 

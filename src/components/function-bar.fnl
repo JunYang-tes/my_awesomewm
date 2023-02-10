@@ -17,12 +17,7 @@
 
 (fn get-bar-geometry [] 
   (local screen (awful.screen.focused)) 
-  (local { : width : height} screen.geometry)
-  (print height) {
-                  :x 0
-                  :y (- height bar-height bar-offset-y) 
-                  :height bar-height
-                  :width width}) 
+  (local { : width : height} screen.geometry))
 
 (fn tag-indicator []
   (local tag-name (wibox.widget 
@@ -95,13 +90,11 @@
 
 (fn toggle-visible []
   (local screen (awful.screen.focused)) 
-  (print :toggle-function-bar "@" (screen-utils.get-name screen))
   (local {: width} (function-bar:geometry))
   (local pos (screen-utils.calc-pos 
                screen 
               (/ (- screen.geometry.width width) 2)
               (- screen.geometry.height bar-offset-y bar-height))) 
-  (print :bar-pos pos.x pos.y)
   (signal.emit "volumn::update")
   (assign! 
     function-bar 

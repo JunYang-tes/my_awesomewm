@@ -23,13 +23,10 @@
 
 (awful.screen.connect_for_each_screen 
   (fn [screen]
-    (print :new-screen screen)
-    (print :screen-interface (parse-interface screen)) 
     (tset screens (parse-interface screen) screen))) 
      
 (awful.screen.disconnect_for_each_screen
   (fn [screen] 
-    (print :remove-screen screen) 
     (tset screens (parse-interface screen) nil))) 
      
 (fn is-screen [in]

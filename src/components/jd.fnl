@@ -11,10 +11,9 @@
 (var jd-keymap nil) 
 
 (fn toggle-visible []
-  (local screen (awful.screen.focused ))
+  (local screen (awful.screen.focused))
   (local w screen.geometry.width)
   (local h (* ratio w))
-  (print w h (/ w h))
   (if jd-keymap 
     (do
       (set jd-keymap.visible false)
@@ -33,8 +32,8 @@
                    :ontop true 
                    :visible true}))
 
-        (assign! jd-keymap (screen-utils.center
-                       (awful.screen.focused) 
-                       w h)))))
+      (assign! jd-keymap (screen-utils.center
+                          (awful.screen.focused) 
+                          w h)))))
 
 { : toggle-visible}

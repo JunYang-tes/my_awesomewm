@@ -15,7 +15,6 @@
         (local path (or 
                       (memubar.utils.lookup_icon hints.app_icon) 
                       (memubar.utils.lookup_icon (string.lower hints.app_icon)))) 
-        (print :path path)
         (if path 
             (set n.icon path))) 
       (match ctx 

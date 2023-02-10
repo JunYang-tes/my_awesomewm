@@ -29,7 +29,6 @@
         {: on-finished
          : visible} props
         close (fn [win-node]
-                (print :close)
                 (visible false))
         win
         (window

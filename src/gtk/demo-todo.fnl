@@ -17,7 +17,6 @@
 (local inspect (require :inspect))
 (local {: run
         : foreach } (require :lite-reactive.app))
-(print :++++++++++++++++ is-enter-event)
 (local todos (r.value [
                        (r.value {:title :hello :done false})
                        (r.value {:title :world :done true})]))

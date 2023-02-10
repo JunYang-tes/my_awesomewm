@@ -10,7 +10,6 @@
         : button} (require :gtk.node))
 (defn
   app
-  (print :app)
   (window 
     {
      :title :style}

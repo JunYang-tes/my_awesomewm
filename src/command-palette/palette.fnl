@@ -22,7 +22,7 @@
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
-;;  exec: (input:string) => Command[] | nil
+;;  exec: (input:string) => Command[] | "keep-open" | any
 ;; }
 ;;
 
@@ -56,22 +56,24 @@
       (= (length state.commands-stack) 0))
 
     {:register (fn [cmd]
-                  (print :register cmd.label)
                   (table.insert state.commands cmd))
-     ;; return true mean has sub-cmds
+     ;; return :close | :keep-open | :has-sub
      :run (fn [cmd input]
             (assert-is-a-cmd cmd)
             (if cmd.input-required
               (assert (not= nil input) :input-is-required))
-            (let [r
-                  (cmd.exec input)]
-              (if (list.is-list r)
-                  (do
-                    (push r)
-                    true)
-                  (do
-                    (clean)
-                    false))))
+            (let [r (cmd.exec input)
+                  r
+                    (match r
+                      :keep-open :keep-open
+                      nil :close
+                      (where sub-cmds (list.is-list sub-cmds))
+                      (do (push r)
+                        :has-sub)
+                      _ :close)]
+              (if (= r :close)
+                  (clean))
+              r))
      : is-cmdstack-empty 
      : pop
      :reset (fn [] (clean))
@@ -119,13 +121,14 @@
                            (refresh-cmds))
                          (close)))
         run (fn [current-text]
-              (let [[_ args] (split-input current-text)
+              (let [[cmd args] (split-input current-text)
                     result (command-mgr.run (selected-cmd) args)]
-                (if result
-                    (do
-                      (input "")
-                      (refresh-cmds))
-                    (close))))
+                (match result
+                  :close (close)
+                  :has-sub (do 
+                             (input "")
+                             (refresh-cmds))
+                  :keep-open (input cmd))))
         item-cls (css [:border-bottom "1px solid #ccc"
                        :padding-left :8px])
         win

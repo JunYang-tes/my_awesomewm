@@ -7,7 +7,6 @@
 (local inspect (require :inspect))
 (fn load [cmds]
   (each [_ i (ipairs cmds)]
-    (print :load i.label)
     (register i)))
 
 (load tag-cmds)

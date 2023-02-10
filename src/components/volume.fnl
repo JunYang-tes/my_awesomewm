@@ -75,7 +75,6 @@
   (slider:connect_signal "property::value"
     (fn [] 
       (local value slider.value) 
-      (print value) 
       (awful.spawn (.."amixer set Master " value "%")) 
       (update-volume)))
        
@@ -104,9 +103,8 @@
             (local r (awful.placement.next_to slider-popup
                                             { :geometry _G.mouse.current_widget_geometry
                                               :preferred_anchors :middle 
-                                              :preferred_positions :top})) 
+                                              :preferred_positions :top}))))))) 
                                                       
-            (print (inspect r)))))))
   w) 
 
 {

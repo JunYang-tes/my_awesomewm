@@ -51,7 +51,7 @@
                                  (-> "amixer -c %s set %s %s "
                                    (string.format i item.control input)
                                    (process.read-popen))
-                                 nil)})))
+                                 :keep-open)})))
                   sub-cmds))})
 
 [set-volumn]

@@ -28,7 +28,7 @@
                           (-> observables
                               observable.flat-collect
                               (list.filter #$1)
-                              r)))
+                              r.set)))
                           ;; (r (observable.flat-collect observables))))
           r)
         children)))

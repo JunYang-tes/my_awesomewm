@@ -50,7 +50,6 @@
       (fn [_ key event] 
         (fn stop [] 
           (awful.keygrabber.stop grabber) 
-          (print :close-popup)
           (close-popup popups))
 
         (match [key event] 

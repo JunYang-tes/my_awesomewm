@@ -6,6 +6,9 @@
 (local {: select-tag} (require :tag))
 (local wibox (require :wibox))
 (local tbl (require :utils.table))
+(local screen-utils (require :utils.screen))
+(local {: root } (require :awesome-global))
+(local {: switch-tag} (require :tag))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal) 
@@ -17,11 +20,23 @@
        true) 
       false)) 
 
+(fn move-chrome-devtools [client]
+  (if (and 
+        (= client.name :DevTools))
+    (let [scs (length (screen-utils.get-screen-list))
+          tag (list.find (root.tags) #(= $1.name "DevTool"))]
+      (if (and 
+            (not= nil tag)
+            (> scs 1))
+          (do
+            (client:move_to_tag tag)
+            (switch-tag tag))))))
 
 (awesome-global.client.connect_signal :manage 
   (fn [client] 
+    (move-chrome-devtools client)
     (local tag client.first_tag)
-    ;; When a client exited,select a client in the same tag focus to it
+     ;; When a client exited,select a client in the same tag focus to it
     (client:connect_signal :unmanage 
                            (fn [] (wm.focus (wm.get-focusable-client tag))))
     (local clients (-> client 
@@ -32,6 +47,13 @@
              (not= client.role :prompt))
         (each [_ v (ipairs clients)]
               (normalize-client v))))) 
+
+(awesome-global.client.connect_signal 
+  "property::urgent"
+  (fn [c]
+    (tset c :minimized false)
+    (c:jump_to)))
+  
 
 ;; (awesome-global.client.connect_signal
 ;;   "request::titlebars"

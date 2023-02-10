@@ -56,7 +56,6 @@
  :menu-button (make-builder Gtk.MenuButton)
  :image (make-builder Gtk.Image)
  :entry (make-builder Gtk.Entry {:auto-focus (fn [w auto-focus]
-                                               (print :focus auto-focus)
                                                (if auto-focus
                                                  (w:grab_focus)))})
  :check-button (make-builder Gtk.CheckButton)

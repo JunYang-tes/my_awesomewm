@@ -132,7 +132,6 @@
     [[] []]))
 
 (fn split-by [list predicate?]
-  (print :list list)
   (let [{: collecting : splited}
         (reduce
           list

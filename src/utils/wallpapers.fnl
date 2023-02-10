@@ -7,7 +7,6 @@
 (local screen-utils (require :utils.screen))                             
 (local surface (require :gears.surface)) 
 
-(print :wallpapers-path beautiful.wallpapers_path)
 (fn get-wallpapers []
   (fn do-get [] 
     (icollect [v (lfs.dir beautiful.wallpapers_path)] 
@@ -19,7 +18,6 @@
     (if ok 
         ret 
         (do 
-          (print ret) 
           [])))) 
 
 
@@ -37,7 +35,6 @@
         wp))) 
 
 (fn set-wallpaper [tag]
-  (print :set-wallpaper-for tag.name (get-random tag))
   (gears.wallpaper.maximized
     (get-random tag)
     tag.screen))
@@ -45,7 +42,6 @@
 (fn wp-each-screen []
   (local base (. (os.date :*t) :day))
   (fn set-wp [screen]
-    (print :set-wp)
     (gears.wallpaper.maximized
       (. wallpapers (+ 1 (% (+  screen.index base) 
                             (length wallpapers)))) 

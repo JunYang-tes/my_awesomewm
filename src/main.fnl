@@ -19,9 +19,7 @@
 (require :autorun)
 
 (fn setup-global-keys []
-  (print :set-keys)
   (local ks (require :key-bindings))
-  (print ks)
   (root.keys ks))
 
 ;; TODO

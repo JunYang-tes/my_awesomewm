@@ -20,7 +20,6 @@
           (each [_ p (ipairs path)]
             (table.insert code p))
           (table.insert code value)
-          (print code)
           code))))
   
 { : assign
