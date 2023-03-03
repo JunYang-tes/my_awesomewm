@@ -2,6 +2,7 @@
 (local {: assign } (require :utils.table))
 (local observable (require :lite-reactive.observable))
 (local inspect (require :inspect))
+(local {: memoed} (require :utils.utils))
 (local list (require :utils.list))
 
 (fn is-node [obj]
@@ -15,23 +16,39 @@
        (not (list.is-list obj))
        (not (is-node obj))
        (not (observable.is-observable obj))))
-
+;; child : O<Array<Node|nil|Array<Node|nil>>
 (fn make-children [child]
-  (let [children (list.flatten (if (list.is-list child ) child [child]))]
-    (if (list.some children #(observable.is-observable $1))
-        (let [observables (list.map children observable.of)
-              r (observable.value (->  observables
-                                       observable.flat-collect
-                                       (list.filter #$1)))]
-          (observable.observe-list-deep
-            observables (fn [] 
-                          (-> observables
-                              observable.flat-collect
-                              (list.filter #$1)
-                              r.set)))
-                          ;; (r (observable.flat-collect observables))))
-          r)
-        children)))
+  (let [prepare-children 
+         (fn [children]
+           (let [children 
+                  (if (list.is-list children)
+                      children
+                      [children])]
+              (-> children
+                  list.flatten
+                  (list.filter is-node))))]
+                          
+    (if (observable.is-observable child)
+        (observable.map child prepare-children)
+        (prepare-children child))))
+      
+  ;; (let [children (list.flatten (if (list.is-list child ) child [child]))]
+  ;;   (if (list.some children #(observable.is-observable $1))
+  ;;       (let [observables (list.map children observable.of)
+  ;;             r (observable.value (->  observables
+  ;;                                      observable.flat-collect
+  ;;                                      (list.filter #$1)))]
+  ;;         (observable.observe-list-deep
+  ;;           observables (fn [] 
+  ;;                         (print :children-change!)
+  ;;                         (-> observables
+  ;;                             observable.flat-collect
+  ;;                             (list.filter #$1)
+  ;;                             r.set)))
+  ;;                         ;; (r (observable.flat-collect observables))))
+  ;;         r)
+  ;;       children)))
+
 ;; accepted forms:
 ;; 1 argment:
 ;;  props | child[] | child
@@ -63,7 +80,7 @@
 (fn atom-node [build name]
   (fn [props]
     {:type :atom
-     : build
+     :build (memoed build)
      : name
      :props (or props {})}))
 
@@ -71,7 +88,7 @@
   (fn [...]
     (let [[props children] (prepare-props ...)]
       {:type :container
-       : build
+       :build (memoed build)
        : update-children
        : relayout
        : props
@@ -82,7 +99,7 @@
   (fn [...]
     (let [[props children] (prepare-props ...)]
       {:type :custom
-       : build
+       :build (memoed build)
        : name
        :props (collect [k v (pairs (or props {}))]
                 k (observable.of v))

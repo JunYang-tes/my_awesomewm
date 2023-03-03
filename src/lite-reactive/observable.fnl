@@ -1,5 +1,6 @@
 (local { : make-type } (require :utils.type))
-(local { : weak-value-table} (require :utils.table))
+(local { : weak-value-table
+         : weak-key-table} (require :utils.table))
 (local obserable (setmetatable {} {:__mode "k"}))
 (local observable_type (make-type :observable))
 (local list (require :utils.list))
@@ -160,28 +161,6 @@
           (table.insert r obj)))
     (collect-imp obj)
     r))
-(fn observe-list-deep [observables f]
-  (local remove [])
-  (var observe nil)
-  (fn add-observer [obj]
-    (if (is-observable obj)
-        (do
-          (table.insert remove (obj.add-weak-observer observe))
-          (add-observer (obj)))
-        (list.is-list obj)
-        (each [_ v (ipairs obj)]
-          (add-observer v))))
-  (fn dispose []
-    (each [_ r (ipairs remove)]
-      (r)))
-  (set observe (fn [value]
-                 (f)
-                 (if (is-observable value)
-                     (do 
-                       (dispose)
-                       (add-observer observables)))))
-  (add-observer observables)
-  dispose)
 
 
 { : value 
@@ -189,7 +168,6 @@
   : flat-deep
   : of
   : observe-deep
-  : observe-list-deep
   : map
   : map-list
   : flat-map
