@@ -19,16 +19,20 @@
       {:label (tag-label tag)
        :exec (tag-action tag)})))
 
+(fn tag-name [tag]
+  (or tag.name 
+      "Anonymous"))
+
 (local view-tag
        {:label "view-tag"
         :exec (fn []
-                (tag-cmd #(.. "View " $1.name "(" (screen-utils.get-name $1.screen)  ")")
+                (tag-cmd #(.. "View " (tag-name $1) "(" (screen-utils.get-name $1.screen)  ")")
                          (fn [t]
                            (fn [] (tag.switch-tag t)))))})
 (local move-to-tag
   {:label "move-to-tag"
    :exec (fn []
-           (tag-cmd #(.. "Move windown to " $1.name "(" (screen-utils.get-name $1.screen) ")")
+           (tag-cmd #(.. "Move windown to " (tag-name $1) "(" (screen-utils.get-name $1.screen) ")")
                     (fn [t]
                       (fn []
                         (let [s (awful.screen.focused)
@@ -43,7 +47,7 @@
         :exec (fn []
                 (local current (-> (awful.screen.focused)
                                    (. :selected_tag))) 
-                (tag-cmd #(.. "Swap " current.name " with " $1.name))
+                (tag-cmd #(.. "Swap " current.name " with " (tag-name $1)))
                 (fn [t]
                   (fn []
                     (current:swap t))))})
@@ -65,7 +69,7 @@
                                            (set current.screen screen)))}))))})
 (local rename-tag
        {:label "rename-tag"
-        :real-time #(.. "Rename " (. (wm.get-current-tag) :name) " to: " $1)
+        :real-time #(.. "Rename " (tag-name (wm.get-current-tag) ) " to: " $1)
         :exec (fn [input]
                 (tset (wm.get-current-tag) :name input))})
 [create

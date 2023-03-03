@@ -89,7 +89,7 @@
                                             " "
                                             (screen-utils.get-name t.screen)
                                             " " 
-                                            t.name)))) 
+                                            (or t.name "Anonymous"))))) 
   (select-item
     {
       :items tags-name
