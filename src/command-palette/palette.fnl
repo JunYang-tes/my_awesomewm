@@ -131,6 +131,29 @@
                   :keep-open (input cmd))))
         item-cls (css [:border-bottom "1px solid #ccc"
                        :padding-left :8px])
+        cmd-items (map-list cmds 
+                    (fn [cmd]
+                      (box
+                        {:orientation Gtk.Orientation.VERTICAL
+                         :class item-cls} 
+                        (label 
+                          {:label cmd.label 
+                           :xalign 0
+                           :class (map selected-cmd 
+                                       (fn [item]
+                                          (if (= cmd item)
+                                              selected-cmd-css
+                                              "")))})
+                        (label
+                          {:label (map input
+                                    (fn [input]
+                                      (let [[_ args] (split-input input)]
+                                        (if cmd.real-time
+                                            (catch "" ""
+                                              (cmd.real-time args))
+                                            "")))) 
+                           :wrap true
+                           :xalign 0}))))
         win
         (window
           {:keep-alive true
@@ -162,31 +185,11 @@
                :-fill true}
               (box
                 {:orientation Gtk.Orientation.VERTICAL}
-                (foreach cmds 
-                  (fn [cmd]
-                    (box
-                      {:orientation Gtk.Orientation.VERTICAL
-                       :class item-cls} 
-                      (label 
-                        {:label cmd.label 
-                         :xalign 0
-                         :class (map selected-cmd 
-                                     (fn [item]
-                                        (if (= cmd item)
-                                            selected-cmd-css
-                                            "")))})
-                      (label
-                        {:label (map input
-                                  (fn [input]
-                                    (let [[_ args] (split-input input)]
-                                      (if cmd.real-time
-                                          (catch "" ""
-                                            (cmd.real-time args))
-                                          "")))) 
-                         :wrap true
-                         :xalign 0}))))))))]
+                cmd-items))))]
     (effect [visible]
       (refresh-cmds))
+    ;;(effect [cmd-items]
+    ;;        (print :item-changed (length (cmd-items ))))
     win))
 
 (local palette 
