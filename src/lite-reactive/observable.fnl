@@ -62,9 +62,6 @@
       val
       (value val)))
 
-(fn add-observer [observable obj f]
-  (tset obj :observe f)
-  (observable.add-weak-observer f))
 
 ;; (Observable<T>, T=>U) => Observable<U>
 ;; (T,T=>U)=>U
@@ -73,7 +70,7 @@
     (let [val (value (f (obserable.get)))]
       (fn observer [new]
         (val (f new)))
-      (add-observer obserable val observer)
+      (obserable.add-observer observer)
       val)
     (f obserable)))
 ;; ([O<T1> ... O<Tn>], ([T1...Tn])=>U) => O<U>
@@ -81,7 +78,7 @@
   (let [r (value (f (list.map observables #($1))))]
     (fn observer [] (r.set (f (list.map observables #($1)))))
     (each [_ v (ipairs observables)]
-      (v.add-weak-observer observer))
+      (v.add-observer observer))
     (tset r :observer observer)
     r))
 ;; (O<Array<T>>, T=>U) => O<Array<U>>
