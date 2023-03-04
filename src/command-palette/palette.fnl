@@ -40,7 +40,7 @@
 (local command-mgr
   (let [state {:commands []
                :commands-stack []}]
-          
+
     (fn push [cmds]
       (table.insert state.commands-stack cmds))
     (fn pop []
@@ -74,7 +74,7 @@
               (if (= r :close)
                   (clean))
               r))
-     : is-cmdstack-empty 
+     : is-cmdstack-empty
      : pop
      :reset (fn [] (clean))
      :match (fn [input]
@@ -101,7 +101,7 @@
         inc-selected-index #(let [cmds-count (length (cmds))
                                   idx (+ (selected-index) 1)]
                                 (selected-index
-                                  (if (> idx cmds-count) 
+                                  (if (> idx cmds-count)
                                       1
                                       idx)))
         dec-selected-index #(let [cmds-count (length (cmds))
@@ -125,21 +125,21 @@
                     result (command-mgr.run (selected-cmd) args)]
                 (match result
                   :close (close)
-                  :has-sub (do 
+                  :has-sub (do
                              (input "")
                              (refresh-cmds))
                   :keep-open (input cmd))))
         item-cls (css [:border-bottom "1px solid #ccc"
                        :padding-left :8px])
-        cmd-items (map-list cmds 
+        cmd-items (map-list cmds
                     (fn [cmd]
                       (box
                         {:orientation Gtk.Orientation.VERTICAL
-                         :class item-cls} 
-                        (label 
-                          {:label cmd.label 
+                         :class item-cls}
+                        (label
+                          {:label cmd.label
                            :xalign 0
-                           :class (map selected-cmd 
+                           :class (map selected-cmd
                                        (fn [item]
                                           (if (= cmd item)
                                               selected-cmd-css
@@ -151,7 +151,7 @@
                                         (if cmd.real-time
                                             (catch "" ""
                                               (cmd.real-time args))
-                                            "")))) 
+                                            ""))))
                            :wrap true
                            :xalign 0}))))
         win
@@ -162,7 +162,7 @@
            :on_focus_out_event #(close win)}
           (box
             {:orientation Gtk.Orientation.VERTICAL}
-            (entry 
+            (entry
               {:on_parent_set #(: $1 :grab_focus)
                :class [entry-css]
                :on_key_release_event
@@ -188,16 +188,21 @@
                 cmd-items))))]
     (effect [visible]
       (refresh-cmds))
-    ;;(effect [cmd-items]
-    ;;        (print :item-changed (length (cmd-items ))))
+    ;(effect [cmd-items]
+    ;        (print :item-changed (length (cmd-items ))))
     win))
 
-(local palette 
+(local palette
   (let [visible (value false)]
     (run (pallet-node {: visible}))
     {:show (fn [] (visible true))}))
+(fn name [a b]
+  (- a b)
+  (+ a b))
+
+(name 1 2)
 
 {
  :register command-mgr.register
  :run (fn [] (palette.show))}
- 
+
