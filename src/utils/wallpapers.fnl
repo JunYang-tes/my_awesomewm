@@ -1,14 +1,14 @@
 (local awful (require :awful))
-(local lfs (require :lfs)) 
+(local lfs (require :lfs))
 (local beautiful (require :beautiful))
-(local inspect (require :inspect)) 
-(local { : random } (require :utils.math)) 
+(local inspect (require :inspect))
+(local { : random } (require :utils.math))
 (local gears (require :gears))
-(local screen-utils (require :utils.screen))                             
-(local surface (require :gears.surface)) 
+(local screen-utils (require :utils.screen))
+(local surface (require :gears.surface))
 
 (fn get-wallpapers []
-  (fn do-get [] 
+  (fn do-get []
     (icollect [v (lfs.dir beautiful.wallpapers_path)] 
        (if (and (not= v ".") 
                 (not= v "..") 
@@ -42,10 +42,11 @@
 (fn wp-each-screen []
   (local base (. (os.date :*t) :day))
   (fn set-wp [screen]
-    (gears.wallpaper.maximized
-      (. wallpapers (+ 1 (% (+  screen.index base) 
-                            (length wallpapers)))) 
-      screen))
+    (if (> (length wallpapers) 0)
+      (gears.wallpaper.maximized
+        (. wallpapers (+ 1 (% (+  screen.index base) 
+                              (length wallpapers)))) 
+        screen)))
   (awful.screen.connect_for_each_screen 
     (fn [screen]
       (set-wp screen)

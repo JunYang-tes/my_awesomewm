@@ -1,29 +1,29 @@
 ;; https://github.com/rxyhn/dotfiles/blob/main/config/awesome/theme/theme.lua
 (local gears (require :gears))
-(local gfs (require :gears.filesystem)) 
-(local themes_path (gfs.get_themes_dir)) 
-(local theme (dofile (.. themes_path "default/theme.lua"))) 
-(local theme_assets (require :beautiful.theme_assets)) 
-(local xresources (require :beautiful.xresources))                                                    
-(local dpi xresources.apply_dpi) 
-(local ui (require :utils.ui)) 
-           
+(local gfs (require :gears.filesystem))
+(local themes_path (gfs.get_themes_dir))
+(local theme (dofile (.. themes_path "default/theme.lua")))
+(local theme_assets (require :beautiful.theme_assets))
+(local xresources (require :beautiful.xresources))
+(local dpi xresources.apply_dpi)
+(local ui (require :utils.ui))
+
 
 (macro assign [tgt src]
   (list (sym :do)
-    (icollect [i k (ipairs src)] 
-        (if (not= (% i 2) 0) 
-          (do 
-            (local v (. src (+ i 1))) 
-            (list (sym :tset) tgt k v)))) 
-    tgt)) 
+    (icollect [i k (ipairs src)]
+        (if (not= (% i 2) 0)
+          (do
+            (local v (. src (+ i 1)))
+            (list (sym :tset) tgt k v))))
+    tgt))
 
 
 (assign
-  theme 
-  [ 
-    :wallpapers_path (.. (os.getenv "HOME")
-                         "/.config/awesome/src/theme/wallpapers") 
+  theme
+  [
+    :wallpapers_path (.. (os.getenv "AWESOME_CONFIG")
+                         "/src/theme/wallpapers")
     ;; Specail
     :xforeground  "#D9D7D6"
     :darker_xbackground  "#000a0e"
@@ -68,14 +68,14 @@
 
     ;; White
     :xcolor7  "#D9D7D6"
-    :xcolor15  "#E5E5E5" 
+    :xcolor15  "#E5E5E5"
 
     ;; Ui Fonts
     :font_name  "Roboto "
     :font  (.. "Roboto "  "Medium 10")
 
     ;; Icon Fonts
-    :icon_font "MaterialIconsRound " 
+    :icon_font "MaterialIconsRound "
 
     ;; Background Colors
     :bg_normal  theme.xbackground
@@ -129,11 +129,11 @@
 
     ;; Corner Radius
     :border_radius  12
-    
+
     ;; Edge snap
     :snap_bg  theme.xcolor8
     :snap_shape  (ui.rrect 0)
-    
+
     ;; Main Menu
     :main_menu_bg  theme.lighter_xbackground
 
@@ -141,11 +141,11 @@
     :tooltip_bg  theme.lighter_xbackground
     :tooltip_fg  theme.xforeground
     :tooltip_font  (.. theme.font_name  "Regular 10")
-              
+
     ;; Prompt
-    :prompt-shape (ui.rrect 4) 
-    
-    
+    :prompt-shape (ui.rrect 4)
+
+
     ;; Hotkeys Pop Up
     :hotkeys_bg  theme.xbackground
     :hotkeys_fg  theme.xforeground
@@ -156,7 +156,7 @@
     :hotkeys_group_margin  (dpi 50)
     :taglist_squares_sel  (theme_assets.taglist_squares_sel (dpi 0) theme.fg_normal)
     :taglist_squares_unsel  (theme_assets.taglist_squares_unsel (dpi 0) theme.fg_normal)
-    
+
     ;; Tag preview
     :tag_preview_widget_margin  (dpi 10)
     :tag_preview_widget_border_radius  theme.border_radius
@@ -168,15 +168,15 @@
     :tag_preview_widget_bg  theme.wibar_bg
     :tag_preview_widget_border_color  theme.wibar_bg
     :tag_preview_widget_border_width  0
-    
+
     ;; Layout List
     :layoutlist_shape_selected  (ui.rrect theme.border_radius)
     :layoutlist_bg_selected  theme.widget_bg
-    
-    
+
+
     ;; Gaps
     :useless_gap  (dpi 1)
-    
+
     ;; Systray
     :systray_icon_size  (dpi 20)
     :systray_icon_spacing  (dpi 10)
@@ -198,13 +198,13 @@
     :tabbar_AA_radius  0
     :tabbar_size  0
     :mstab_bar_ontop  true
-    
+
     ;; Notifications
     :notification_spacing  (dpi 4)
     :notification_shape (ui.rrect theme.border_radius)
     :notification_bg  theme.xbackground
     :notification_bg_alt  theme.lighter_xbackground
-    
+
     ;; Notif center
     :notif_center_notifs_bg  theme.one_bg2
     :notif_center_notifs_bg_alt  theme.one_bg3
@@ -216,4 +216,4 @@
     :machi_switcher_border_opacity  0.25
     :machi_editor_border_color  theme.lighter_xbackground
     :machi_editor_border_opacity  0.25
-    :machi_editor_active_opacity  0.25]) 
+    :machi_editor_active_opacity  0.25])
