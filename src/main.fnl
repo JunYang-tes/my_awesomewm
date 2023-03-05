@@ -1,21 +1,21 @@
-(local gears (require :gears))                  
+(local gears (require :gears))
 (local theme (require :theme.theme))
-(local beautiful (require :beautiful)) 
+(local beautiful (require :beautiful))
 (beautiful.init theme)
-(require :theme.notification) 
+(require :theme.notification)
 
-(local root _G.root)                                    
-(local awful (require :awful))        
-(local inspect (require :inspect))                       
+(local root _G.root)
+(local awful (require :awful))
+(local inspect (require :inspect))
 (local modkey "Mod4")
 (local tag (require :tag))
-(local {: tag-untaged} (require :client))  
+(local {: tag-untaged} (require :client))
 (local wp (require :utils.wallpapers))
- 
+
 (require :command-palette.load-cmds)
 (require :notification)
 (require :rules)
-(require :components.function-bar) 
+(require :components.function-bar)
 (require :autorun)
 
 (fn setup-global-keys []
@@ -24,8 +24,8 @@
 
 ;; TODO
 ;; move focus
-;; search key              
-;; exit fullscreen when new window was opened 
+;; search key
+;; exit fullscreen when new window was opened
 (setup-global-keys)
 (tag:init)
 (wp.wp-each-screen)
