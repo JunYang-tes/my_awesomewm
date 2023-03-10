@@ -2,4 +2,12 @@
  (with-open [in (io.popen cmd)]
   (icollect [i v (in:lines)] i)))
 
-{: read-popen}
+(fn exec [cmd]
+  (if (= (type cmd) :string)
+    (let [f (io.popen cmd)
+          (ret) (f:close )]
+      (= ret true))
+    false))
+
+{: read-popen
+ : exec }

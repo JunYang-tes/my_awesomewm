@@ -17,7 +17,9 @@
                          :playback
                          :capture)]
             {: control
+             : content
              : type})))))
+
 (fn get-card-count []
   (var i 0)
   (fn test []
@@ -33,11 +35,35 @@
   (test)
   i)
 
+(local amixer-checker
+  (do 
+    (fn check-has-amixer []
+      (process.exec "which amixer"))
+    (var has-amixer? (check-has-amixer))
+    {:check (fn []
+              (if has-amixer?
+                  true
+                  (do (set has-amixer? (check-has-amixer ))
+                    has-amixer)))}))
+
 (local set-volumn
        {:label :set-volumn
+        :real-time (fn []
+                     (if (amixer-checker.check )
+                         "Set volumn"
+                         "Please install alsa-utils"))
         :exec (fn []
                 (let [count (get-card-count)
-                      sub-cmds []]
+                      sub-cmds [{:label :Master
+                                 :real-time (fn [input]
+                                              (if (stringx.is-empty input)
+                                                  "e.g 10%+ 10%- 10%"
+                                                  input))
+                                 :exec (fn [input]
+                                         (-> "amixer set Master %s"
+                                             (string.format input)
+                                             (process.read-popen))
+                                         :keep-open)}]]
                   (for [i 0 count]
                     (each [_ item (ipairs (parse-content i))]
                       (table.insert
