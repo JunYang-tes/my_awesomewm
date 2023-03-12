@@ -22,6 +22,7 @@
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
+;;  description?: string
 ;;  exec: (input:string) => Command[] | "keep-open" | any
 ;; }
 ;;
@@ -151,7 +152,7 @@
                                         (if cmd.real-time
                                             (catch "" ""
                                               (cmd.real-time args))
-                                            ""))))
+                                            (or cmd.description "")))))
                            :wrap true
                            :xalign 0}))))
         win
