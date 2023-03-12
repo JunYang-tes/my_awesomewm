@@ -5,7 +5,7 @@
         :exec awesome-global.awesome.restart})
 (local quit
        {:label "quit-awesome"
-        :exec awesome-global.awesome.quit})
+        :exec #(awesome-global.awesome.quit)})
 (local help
        {:label "show-keybindings"
         :exec hotkeys-popup.show_help})
