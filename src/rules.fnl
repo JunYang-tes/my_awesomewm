@@ -41,19 +41,20 @@
                     :width 500
                     ;;:height 48
                     :placement awful.placement.top}}
-    ;; Floating              
+    ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
                  :class ["Arandr" "Blueman-manager"
                          "Gpick" "Kruler"
                          "MessageWin" "Sxiv" "Wpa_gui" "veromix"
                          "xtightvncviewer"]
-                 :name ["Event Tester"]          
+                 :name ["Event Tester"]
                  :type [:dialog]
                  :role ["AlarmWindow" "ConfigManager" "pop-up"]}
       :properties {
                    :border_width 1
                    :raise true
+                   :ontop true
                    :keys key-bindings
                    :titlebars_enabled   true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)

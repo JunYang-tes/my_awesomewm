@@ -55,29 +55,16 @@
     (c:jump_to)))
 
 
-;; (awesome-global.client.connect_signal
-;;   "request::titlebars"
-;;   (fn [c]
-;;     (-> c
-;;       awful.titlebar
-;;       (: :setup
-;;          (tbl.hybrid
-;;            [
-;;             (tbl.hybrid [(awful.titlebar.widget.iconwidget c)]
-;;                         {:layout wibox.layout.fixed.horizontal})
-;;             (tbl.hybrid [{:align :center
-;;                           :widget (awful.titlebar.widget.titlewidget c)}]
-;;               {:layout wibox.layout.flex.horizontal})]
-;;            {:layout wibox.layout.align.horizontal})))))
-(awesome-global.client.connect_signal
-  :focus (fn [client]
-           (let [fullscreen client.fullscreen]
-             ;; don't know why set ontop to true will close fullscreen
-            (tset client :ontop true)
-            (tset client :fullscreen fullscreen))))
-(awesome-global.client.connect_signal
-  :unfocus (fn [client]
-            (tset client :ontop false)))
+
+; (awesome-global.client.connect_signal
+;   :focus (fn [client]
+;            (let [fullscreen client.fullscreen]
+;              ;; don't know why set ontop to true will close fullscreen
+;             (tset client :above true)
+;             (tset client :fullscreen fullscreen))))
+; (awesome-global.client.connect_signal
+;   :unfocus (fn [client]
+;             (tset client :above false)))
 
 
 (fn focus-by-direction [dir]
