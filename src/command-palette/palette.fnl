@@ -19,6 +19,8 @@
         : mapn} (require :lite-reactive.observable))
 (local inspect (require :inspect))
 (local keys (require :gtk.keyval))
+(local fzy (require :fzy))
+(local {: assign } (require :utils.table))
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
@@ -26,6 +28,15 @@
 ;;  exec: (input:string) => Command[] | "keep-open" | any
 ;; }
 ;;
+(fn markup [str pos]
+  (let [parts []]
+    (for [i  1 (length str)]
+      (let [v (str:sub i i)]
+        (if (= i (. pos 1))
+          (do (table.insert parts (.. "<u>" v "</u>"))
+              (table.remove pos 1))
+          (table.insert parts v))))
+    (table.concat parts)))
 
 (fn split-input [input]
   (let [(index) (or (string.find input " ") (values 0))]
@@ -79,9 +90,15 @@
      : pop
      :reset (fn [] (clean))
      :match (fn [input]
-              (let [[ input ] (split-input (string.lower input))]
-                (list.filter (current-commands)
-                  #(stringx.includes (string.lower $1.label) input))))}))
+              (let [[ input ] (split-input (string.lower input))
+                    cmds (current-commands)]
+                (-> input
+                    (fzy.filter (list.map cmds (fn [cmd] cmd.label)))
+                    (list.map (fn [item] (let [cmd (. cmds (. item 1)) ]
+                                           (assign cmd
+                                                   {:label (markup cmd.label (. item 2))})))))))}))
+                ; (list.filter (current-commands)
+                ;   #(stringx.includes (string.lower $1.label) input))))}))
 
 (local selected-cmd-css (global-css [:color :red]))
 (local unselected-cmd-css (global-css [:color :green]))
@@ -138,7 +155,7 @@
                         {:orientation Gtk.Orientation.VERTICAL
                          :class item-cls}
                         (label
-                          {:label cmd.label
+                          {:markup cmd.label
                            :xalign 0
                            :class (map selected-cmd
                                        (fn [item]
