@@ -25,8 +25,8 @@
                    :widget 
                      (widget.image-box 
                        {
-                        :image (.. (os.getenv "HOME")
-                                   "/.config/awesome/src/components/jd.png") 
+                        :image (.. (os.getenv "AWESOME_CONFIG")
+                                   "/src/components/jd.png") 
                         :forced_width w 
                         :forced_height h}) 
                    :ontop true 
