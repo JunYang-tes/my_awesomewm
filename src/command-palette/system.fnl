@@ -5,9 +5,13 @@
 (local shutdown
        {:label :shutdown
         :exec #(awful.spawn "sh -c \"shutdown now\"")})
+(local reboot
+  {:label :reboot
+   :exec #(awful.spawn "sh - c \"reboot\"")})
+
 (local suspend
   {:label :suspend
-   :exec #(awful.spawn "systemctl suspend -i")})
+   :exec #(awful.spawn "pkexec systemctl suspend -i")})
 
 (local switch-user
   {:label :switch-user
