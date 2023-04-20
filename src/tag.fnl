@@ -15,7 +15,7 @@
 (local signal (require :utils.signal)) 
 (local cfg (require :utils.cfg)) 
 (local inspect (require :inspect)) 
-(local screen-utils (require :utils.screen))                                   
+(local screen-utils (require :utils.screen))
 (local {: select-item } (require :ui.select)) 
 
 (fn save-tags []
@@ -148,19 +148,22 @@
                :screen screen})))) 
 
 (fn init []
-  (local def-tags (icollect [k _ (pairs (screen-utils.get-screens))]
+  (let [ def-tags (icollect [k _ (pairs (screen-utils.get-screens))]
                     {:name "Default" 
-                     :screen (.. "interface:" k)})) 
-  (local tag-config
-    (cfg.load-cfg :tag {
-                        :tags def-tags}))
-  (each [_ tag-info (ipairs tag-config.tags)] 
-    (create tag-info))) 
+                     :screen (.. "interface:" k)})
+        tag-config (cfg.load-cfg :tag {
+                        :tags def-tags})
+        tags (if (= 0 (length tag-config.tags))
+                def-tags
+                tag-config.tags)
+        ]
+    (each [_ tag-info (ipairs tags)]
+      (create tag-info ))))
 
 (fn swap []
   (local tag (-> (awful.screen.focused)
                  (. :selected_tag))) 
-  (select-tag 
+  (select-tag
     { :on-selected (fn [tag2] 
                      (tag:swap tag2) 
                      (local tmp tag.name) 
