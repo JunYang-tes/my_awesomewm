@@ -1,8 +1,11 @@
-local awful = require("awful")
-local gears = require("gears")
-pcall(require, "luarocks.loader")
-package.path = os.getenv("AWESOME_LUA_PATH") .. package.path
-local ok, err = pcall(require, "main")
+local function boot() 
+  local awful = require("awful")
+  local gears = require("gears")
+  pcall(require, "luarocks.loader")
+  package.path = os.getenv("AWESOME_LUA_PATH") .. package.path
+  require("main")
+end
+local ok, err = pcall(boot)
 if not ok then
   local naughty = require("naughty")
   naughty.notify({ preset = naughty.config.presets.critical,
