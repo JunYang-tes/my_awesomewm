@@ -1,6 +1,7 @@
 # luarocks
 
 ```
+luarocks install --local --lua-version 5.3 fzy 1.0-1
 luarocks install --local --lua-version 5.3 lua-cjson 2.1.0-1
 luarocks install --local --lua-version 5.3 luafilesystem 1.8.0
 luarocks install --local --lua-version 5.3 penlight 1.12.0-2
