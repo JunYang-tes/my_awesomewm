@@ -40,7 +40,9 @@
                     :floating true
                     :width 500
                     ;;:height 48
-                    :placement awful.placement.top}}
+                    :placement (let [f awful.placement.top]
+                                 (fn [c] (f c)))
+                    }}
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
