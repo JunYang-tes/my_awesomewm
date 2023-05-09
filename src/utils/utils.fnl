@@ -28,7 +28,19 @@
                          (not= nil r))
                   (tset cache a r))
                 r))))})))
-            
+(fn is-number [s]
+  (not= nil (tonumber s)))
+
+(fn is-digital [s]
+  (and (is-number)
+       (= (length s) 1)))
+(fn is-uppercase [s]
+  (not= (string.match s "[A-Z]")
+        nil))
+
 {: not-nil
  : catch
+ : is-number
+ : is-digital
+ : is-uppercase
  : memoed}
