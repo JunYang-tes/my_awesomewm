@@ -22,4 +22,4 @@
         :real-time #(table.concat (process.read-popen "acpi") "\n")
         :exec #$})
 
-[battery shutdown suspend switch-user lock]
+[battery shutdown reboot suspend switch-user lock]

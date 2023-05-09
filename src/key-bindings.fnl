@@ -1,106 +1,107 @@
 (local awful (require :awful))
 (local hotkeys-popup (require :awful.hotkeys_popup))
 (local focus-win (require :windows.focus-win))
-(local swap-win (require :windows.swap))                                   
-(local gears (require :gears))                  
+(local swap-win (require :windows.swap))
+(local gears (require :gears))
 (local awesome-global (require :awesome-global))
-(local {: terminal : modkey} (require :const)) 
-(local tag (require :tag)) 
-(local {: range} (require :utils.list))           
+(local {: terminal : modkey} (require :const))
+(local tag (require :tag))
+(local {: range} (require :utils.list))
 (local wibox  (require :wibox))
-(local {: prompt } (require :ui.prompt))                           
-(local bar (require :components.function-bar))                    
-(local client (require :client))                                
-(local naughty (require :naughty)) 
-(local {: tag-untaged} (require :client))  
+(local {: prompt } (require :ui.prompt))
+(local bar (require :components.function-bar))
+(local client (require :client))
+(local naughty (require :naughty))
+(local {: tag-untaged} (require :client))
 (local cmd-palette (require :command-palette.palette))
+(local mouse (require :mouse.main))
 
 (fn run-lua []
   (prompt {
            :prompt "Run Lua:"
-           :on-finished 
-             (fn [content] 
+           :on-finished
+             (fn [content]
                (local src
                 (table.concat
                    [
                     "local inspect = require(\"inspect\")"
-                    "local awful = require(\"awful\")" 
-                    "local naughty = require(\"naughty\")" 
+                    "local awful = require(\"awful\")"
+                    "local naughty = require(\"naughty\")"
                     content] "\n"))
                (print src)
-               (awful.util.eval src))})) 
-                  
-                                  
-                                   
+               (awful.util.eval src))}))
 (fn key [...]
-  { :is-key-define true 
-    :key-define (awful.key ...)}) 
+  { :is-key-define true
+    :key-define (awful.key ...)})
 
-(fn get-key-define [v] 
-  (if v.is-key-define 
-      v.key-define)) 
+(fn get-key-define [v]
+  (if v.is-key-define
+      v.key-define))
 
 (fn join-keys [...]
   (local inspect (require :inspect))
   (var keys {})
-  (each [i v (ipairs [...])] 
-    (let [ key-define (get-key-define v)] 
-      (if key-define 
-        (set keys (gears.table.join keys key-define)) 
-        (each [_ i (ipairs v)] 
-          (set keys (gears.table.join keys (get-key-define i))))))) 
-  keys) 
+  (each [i v (ipairs [...])]
+    (let [ key-define (get-key-define v)]
+      (if key-define
+        (set keys (gears.table.join keys key-define))
+        (each [_ i (ipairs v)]
+          (set keys (gears.table.join keys (get-key-define i)))))))
+  keys)
 
 
 (local toggle-desktop
-  (do 
-    (var show-desktop false) 
-    (var last-tag nil) 
-    (fn [] 
+  (do
+    (var show-desktop false)
+    (var last-tag nil)
+    (fn []
       (if last-tag
           (do
-            (last-tag:view_only) 
-            (set last-tag nil)) 
+            (last-tag:view_only)
+            (set last-tag nil))
           (do
-            (set last-tag (-> (awful.screen.focused) 
-                              (. :selected_tag))) 
-            (awful.tag.viewnone)))))) 
+            (set last-tag (-> (awful.screen.focused)
+                              (. :selected_tag)))
+            (awful.tag.viewnone))))))
 
 (join-keys
   (icollect [i _ (ipairs (range 1 10 1))]
-     (key [modkey] (.. "#" (+ i 9)) #(tag.switch-by-index i) 
-       { :description (.. "Switch to tag " i) 
-         :group "tag"}))                                  
+     (key [modkey] (.. "#" (+ i 9)) #(tag.switch-by-index i)
+       { :description (.. "Switch to tag " i)
+         :group "tag"}))
   (key [modkey] "p" cmd-palette.run
        {:description "Open command palette"
         :group "awesome"})
-  (key [modkey] "Left" awful.tag.viewprev 
-       { :description "View previous" 
-         :group "tag"}) 
-  (key [modkey] "Right" awful.tag.viewnext 
-       { :description "View next" 
-         :group "tag"}) 
-  (key [modkey] "Escape" awful.tag.history.restore 
-       { :description "Go back" 
-         :group "tag"}) 
-  (key [modkey] "f" #(focus-win.launch false) 
+  (key [modkey] "Left" awful.tag.viewprev
+       { :description "View previous"
+         :group "tag"})
+  (key [modkey] "Right" awful.tag.viewnext
+       { :description "View next"
+         :group "tag"})
+  (key [modkey] "Escape" awful.tag.history.restore
+       { :description "Go back"
+         :group "tag"})
+  (key [modkey] "f" #(focus-win.launch false)
        { :description "Focus window"
-         :group "client"}) 
-  (key [modkey "Shift"] "f" (fn [] 
+         :group "client"})
+  (key [modkey "Shift"] "f" (fn []
                              (local client awesome-global.client.focus)
-                             (if client 
-                               (do (set client.fullscreen (not client.fullscreen))))) 
+                             (if client
+                               (do
+                                 (print :toggle-fullscreen)
+                                 (set client.fullscreen (not client.fullscreen)))))
+                               (print :no-client??)
        { :description "Focus window"
-         :group "client"}) 
+         :group "client"})
   (key [modkey] "s" swap-win)
-  (key [modkey "Control"] "u" awful.client.urgent.jmpto 
+  (key [modkey "Control"] "u" awful.client.urgent.jmpto
        { :description "jump to urgent client"
          :group "client"})
-  (key [modkey "Control"] "Tab" 
+  (key [modkey "Control"] "Tab"
        (fn []
          (awful.client.focus.history.previous)
-         (if awesome-global.client.focus 
-           (: awesome-global.client.focus :raise))) 
+         (if awesome-global.client.focus
+           (: awesome-global.client.focus :raise)))
        { :description "Go back"
          :group "client"})
   (key [modkey ] "Return" #(awful.spawn terminal)
@@ -113,17 +114,17 @@
        { :description "decrease master width factor"
          :group "layout"})
   (key [modkey] "h" #(client.focus-by-direction :left)
-       { :description "focus left" 
-         :group "layout"}) 
+       { :description "focus left"
+         :group "layout"})
   (key [modkey] "j" #(client.focus-by-direction :down)
-       { :description "focus down" 
-         :group "layout"}) 
+       { :description "focus down"
+         :group "layout"})
   (key [modkey] "k" #(client.focus-by-direction :up)
-       { :description "focus up" 
-         :group "layout"}) 
+       { :description "focus up"
+         :group "layout"})
   (key [modkey] "l" #(client.focus-by-direction :right)
-       { :description "focus right" 
-         :group "layout"}) 
+       { :description "focus right"
+         :group "layout"})
   ;;(key [modkey "Shift"] "h" #(awful.tag.incnmaster 1 nil true)
   ;;     { :description "increase the number of master clients"
   ;;       :group "layout"})
@@ -149,17 +150,20 @@
        { :description "Run"
          :group "launcher"})
   (key [modkey] "t" tag.view-tag
-       { :description "Name a tag" 
-         :group "tag"}) 
+       { :description "Name a tag"
+         :group "tag"})
   (key [modkey "Shift"] "t" tag-untaged
-       { :description "Name a tag" 
-         :group "tag"}) 
-  (key [modkey] "b" bar.toggle-visible 
-       { :description "Toggle function bar" 
-         :group "awesome"}) 
+       { :description "Name a tag"
+         :group "tag"})
+  (key [modkey] "b" bar.toggle-visible
+       { :description "Toggle function bar"
+         :group "awesome"})
   (key [modkey] "d" tag.delete
-       { :description "Delete tag" 
-         :group :tag}) 
-  (key [modkey "Shift"] "d" toggle-desktop 
-       { :description "Toggle desktop" 
-         :group "awesome"})) 
+       { :description "Delete tag"
+         :group :tag})
+  (key [modkey "Shift"] "d" toggle-desktop
+       { :description "Toggle desktop"
+         :group "awesome"})
+  (key [modkey] :m mouse.run
+       {:description :mouse
+        :group :awesome}))
