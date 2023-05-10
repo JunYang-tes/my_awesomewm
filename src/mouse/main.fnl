@@ -11,7 +11,8 @@
         : mouse-left
         : wheel
         : click } (require :mouse.rx))
-(local mouse-input (require :utils.mouse))
+(local {: wrap-mouse-fns-on-focused } (require :utils.screen))
+(local mouse-input (wrap-mouse-fns-on-focused (require :utils.mouse)))
 (local {: assign } (require :utils.table))
 (local {: make-stack } (require :utils.stack))
 (local inspect (require :inspect))

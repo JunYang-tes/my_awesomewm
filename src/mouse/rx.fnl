@@ -6,7 +6,8 @@
 (local {: panel-selector
         : position-motion
         : copy-mat} (require :mouse.utils))
-(local mouse-input (require :utils.mouse))
+(local {: wrap-mouse-fns-on-focused } (require :utils.screen))
+(local mouse-input (wrap-mouse-fns-on-focused (require :utils.mouse)))
 (local inspect (require :inspect))
 
 (fn keyboard-events []
@@ -157,7 +158,6 @@
                 (fn [state]
                   (match data.key
                     "u" (let [coords ( state.history.undo.pop) ]
-                          (print :undo (inspect coords))
                           (if coords
                             (state.history.redo.push coords))
                           (if coords
@@ -193,14 +193,11 @@
                       (= $1.key "]")))
       (: :map (fn [data]
                 (fn [state]
-                  (print data.key)
                   (let [wheel-effect (if (= data.key "[")
                                         mouse-input.wheel-up
                                         mouse-input.wheel-down)]
                     (table.insert state.effects
                                   (fn []
-                                    (print state.coords.position.x
-                                           state.coords.position.y)
                                     (wheel-effect state.coords.position.x
                                                   state.coords.position.y)))
                     state))))))

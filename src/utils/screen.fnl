@@ -10,9 +10,10 @@
 (local inferaces 
   [
    #(stringx.starts-with $1 "HDMI")
-   #(stringx.starts-with $1 "DP") 
-   #(stringx.starts-with $1 "eDP") 
-   #(stringx.starts-with $1 "VGA")]) 
+   #(stringx.starts-with $1 "DP")
+   #(stringx.starts-with $1 "DisplayPort")
+   #(stringx.starts-with $1 "eDP")
+   #(stringx.starts-with $1 "VGA")])
 
 (fn parse-interface [screen]
   (var interface screen.index)
@@ -62,11 +63,26 @@
   (local pos (calc-pos screen (/ (- width w) 2) 
                               (/ (- height h) 2))) 
   pos) 
+
+(fn wrap-mouse-fns [fns screen]
+  (let [geometry screen.geometry
+        new {}]
+    (each [k v (pairs fns)]
+      (tset new k (fn [x y]
+                    (v (+ x geometry.x) 
+                       (+ y geometry.y)))))
+    new))
+
+(fn wrap-mouse-fns-on-focused [fns]
+  (wrap-mouse-fns fns (awful.screen.focused)))
+
 { : get-prefered-screen
   : parse-interface 
   : get-name 
   : is-screen 
   : calc-pos 
   : center 
+  : wrap-mouse-fns
+  : wrap-mouse-fns-on-focused
   : get-screen-list
   : get-screens} 
