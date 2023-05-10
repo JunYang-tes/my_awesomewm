@@ -40,6 +40,7 @@
                     :floating true
                     :width 500
                     ;;:height 48
+                    :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))
                     }}

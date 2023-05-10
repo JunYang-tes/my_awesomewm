@@ -1,7 +1,7 @@
 (local awful (require :awful))
 (local stringx (require :utils.string))
 (local { : some} (require :utils.list))
-
+(local inspect (require :inspect))
 (local screens {})
 
 (fn key-screen [screen]
@@ -20,7 +20,7 @@
   (each [k v (pairs (or screen.outputs {}))] 
     (if (some inferaces #($1 k)) 
         (set interface k))) 
-  interface) 
+  (tostring interface))
 
 (awful.screen.connect_for_each_screen 
   (fn [screen]
@@ -39,8 +39,8 @@
     (match (stringx.split query ":") 
       ["" :focused] (awful.screen.focused) 
       ["" :primary] awful.screen.primary 
-      ["interface" interface] (or (. screens interface) 
-                                  (awful.screen.focused)) 
+      ["interface" interface] (or (. screens interface)
+                                  (awful.screen.focused))
       _ (awful.screen.focused)) 
     (awful.screen.focused))) 
 
