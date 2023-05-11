@@ -21,6 +21,8 @@
 (local keys (require :gtk.keyval))
 (local fzy (require :fzy))
 (local {: assign } (require :utils.table))
+(local {: commands
+        : register } (require :command-palette.cmds))
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
@@ -28,77 +30,12 @@
 ;;  exec: (input:string) => Command[] | "keep-open" | any
 ;; }
 ;;
-(fn markup [str pos]
-  (let [parts []]
-    (for [i  1 (length str)]
-      (let [v (str:sub i i)]
-        (if (= i (. pos 1))
-          (do (table.insert parts (.. "<u>" v "</u>"))
-              (table.remove pos 1))
-          (table.insert parts v))))
-    (table.concat parts)))
 
 (fn split-input [input]
   (let [(index) (or (string.find input " ") (values 0))]
     (if (> index 0)
         [(string.sub input 1 (- index 1)) (string.sub input (+ index 1))]
         [input ""])))
-(fn assert-is-a-cmd [obj]
-  (let [is-a-cmd
-         (and (= (type obj) :table)
-              (= (type obj.label) :string)
-              (= (type obj.exec) :function))]
-    (assert is-a-cmd :not-a-cmd)))
-(local command-mgr
-  (let [state {:commands []
-               :commands-stack []}]
-
-    (fn push [cmds]
-      (table.insert state.commands-stack cmds))
-    (fn pop []
-      (table.remove state.commands-stack))
-    (fn clean []
-      (tset state :commands-stack []))
-    (fn current-commands []
-      (let [size (length state.commands-stack)]
-        (if (> size 0)
-          (. state.commands-stack size)
-          state.commands)))
-    (fn is-cmdstack-empty []
-      (= (length state.commands-stack) 0))
-
-    {:register (fn [cmd]
-                  (table.insert state.commands cmd))
-     ;; return :close | :keep-open | :has-sub
-     :run (fn [cmd input]
-            (assert-is-a-cmd cmd)
-            (if cmd.input-required
-              (assert (not= nil input) :input-is-required))
-            (let [r (cmd.exec input)
-                  r
-                    (match r
-                      :keep-open :keep-open
-                      nil :close
-                      (where sub-cmds (list.is-list sub-cmds))
-                      (do (push r)
-                        :has-sub)
-                      _ :close)]
-              (if (= r :close)
-                  (clean))
-              r))
-     : is-cmdstack-empty
-     : pop
-     :reset (fn [] (clean))
-     :match (fn [input]
-              (let [[ input ] (split-input (string.lower input))
-                    cmds (current-commands)]
-                (-> input
-                    (fzy.filter (list.map cmds (fn [cmd] cmd.label)))
-                    (list.map (fn [item] (let [cmd (. cmds (. item 1)) ]
-                                           (assign cmd
-                                                   {:label (markup cmd.label (. item 2))})))))))}))
-                ; (list.filter (current-commands)
-                ;   #(stringx.includes (string.lower $1.label) input))))}))
 
 (local selected-cmd-css (global-css [:color :red]))
 (local unselected-cmd-css (global-css [:color :green]))
@@ -107,6 +44,7 @@
 ;;       (box))
 (defn pallet-node
   (let [{: visible} props
+        command-mgr (props.mgr)
         selected-index (value 1)
         input (value "")
         cmds (map input #(command-mgr.match (input)))
@@ -206,21 +144,14 @@
                 cmd-items))))]
     (effect [visible]
       (refresh-cmds))
-    ;(effect [cmd-items]
-    ;        (print :item-changed (length (cmd-items ))))
     win))
 
-(local palette
-  (let [visible (value false)]
-    (run (pallet-node {: visible}))
-    {:show (fn [] (visible true))}))
-(fn name [a b]
-  (- a b)
-  (+ a b))
-
-(name 1 2)
-
 {
- :register command-mgr.register
- :run (fn [] (palette.show))}
+ :run (fn [cmds]
+        (let [mgr (commands.create-command-mgr cmds)
+              visible (value false)]
+          (run (pallet-node
+                 {: visible
+                  : mgr}))
+          (visible true)))}
 

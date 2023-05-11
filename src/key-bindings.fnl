@@ -6,7 +6,8 @@
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const))
 (local tag (require :tag))
-(local {: range} (require :utils.list))
+(local {: range
+        : find} (require :utils.list))
 (local wibox  (require :wibox))
 (local {: prompt } (require :ui.prompt))
 (local bar (require :components.function-bar))
@@ -15,6 +16,8 @@
 (local {: tag-untaged} (require :client))
 (local cmd-palette (require :command-palette.palette))
 (local mouse (require :mouse.main))
+(local {: view-tag } (require :command-palette.tag))
+
 
 (fn run-lua []
   (prompt {
@@ -149,7 +152,8 @@
   (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
-  (key [modkey] "t" tag.view-tag
+  (key [modkey] "t" (fn []
+                      (cmd-palette.run (view-tag.exec )))
        { :description "Name a tag"
          :group "tag"})
   (key [modkey "Shift"] "t" tag-untaged

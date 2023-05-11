@@ -1,13 +1,18 @@
-(local {: register} (require :command-palette.palette))
+(local {: register} (require :command-palette.cmds))
 (local tag-cmds (require :command-palette.tag))
 (local awesome-cmds (require :command-palette.awesome))
 (local tools (require :command-palette.tools))
 (local system (require :command-palette.system))
 (local volumn-cmds (require :command-palette.volumn))
 (local inspect (require :inspect))
+(local {: is-list} (require :utils.list))
+
 (fn load [cmds]
-  (each [_ i (ipairs cmds)]
-    (register i)))
+  (if (is-list cmds)
+    (each [_ i (ipairs cmds)]
+      (register i))
+    (each [_ v (pairs cmds)]
+      (register v))))
 
 (load tag-cmds)
 (load awesome-cmds)

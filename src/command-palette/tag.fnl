@@ -72,9 +72,9 @@
         :real-time #(.. "Rename " (tag-name (wm.get-current-tag) ) " to: " $1)
         :exec (fn [input]
                 (tset (wm.get-current-tag) :name input))})
-[create
- view-tag
- move-to-tag
- move-tag-to-screem
- swap-tag
- rename-tag]
+{: create
+ : view-tag
+ : move-to-tag
+ : move-tag-to-screem
+ : swap-tag
+ : rename-tag }
