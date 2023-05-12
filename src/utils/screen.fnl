@@ -116,6 +116,12 @@
                :my 0})
       get-result))
 
+(fn clients []
+  (-> (get-screen-list)
+      (map #(. $1 :selected_tag))
+      (map #($1:clients))
+      (flatten)))
+
 
 { : get-prefered-screen
   : parse-interface
@@ -127,4 +133,5 @@
   : wrap-mouse-fns-on-focused
   : get-screen-list
   : get-screens
+  : clients
   : geometry}

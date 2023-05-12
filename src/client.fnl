@@ -69,9 +69,13 @@
 
 (fn focus-by-direction [dir]
   (let [client awesome-global.client.focus
+        screen (awful.screen.focused )
         ]
-    (if client
-      (awful.client.focus.global_bydirection dir client))))
+    (if (and client
+             (= client.screen screen))
+      (awful.client.focus.global_bydirection dir client)
+      ;; if on focused client, then focus to the next screen
+      (awful.screen.focus_bydirection dir screen))))
 
 
 (fn tag-untaged []

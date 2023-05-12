@@ -85,7 +85,7 @@
   (key [modkey] "Escape" awful.tag.history.restore
        { :description "Go back"
          :group "tag"})
-  (key [modkey] "f" #(focus-win.launch false)
+  (key [modkey] "f" _ #(focus-win.launch false)
        { :description "Focus window"
          :group "client"})
   (key [modkey "Shift"] "f" (fn []
