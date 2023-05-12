@@ -64,17 +64,19 @@
                               (/ (- height h) 2))) 
   pos) 
 
-(fn wrap-mouse-fns [fns screen]
-  (let [geometry screen.geometry
+(fn wrap-mouse-fns [fns get-screen]
+  (let [
         new {}]
     (each [k v (pairs fns)]
       (tset new k (fn [x y]
-                    (v (+ x geometry.x) 
-                       (+ y geometry.y)))))
+                    (let [screen (get-screen)
+                          geometry screen.geometry]
+                      (v (+ x geometry.x)
+                         (+ y geometry.y))))))
     new))
 
 (fn wrap-mouse-fns-on-focused [fns]
-  (wrap-mouse-fns fns (awful.screen.focused)))
+  (wrap-mouse-fns fns awful.screen.focused))
 
 { : get-prefered-screen
   : parse-interface 
