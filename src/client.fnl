@@ -68,14 +68,11 @@
 
 
 (fn focus-by-direction [dir]
-  (let [ client awesome-global.client.focus
-         clients (if client
-                     (client.first_tag:clients)
-                     [])]
-
-    (local geometry (. (awful.screen.focused ) :geometry))
+  (let [client awesome-global.client.focus
+        ]
     (if client
-        (wm.focus (wm.get-by-direct client clients dir geometry)))))
+      (awful.client.focus.global_bydirection dir client))))
+
 
 (fn tag-untaged []
   (local untaged
