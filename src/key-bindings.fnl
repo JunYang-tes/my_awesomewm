@@ -17,6 +17,7 @@
 (local cmd-palette (require :command-palette.palette))
 (local mouse (require :mouse.main))
 (local {: view-tag } (require :command-palette.tag))
+(local {: applications } (require :command-palette.applications))
 
 
 (fn run-lua []
@@ -146,7 +147,8 @@
   ;; (key [modkey "Shift"] "space" #(awful.layout.inc -1)
   ;;      { :description "select previous"
   ;;        :group "layout"})
-  (key [modkey] "r" #(awful.util.spawn (.. "rofi -show drun -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
+  (key [modkey] "r" (fn []
+                      (cmd-palette.run (applications.exec )))
        { :description "Run"
          :group "launcher"})
   (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))

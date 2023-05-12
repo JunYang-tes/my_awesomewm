@@ -5,6 +5,7 @@
 (local system (require :command-palette.system))
 (local volumn-cmds (require :command-palette.volumn))
 (local inspect (require :inspect))
+(local apps (require :command-palette.applications))
 (local {: is-list} (require :utils.list))
 
 (fn load [cmds]
@@ -19,3 +20,4 @@
 (load tools)
 (load system)
 (load volumn-cmds)
+(load apps)

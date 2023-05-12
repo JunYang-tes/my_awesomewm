@@ -4,6 +4,8 @@
                 
 (fn starts-with [str prefix]
   (stringx.startswith str prefix)) 
+(fn ends-with [str prefix]
+  (stringx.endswith str prefix)) 
 (fn includes [str sub]                               
   (not= (stringx.lfind str sub) 
         nil)) 
@@ -19,7 +21,10 @@
 {
  : split
  : starts-with 
+ : ends-with
  : includes
+ :trim-start stringx.lstrip
+ :trim-end stringx.rstrip
  : replace
  : is-empty}
  
