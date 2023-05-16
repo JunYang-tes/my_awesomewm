@@ -23,6 +23,7 @@
  : starts-with 
  : ends-with
  : includes
+ :last-index stringx.rfind
  :trim-start stringx.lstrip
  :trim-end stringx.rstrip
  : replace

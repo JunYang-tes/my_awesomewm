@@ -32,16 +32,17 @@
 
 (local apps
   (let [load (fn []
-           (-> search-path
-               load-applications
-               (list.map parse-desktop)
-               (list.filter #(not= nil $1))
-               (list.map (fn [app]
-                           {:label (. app :name)
-                            :exec (fn []
-                                    (print :gtk-launch app.basename)
-                                    (awful.spawn
-                                      (.. "gtk-launch " app.basename)))}))))]
+              (-> search-path
+                  load-applications
+                  (list.map parse-desktop)
+                  (list.filter #(not= nil $1))
+                  (list.map (fn [app]
+                              {:label (. app :name)
+                               :exec (fn []
+                                       (print :gtk-launch app.basename)
+                                       (awful.spawn
+                                         (.. "gtk-launch " app.basename)))}))))]
+
     (var cache (load))
     {:get (fn [] cache)
      :reload (fn []

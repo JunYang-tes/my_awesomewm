@@ -38,12 +38,12 @@
       :properties {
                     :raise true
                     :floating true
-                    :width 500
+                    :width 900
                     ;;:height 48
                     :ontop true
                     :placement (let [f awful.placement.top]
-                                 (fn [c] (f c)))
-                    }}
+                                 (fn [c] (f c)))}}
+                    
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]

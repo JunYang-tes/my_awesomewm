@@ -87,7 +87,12 @@
                   :keep-open (input cmd))))
         item-cls (css [:border-bottom "1px solid #ccc"
                        :padding-left :8px])
-        cmd-items (map-list cmds
+        top-cmds (map cmds (fn [cmds]
+                             (if (> (length cmds)
+                                    20)
+                               (table.move cmds 1 20 1 {})
+                               cmds)))
+        cmd-items (map-list top-cmds
                     (fn [cmd]
                       (box
                         {:orientation Gtk.Orientation.VERTICAL

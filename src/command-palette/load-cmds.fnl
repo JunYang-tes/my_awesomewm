@@ -21,3 +21,4 @@
 (load system)
 (load volumn-cmds)
 (load apps)
+(load (require :command-palette.bookmark))
