@@ -4,10 +4,20 @@
 (local WHEEL-DOWN 5)
 (local mouse _G.mouse)
 (local root _G.root)
+(local {: wrap-mouse-fns} (require :utils.screen))
+(import-macros {: infix } :exp)
 
 (fn move-to [x y]
   (mouse.coords {: x : y}))
 
+(fn center-to-client [client]
+  (let [m (wrap-mouse-fns {: move-to} #(. client :screen))
+        x (. client :x)
+        y (. client :y)
+        w (. client :width)
+        h (. client :height)]
+    (m.move-to (infix x + w / 2)
+               (infix y + h / 2))))
 (fn click [btn]
   (fn [x y]
     (mouse.coords {: x : y})
@@ -26,6 +36,7 @@
 
 
 { : move-to
+  : center-to-client
   :left-click (click LEFT-BUTTON)
   :right-click (click RIGHT-BUTTON)
   :press-left (press LEFT-BUTTON)

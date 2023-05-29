@@ -94,7 +94,7 @@
                    : y} $1.geometry]
               [{: x : y}
                {:x (+ x width)
-                :y (+ y height) }]))
+                :y (+ y height)}]))
       (flatten)
       (reduce (fn [v acc]
                 { :x (if (< v.x acc.x)
@@ -108,8 +108,8 @@
                         acc.mx)
                   :my (if (> v.y acc.my)
                         v.y
-                        acc.my)
-                  })
+                        acc.my)})
+                  
               {:x 0
                :y 0
                :mx 0

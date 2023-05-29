@@ -5,6 +5,7 @@
 (local { : on-idle } (require :utils.wm))
 (local { : select-win } (require :windows.select-win))
 (local { : focus } (require :utils.wm))            
+(local mouse (require :utils.mouse))
 (local screen-utils (require :utils.screen))
 
 (fn normalize []
@@ -21,8 +22,9 @@
 
 (fn launch [make-it-fullscreen]
   (local clients (screen-utils.clients));(. (awful.screen.focused ) :clients)) 
-  (fn handle-selected [{: client}] 
-    (focus client) 
+  (fn handle-selected [{: client}]
+    (focus client)
+    (mouse.center-to-client client)
     (if make-it-fullscreen 
       (set client.fullscreen true)))
   (match (length clients) 
