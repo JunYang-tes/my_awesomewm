@@ -44,7 +44,7 @@
                            (tset states tag state)))}))
 
 (fn run []
-  (let [screen (awful.screen.focused )
+  (let [screen (awful.screen.focused)
         geometry screen.geometry
         initial-state (states.get)
         indicator (make initial-state.coords.position.x
@@ -55,19 +55,19 @@
                    (print :Error ...)
                    (indicator.close))
         on-completed (fn [] (indicator.close))
-        raw-events (keyboard-events )]
+        raw-events (keyboard-events)]
 
     (fn apply-coords [state]
       (let [(x y) (state.coords.transform:transform_point 0 0)
-                      (x2 y2) (state.coords.transform:transform_point
-                                geometry.width geometry.height)]
-                  (mouse-input.move-to state.coords.position.x
-                                       state.coords.position.y)
-                  (indicator.update {: x
-                                     : y
-                                     :width (- x2 x)
-                                     :height (- y2 y)}
-                                    state.coords.position)))
+                  (x2 y2) (state.coords.transform:transform_point
+                            geometry.width geometry.height)]
+           (mouse-input.move-to state.coords.position.x
+                                state.coords.position.y)
+           (indicator.update {: x
+                              : y
+                              :width (- x2 x)
+                              :height (- y2 y)}
+                             state.coords.position)))
     (apply-coords initial-state)
     (-> (Rx.Observable.empty)
       (: :merge
@@ -84,8 +84,10 @@
       (: :tap (fn [state]
                 (apply-coords state)
                 (match state.mouse-left
-                  :down (mouse-input.press-left)
-                  :up (mouse-input.release-left))
+                  :down (mouse-input.press-left state.coords.position.x
+                                                state.coords.position.y)
+                  :up (mouse-input.release-left state.coords.position.x
+                                                state.coords.position.y))
                 (each [_ f (ipairs state.effects)]
                   (f state))
                 (tset state :effects [])
