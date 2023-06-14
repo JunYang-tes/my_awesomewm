@@ -66,7 +66,8 @@
           (awful.screen.focus tag.screen)))))
   (save-tags)
   (if tag-info.selected
-    (t:view_only)))
+    (t:view_only))
+  t)
 
 (fn name-tag []
   (prompt {
@@ -146,20 +147,20 @@
                     {:name "Default"
                      :screen (.. "interface:" k)})
         tag-config (cfg.load-cfg :tag {
-                        :tags def-tags})
+                                       :tags def-tags})
         tags (if (= 0 (length tag-config.tags))
                 def-tags
-                tag-config.tags)
-        ]
+                tag-config.tags)]
+        
     (each [_ tag-info (ipairs tags)]
-      (create tag-info ))
+      (create tag-info))
     (each [k screen (pairs (screen-utils.get-screens))]
       (if (= (length screen.tags)
              0)
         (do 
           (print :create-tag-for k screen)
-        (create {:name "Default"
-                 :screen (.. "interface:" k)}))))))
+         (create {:name "Default"
+                  :screen (.. "interface:" k)}))))))
 
 (fn swap []
   (local tag (-> (awful.screen.focused)

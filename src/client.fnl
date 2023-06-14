@@ -8,7 +8,8 @@
 (local tbl (require :utils.table))
 (local screen-utils (require :utils.screen))
 (local {: root } (require :awesome-global))
-(local {: switch-tag} (require :tag))
+(local {: switch-tag
+        : create} (require :tag))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal)
@@ -54,6 +55,17 @@
     (tset c :minimized false)
     (c:jump_to)))
 
+(awesome-global.client.connect_signal 
+  :manage
+  (fn [client]
+    (print :new-client client)
+    (if (= nil client.first_tag)
+      (set client.first_tag
+           (let [screen client.screen]
+             (create { :name "(Anonymous)"
+                       :screen screen
+                       :selected true}))))))
+
 
 
 ; (awesome-global.client.connect_signal
@@ -69,8 +81,8 @@
 
 (fn focus-by-direction [dir]
   (let [client awesome-global.client.focus
-        screen (awful.screen.focused )
-        ]
+        screen (awful.screen.focused)]
+        
     (if (and client
              (= client.screen screen))
       (awful.client.focus.global_bydirection dir client)
