@@ -21,6 +21,10 @@
   (if client
     (set awesome-global.client.focus client))) 
 
+(fn focused [client]
+  (= client
+     awesome-global.client.focus.client))
+
 (fn get-focusable-client [tag]
   (if tag
     (or (find (tag:clients ) (fn [c] c.fullscreen))
@@ -72,6 +76,7 @@
 
 { : on-idle
   : focus
+  : focused
   : get-focusable-client
   : get-by-direct
   : get-current-tag

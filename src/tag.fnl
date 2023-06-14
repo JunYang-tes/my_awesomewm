@@ -17,6 +17,7 @@
 (local inspect (require :inspect))
 (local screen-utils (require :utils.screen))
 (local {: select-item } (require :ui.select))
+(local list (require :utils.list))
 
 (fn save-tags []
   (fn save []
@@ -37,13 +38,13 @@
       (fn [client]
         (tset focus-map client.first_tag client)))
     (fn get-focus [tag]
+      (print :get-focus)
       (local client (or (. focus-map tag)
                         (wm.get-focusable-client tag)))
       (tset focus-map tag client)
       client)
     (fn [tag]
-      (if tag.selected
-        (wm.focus (get-focus tag))))))
+      (wm.focus (get-focus tag)))))
 
 (fn create [tag-info]
   (local tag-info (or tag-info {:name "(Anonymous)"
@@ -96,7 +97,7 @@
                 on-selected)))}))
 
 (fn switch-tag [tag]
-  (set tag.selected false)
+  (tset tag :selected true)
   (tag:view_only))
 
 (fn switch-by-index [index]
