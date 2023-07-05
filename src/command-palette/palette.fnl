@@ -84,7 +84,7 @@
               (let [[cmd args] (split-input current-text)
                     result (command-mgr.run (selected-cmd) args)]
                 (match result
-                  :close (close)
+                  :close ((close))
                   :has-sub (do
                              (input "")
                              (refresh-cmds))
@@ -163,13 +163,13 @@
           (let [mgr (commands.create-command-mgr cmds)
                 visible (value false)]
             (var win nil)
+            (local close (fn []
+                           (set running nil)
+                           (win:close)))
             (set win (run (pallet-node
                               {: visible
-                               :close (fn []
-                                        (win:close))
+                               : close
                                : mgr})))
-            (set running {:close (fn [] 
-                                   (set running nil)
-                                   (win:close))})
+            (set running {: close })
             (visible true))))}
 
