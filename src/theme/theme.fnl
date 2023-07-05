@@ -92,7 +92,7 @@
     :accent  theme.xcolor4
 
     ;; UI events
-    :leave_event  transparent
+    :leave_event  theme.transparent
     :enter_event  "#ffffff10"
     :press_event  "#ffffff15"
     :release_event  "#ffffff10"

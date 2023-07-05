@@ -59,6 +59,7 @@
   :manage
   (fn [client]
     (print :new-client client)
+    (print :tag client.first_tag)
     (if (= nil client.first_tag)
       (set client.first_tag
            (let [screen client.screen]
