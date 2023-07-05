@@ -85,7 +85,7 @@
   (key [modkey] "Escape" awful.tag.history.restore
        { :description "Go back"
          :group "tag"})
-  (key [modkey] "f" _ #(focus-win.launch false)
+  (key [modkey] "f" nil #(focus-win.launch false)
        { :description "Focus window"
          :group "client"})
   (key [modkey "Shift"] "f" (fn []
@@ -94,7 +94,7 @@
                                (do
                                  (print :toggle-fullscreen)
                                  (set client.fullscreen (not client.fullscreen)))))
-                               (print :no-client??)
+                            (print :no-client??)
        { :description "Focus window"
          :group "client"})
   (key [modkey] "s" swap-win)
@@ -148,14 +148,14 @@
   ;;      { :description "select previous"
   ;;        :group "layout"})
   (key [modkey] "r" (fn []
-                      (cmd-palette.run (applications.exec )))
+                      (cmd-palette.run (applications.exec)))
        { :description "Run"
          :group "launcher"})
   (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
        { :description "Run"
          :group "launcher"})
   (key [modkey] "t" (fn []
-                      (cmd-palette.run (view-tag.exec )))
+                      (cmd-palette.run (view-tag.exec)))
        { :description "Name a tag"
          :group "tag"})
   (key [modkey "Shift"] "t" tag-untaged

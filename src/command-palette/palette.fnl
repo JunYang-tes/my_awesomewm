@@ -43,7 +43,9 @@
 ;; (defn command-item
 ;;       (box))
 (defn pallet-node
-  (let [{: visible} props
+  (local win nil)
+  (let [{: visible
+         : close} props
         command-mgr (props.mgr)
         selected-index (value 1)
         input (value "")
@@ -66,16 +68,18 @@
                                 (if (< idx 1)
                                   cmds-count
                                   idx)))
-        close (fn [win-node]
-                (selected-index 1)
-                (input "")
-                (visible false))
+        ; close (fn [win-node]
+        ;         (win-node:close)
+        ;         (selected-index 1)
+        ;         (input "")
+        ;         (visible false))
         handle-esc (fn []
+                     (print :ESC close)
                      (if (not (command-mgr.is-cmdstack-empty))
                          (do
                            (command-mgr.pop)
                            (refresh-cmds))
-                         (close)))
+                         ((close))))
         run (fn [current-text]
               (let [[cmd args] (split-input current-text)
                     result (command-mgr.run (selected-cmd) args)]
@@ -117,10 +121,10 @@
                            :xalign 0}))))
         win
         (window
-          {:keep-alive true
+          {
            : visible
            :role :prompt
-           :on_focus_out_event #(close win)}
+           :on_focus_out_event close}
           (box
             {:orientation Gtk.Orientation.VERTICAL}
             (entry
@@ -151,12 +155,21 @@
       (refresh-cmds))
     win))
 
+(var running nil)
 {
  :run (fn [cmds]
-        (let [mgr (commands.create-command-mgr cmds)
-              visible (value false)]
-          (run (pallet-node
-                 {: visible
-                  : mgr}))
-          (visible true)))}
+        (if running
+          (running.close)
+          (let [mgr (commands.create-command-mgr cmds)
+                visible (value false)]
+            (var win nil)
+            (set win (run (pallet-node
+                              {: visible
+                               :close (fn []
+                                        (win:close))
+                               : mgr})))
+            (set running {:close (fn [] 
+                                   (set running nil)
+                                   (win:close))})
+            (visible true))))}
 
