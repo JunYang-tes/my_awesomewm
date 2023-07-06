@@ -1,3 +1,4 @@
+;; fennel-ls: macro-file
 (fn defn [name ...]
   (let [p (sym :props)
         ctx (sym :ctx)]

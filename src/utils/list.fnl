@@ -1,6 +1,6 @@
 (fn some [list predict?]
   (var found false)
-  (each [_ item (ipairs list) :until found ]
+  (each [_ item (ipairs list) :until found]
     (if (predict? item)
       (set found true)))
   found)
@@ -11,7 +11,7 @@
 
 (fn find [list predict?]
   (var found nil)
-  (each [_ item (ipairs list) :until found ]
+  (each [_ item (ipairs list) :until found]
     (if (predict? item)
         (set found item)))
   found)

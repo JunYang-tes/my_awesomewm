@@ -1,4 +1,5 @@
-(import-macros {: catch} :utils)
+(import-macros {: catch
+                : time-it} :utils)
 (import-macros {: defn
                 : unmount
                 : effect } :lite-reactive)
@@ -142,7 +143,7 @@
     (fn [children list]
       (clear-child list)
       (each [i child (ipairs children)]
-        (print child.label)))
+        (list:add child)))
     #$))
 { :button (atom-node widgets.button :Button)
   :menu-button (atom-node widgets.menu-button :MenuButton)

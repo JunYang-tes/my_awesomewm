@@ -1,3 +1,4 @@
+;; fennel-ls: macro-file
 (fn catch [msg def ...]
   (let [f `(fn [])]
     (each [_ e (ipairs [...])]
@@ -11,5 +12,17 @@
 (fn catch-ignore [msg ...]
   (catch msg nil ...))
 
+(fn time-it [title ...]
+  (let [l `(do)]
+    (each [_ e (ipairs [...])]
+      (table.insert l e))
+    `(do
+       (local a# (os.clock))
+       (local b# ,l)
+       (local c# (os.clock))
+       (print ,title a# c# (- c# a#))
+       b#)))
+
 { : catch
+  : time-it
   : catch-ignore}

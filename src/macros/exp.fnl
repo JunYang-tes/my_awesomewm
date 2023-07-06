@@ -1,3 +1,4 @@
+;; fennel-ls: macro-file
 (fn infix [...]
   (local fennel (require :fennel))
   (local priority 
@@ -67,12 +68,12 @@
                       (list
                         op1
                         (fns.basic a)
-                        (fns.infix b op2 (unpack c))))))))
+                        (fns.infix b op2 (unpack c))))))))})
                         ; (list 
                         ;   op2
                         ;   (fns.basic b)
                         ;   (fns.infix (unpack c)))))))))
-     })
+     
   (fns.infix ...))
 
-{ : infix }
+{ : infix}

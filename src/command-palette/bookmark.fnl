@@ -1,3 +1,4 @@
+(import-macros {: time-it} :utils)
 (local {: read-popen} (require :utils.process))
 (local list (require :utils.list))
 (local inspect (require :inspect))

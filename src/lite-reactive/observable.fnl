@@ -4,6 +4,7 @@
 (local obserable (setmetatable {} {:__mode "k"}))
 (local observable_type (make-type :observable))
 (local list (require :utils.list))
+(import-macros {: time-it} :utils)
 
 (fn is-observable [a]
   (and
@@ -83,7 +84,8 @@
     r))
 ;; (O<Array<T>>, T=>U) => O<Array<U>>
 (fn map-list [o f]
-  (map o #(list.map $1 #(f $1 $2)))) 
+  (time-it :MAP_LIST
+    (map o #(list.map $1 #(f $1 $2))))) 
 
 ;; Observable<Observable<T>> => Observable<T>
 (fn flat [obj]

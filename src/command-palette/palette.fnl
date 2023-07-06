@@ -93,10 +93,11 @@
                        :padding-left :8px])
         top-cmds (map cmds (fn [cmds]
                              (if (> (length cmds)
-                                    20)
-                               (table.move cmds 1 20 1 {})
+                                    200)
+                               (table.move cmds 1 200 1 {})
                                cmds)))
-        cmd-items (map-list top-cmds
+        cmd-items (map-list
+                    top-cmds
                     (fn [cmd]
                       (box
                         {:orientation Gtk.Orientation.VERTICAL
@@ -148,9 +149,11 @@
               {:-expand true
                :class (css [:min-height :400px])
                :-fill true}
-              (box
-                {:orientation Gtk.Orientation.VERTICAL}
+              (list-box
                 cmd-items))))]
+              ; (box
+              ;   {:orientation Gtk.Orientation.VERTICAL}
+              ;   cmd-items))))]
     (effect [visible]
       (refresh-cmds))
     win))
@@ -170,6 +173,6 @@
                               {: visible
                                : close
                                : mgr})))
-            (set running {: close })
+            (set running {: close})
             (visible true))))}
 
