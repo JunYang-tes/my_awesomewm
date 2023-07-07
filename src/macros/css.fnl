@@ -45,10 +45,8 @@
                 result))]
         (if (> (length result.collected) 0)
             (table.insert result.rules (table.concat result.collected)))
-        (if (= (length result.rules) 1)
-            (.. "{\n" (. result.rules 1) "}")
-            `(.. "{\n" (table.concat ,result.rules "\n")
-                 "}\n")))))
+        `(.. "{\n" (table.concat ,result.rules "\n")
+             "}\n"))))
   (fn flat [ls]
     (let [r []]
       (each [_ item (ipairs ls)]

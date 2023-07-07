@@ -62,7 +62,9 @@
                      :border-bottom "1px solid #CCC"
                      :padding   :20px])
                  (& " .cmd-label"
-                    [:font-size :40px])
+                    [:font-size (px 14)])
+                 (>> ".cmd-desc"
+                     [:font-size (px 10)])
                  (& " row"
                     [:padding :10px]
                     (> "box"
@@ -70,7 +72,9 @@
                     (& ".selected"
                        (> "box"
                           [:border-radius :8px
-                           :background "#202938"])))))
+                           :background "#202938"])))
+                 (>> ".tips"
+                     [:padding (px 4)])))
 
 ;; (defn command-item
 ;;       (box))
@@ -169,6 +173,7 @@
                                               (catch "" ""
                                                 (cmd.real-time args))
                                               (or cmd.description "")))))
+                             :class "cmd-desc"
                              :wrap true
                              :xalign 0})))))
         list (list-box cmd-items)
@@ -188,6 +193,7 @@
                :-fill true}
               list)
             (box
+              {:class :tips}
               (label {:-fill true :-expand true})
               (label {:label "󰜷 Ctrl+K "})
               (label {:label "󰜮 Ctrl+J "})
