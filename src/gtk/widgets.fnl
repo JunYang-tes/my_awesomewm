@@ -61,6 +61,7 @@
  :check-button (make-builder Gtk.CheckButton)
  :box (make-builder Gtk.Box)
  :list-box (make-builder Gtk.ListBox)
+ :list-row (make-builder Gtk.ListBoxRow)
  :flow-box (make-builder Gtk.FlowBox)
  :window (make-builder Gtk.Window {:default_size (fn [w [width height]]
                                                    (w:set_default_size width height))})

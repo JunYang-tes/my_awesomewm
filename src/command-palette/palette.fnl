@@ -1,6 +1,7 @@
 (import-macros {: unmount : defn : effect} :lite-reactive)
 (import-macros {: css-gen } :css)
-(import-macros {: global-css : css } :gtk)
+(import-macros {: global-css : css
+                : global-id-css } :gtk)
 (import-macros {: catch-ignore : catch} :utils)
 (local {: Gtk } (require :lgi))
 (local {: run
@@ -9,6 +10,7 @@
         : box
         : label
         : list-box
+        : list-row
         : scrolled-window
         : entry} (require :gtk.node))
 (local list (require :utils.list))
@@ -23,6 +25,8 @@
 (local {: assign } (require :utils.table))
 (local {: commands
         : register } (require :command-palette.cmds))
+(local xresources (require :beautiful.xresources))
+(local dpi xresources.apply_dpi)
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
@@ -31,19 +35,48 @@
 ;; }
 ;;
 
+(fn px [num]
+  (.. (dpi num) "px"))
 (fn split-input [input]
   (let [(index) (or (string.find input " ") (values 0))]
     (if (> index 0)
         [(string.sub input 1 (- index 1)) (string.sub input (+ index 1))]
         [input ""])))
 
-(local selected-cmd-css (global-css [:color :red]))
-(local unselected-cmd-css (global-css [:color :green]))
-(local entry-css (global-css [:font-size :36px]))
+(local win-css (global-css
+                 [:background :#111828
+                  :color :white]
+                 (& " *"
+                    [:background :transparent
+                     :color :white
+                     :outline-width :0])
+                 (& " entry"
+                    (& ":focus"
+                       [:border "2px solid #111828"
+                        :border-bottom "1px solid #CCC"
+                        :-gtk-outline-top-right-radius :20px])
+                    [
+                     :font-size :40px
+                     :box-shadow :none
+                     :border "2px solid #111828"
+                     :border-bottom "1px solid #CCC"
+                     :padding   :20px])
+                 (& " .cmd-label"
+                    [:font-size :40px])
+                 (& " row"
+                    [:padding :10px]
+                    (> "box"
+                      [:padding :20px])
+                    (& ".selected"
+                       (> "box"
+                          [:border-radius :8px
+                           :background "#202938"])))))
+
 ;; (defn command-item
 ;;       (box))
 (defn pallet-node
   (local win nil)
+
   (let [{: visible
          : close} props
         command-mgr (props.mgr)
@@ -89,71 +122,86 @@
                              (input "")
                              (refresh-cmds))
                   :keep-open (input cmd))))
-        item-cls (css [:border-bottom "1px solid #ccc"
-                       :padding-left :8px])
         top-cmds (map cmds (fn [cmds]
                              (if (> (length cmds)
                                     200)
                                (table.move cmds 1 200 1 {})
                                cmds)))
+        cmd_input (entry
+                   {:on_parent_set #(: $1 :grab_focus)
+                    :has-frame false
+                    :on_key_release_event
+                     (fn [w e]
+                       (if e.state.CONTROL_MASK
+                         (match e.keyval
+                           keys.j (inc-selected-index)
+                           keys.k (dec-selected-index)))
+                       (catch-ignore
+                         ""
+                         (match e.keyval
+                           keys.enter (run w.text)
+                           keys.esc (handle-esc)
+                           _ (input w.text))))
+                     :text input})
         cmd-items (map-list
                     top-cmds
                     (fn [cmd]
-                      (box
-                        {:orientation Gtk.Orientation.VERTICAL
-                         :class item-cls}
-                        (label
-                          {:markup cmd.label
-                           :xalign 0
-                           :class (map selected-cmd
-                                       (fn [item]
-                                          (if (= cmd item)
-                                              selected-cmd-css
-                                              "")))})
-                        (label
-                          {:label (map input
-                                    (fn [input]
-                                      (let [[_ args] (split-input input)]
-                                        (if cmd.real-time
-                                            (catch "" ""
-                                              (cmd.real-time args))
-                                            (or cmd.description "")))))
-                           :wrap true
-                           :xalign 0}))))
+                      (list-row
+                        {:class (map selected-cmd
+                                     (fn [item]
+                                       (if (= cmd item)
+                                         "selected"
+                                         "")))
+                         :on_focus_in_event (fn []
+                                              (let [input-widget (cmd_input)]
+                                                (input-widget:grab_focus)))}
+                        (box
+                          {:orientation Gtk.Orientation.VERTICAL}
+                          (label
+                            {:markup cmd.label
+                             :class "cmd-label"
+                             :xalign 0})
+                          (label
+                            {:label (map input
+                                      (fn [input]
+                                        (let [[_ args] (split-input input)]
+                                          (if cmd.real-time
+                                              (catch "" ""
+                                                (cmd.real-time args))
+                                              (or cmd.description "")))))
+                             :wrap true
+                             :xalign 0})))))
+        list (list-box cmd-items)
         win
         (window
           {
            : visible
+           :class win-css
            :role :prompt
            :on_focus_out_event close}
           (box
             {:orientation Gtk.Orientation.VERTICAL}
-            (entry
-              {:on_parent_set #(: $1 :grab_focus)
-               :class [entry-css]
-               :on_key_release_event
-               (fn [w e]
-                 (if e.state.CONTROL_MASK
-                   (match e.keyval
-                     keys.j (inc-selected-index)
-                     keys.k (dec-selected-index)))
-                 (catch-ignore
-                   ""
-                   (match e.keyval
-                     keys.enter (run w.text)
-                     keys.esc (handle-esc)
-                     _ (input w.text))))
-               :text input})
-            (label {:label (map cmds #(.. "Commands:" (length $1)))})
+            cmd_input
             (scrolled-window
               {:-expand true
                :class (css [:min-height :400px])
                :-fill true}
-              (list-box
-                cmd-items))))]
+              list)
+            (box
+              (label {:-fill true :-expand true})
+              (label {:label "Ctrl+K "})
+              (label {:label "Ctrl+J "})
+              (label {:label (map cmds #(.. "Commands:" (length $1)))}))))]
               ; (box
               ;   {:orientation Gtk.Orientation.VERTICAL}
               ;   cmd-items))))]
+    (effect [selected-index]
+      (let [index (- (selected-index) 1)
+            list (list)
+            row (list:get_row_at_index index)]
+        (list:select_row row)
+        (row:grab_focus) ;;let it scroll to this row
+        (: (cmd_input) :grab_focus)))
     (effect [visible]
       (refresh-cmds))
     win))

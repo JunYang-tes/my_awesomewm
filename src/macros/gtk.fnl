@@ -1,3 +1,4 @@
+;; fennel-ls: macro-file
 ;;(import-macros {: css-gen } :css)
 (fn css [...]
   (let [cls (string.gsub
@@ -39,14 +40,27 @@
           {:Gtk Gtk# :Gdk Gdk#} (require :lgi)
           provider# (Gtk#.CssProvider)]
                    
-      (provider#:load_from_data content#)
+      (print :load-css
+        (provider#:load_from_data content#))
       (Gtk#.StyleContext.add_provider_for_screen
         (Gdk#.Screen.get_default)
         provider#
         Gtk#.STYLE_PROVIDER_PRIORITY_USER)
       ,cls)))
-
+(fn global-id-css [id ...]
+  (let [args [...]]
+    `(let [content# (css-gen ,(.. "#" id) ,(table.unpack args))
+            {:Gtk Gtk# :Gdk Gdk#} (require :lgi)
+            provider# (Gtk#.CssProvider)]
+      (print :load-css
+        (provider#:load_from_data content#))
+      (Gtk#.StyleContext.add_provider_for_screen
+        (Gdk#.Screen.get_default)
+        provider#
+        Gtk#.STYLE_PROVIDER_PRIORITY_USER)
+      ,id)))
 {
  : css
+ : global-id-css
  : global-css}
  

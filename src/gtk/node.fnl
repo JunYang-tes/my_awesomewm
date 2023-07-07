@@ -145,12 +145,19 @@
       (each [i child (ipairs children)]
         (list:add child)))
     #$))
+(local list-row
+  (container-node
+    widgets.list-row
+    (fn [child row]
+      (clear-child row)
+      (row:add child))))
 { :button (atom-node widgets.button :Button)
   :menu-button (atom-node widgets.menu-button :MenuButton)
   :check-button (atom-node widgets.check-button :CheckButton)
   :entry (atom-node widgets.entry :Entry)
   : box
   : flow-box
+  : list-row
   : list-box
   :label (atom-node widgets.label :Label)
   :image (atom-node widgets.image :Image)

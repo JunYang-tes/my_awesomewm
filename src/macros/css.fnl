@@ -1,3 +1,4 @@
+;; fennel-ls: macro-file
 (fn css-gen [cls ...]
   (local connectors 
          {:& ""
