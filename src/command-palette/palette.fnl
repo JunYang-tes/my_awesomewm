@@ -189,9 +189,9 @@
               list)
             (box
               (label {:-fill true :-expand true})
-              (label {:label "Ctrl+K "})
-              (label {:label "Ctrl+J "})
-              (label {:label (map cmds #(.. "Commands:" (length $1)))}))))]
+              (label {:label "󰜷 Ctrl+K "})
+              (label {:label "󰜮 Ctrl+J "})
+              (label {:label (map cmds #(.. "󰘳 " (length $1)))}))))]
               ; (box
               ;   {:orientation Gtk.Orientation.VERTICAL}
               ;   cmd-items))))]
