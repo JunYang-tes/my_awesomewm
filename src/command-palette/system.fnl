@@ -7,7 +7,7 @@
         :exec #(awful.spawn "sh -c \"shutdown now\"")})
 (local reboot
   {:label :reboot
-   :exec #(awful.spawn "sh - c \"reboot\"")})
+   :exec #(awful.spawn "sh - c \"pkexec reboot\"")})
 
 (local suspend
   {:label :suspend
@@ -22,4 +22,4 @@
         :real-time #(table.concat (process.read-popen "acpi") "\n")
         :exec #$})
 
-[battery shutdown reboot suspend switch-user lock]
+[battery shutdown reboot suspend switch-user]

@@ -56,22 +56,24 @@
                         :border-bottom "1px solid #CCC"
                         :-gtk-outline-top-right-radius :20px])
                     [
-                     :font-size :40px
+                     :font-size (px 16)
                      :box-shadow :none
                      :border "2px solid #111828"
                      :border-bottom "1px solid #CCC"
-                     :padding   :20px])
+                     :padding   (px 10)])
                  (& " .cmd-label"
-                    [:font-size (px 14)])
+                    [:font-size (px 16)
+                     :margin-bottom (px 4)])
                  (>> ".cmd-desc"
-                     [:font-size (px 10)])
+                     [:font-size (px 12)])
                  (& " row"
-                    [:padding :10px]
+                    [:padding (px 4)]
                     (> "box"
-                      [:padding :20px])
+                      [:padding (px 4)
+                       :padding-left (px 10)])
                     (& ".selected"
                        (> "box"
-                          [:border-radius :8px
+                          [:border-radius (px 8)
                            :background "#202938"])))
                  (>> ".tips"
                      [:padding (px 4)])))
@@ -165,17 +167,23 @@
                             {:markup cmd.label
                              :class "cmd-label"
                              :xalign 0})
-                          (label
-                            {:label (map input
-                                      (fn [input]
-                                        (let [[_ args] (split-input input)]
-                                          (if cmd.real-time
-                                              (catch "" ""
-                                                (cmd.real-time args))
-                                              (or cmd.description "")))))
-                             :class "cmd-desc"
-                             :wrap true
-                             :xalign 0})))))
+                          (let [desc (map input
+                                          (fn [input]
+                                            (let [[_ args] (split-input input)]
+                                              (if cmd.real-time
+                                                (catch "" ""
+                                                       (cmd.real-time args))
+                                                (or cmd.description "")))))]
+                            (label
+                              {:label desc
+                               :class "cmd-desc"
+                               :visible (map desc (fn [desc]
+                                                    (if (and desc
+                                                             (> (length desc) 0))
+                                                       true
+                                                       false)))
+                               :wrap true
+                               :xalign 0}))))))
         list (list-box cmd-items)
         win
         (window
