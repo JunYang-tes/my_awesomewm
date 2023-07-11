@@ -17,7 +17,6 @@
 
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
-  (print :DDD (inspect props-setter))
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
@@ -70,5 +69,25 @@
                   events)
     :textbox))
 
+(fn one-child-container [Ctor]
+  (container-node
+    (make-builder #(Ctor))
+    (fn [child container]
+      (print :set-child)
+      (tset container :widget (. child 1)))))
+
 {: popup
- : textbox}
+ : textbox
+ :checkbox (atom-node
+             (make-builder #(wibox.widget
+                              {:widget wibox.widget.checkbox})))
+ :background (one-child-container wibox.container.background)
+ :margin (one-child-container wibox.container.margin)
+ :h-flex (container-node
+           (make-builder #(wibox.layout.flex.horizontal))
+           (fn [children container]
+             (tset container :children children)))
+ :v-flex (container-node
+           (make-builder #(wibox.layout.flex.vertical))
+           (fn [children container]
+             (tset container :children children)))}
