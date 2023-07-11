@@ -12,7 +12,7 @@
     (popup
       (textbox
         {:markup (map cnt #(.. :Hello $1))
-         :on ["button::press"
-              (fn []
-                (cnt (+ (cnt) 1)))]}))))
+         :onButtonPress
+                         (fn []
+                           (cnt (+ (cnt) 1)))}))))
 

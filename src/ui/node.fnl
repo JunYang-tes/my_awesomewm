@@ -17,11 +17,7 @@
 
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
-  (tset props-setter
-        :on
-        (or props-setter.on
-            (fn [widget [event cb]]
-              (widget:connect_signal event cb))))
+  (print :DDD (inspect props-setter))
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
@@ -33,9 +29,10 @@
           props (assign {:visible true}
                         (or props {}))
           initial-props (collect [k v (pairs props)]
+                          k
                           (if (is-observable v)
-                            [k (v)]
-                            [k v]))
+                            (v)
+                            v))
           widget (Ctor initial-props)
           disposeable (icollect [k v (pairs props)]
                         (apply-property 
@@ -43,6 +40,14 @@
                           (utils.catch (fn [value old]
                                         ((find-setter k) widget value old)))))]
       widget)))
+
+(fn event-props [events]
+  (collect [_ [prop event-name] (ipairs events)]
+    prop 
+    (fn [widget cb curr]
+      (if curr
+        (widget:disconnect_signal curr)
+        (widget:connect_signal event-name cb)))))
 
 (local popup
   (container-node
@@ -54,10 +59,15 @@
     (fn [child popup]
       (tset popup :widget (. child 1)))))
 
+(local events
+  (event-props
+    [
+     [:onButtonPress "button::press"]]))
 (local textbox
   (atom-node
     (make-builder (fn [props]
-                    (wibox.widget.textbox props.markup)))
+                    (wibox.widget.textbox props.markup))
+                  events)
     :textbox))
 
 {: popup
