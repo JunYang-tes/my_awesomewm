@@ -16,10 +16,10 @@
         : is-observable} (require :lite-reactive.observable))
 (local utils (require :utils.utils))
 (local inspect (require :inspect))
+(local scrollview (require :ui.scrollview))
 
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
-  (print :Setters (inspect props-setter))
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
@@ -126,6 +126,7 @@
             (make-builder #(wibox.layout.fixed.vertical))
             (fn [children container]
               (tset container :children children)))
+ :scrollview (one-child-container scrollview)
  :stack (container-node
           (make-builder #(wibox.layout.stack))
           (fn [children container]
