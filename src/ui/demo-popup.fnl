@@ -7,8 +7,11 @@
 (local {: popup
         : textbox
         : checkbox
+        : button
         : margin
         : h-flex
+        : h-fixed
+        : v-fixed
         : background} (require :ui.node))
 
 (let [cnt (value 0)]
@@ -16,18 +19,26 @@
     (popup
       (margin
         {:left 30}
-        (h-flex
-          {:spacing 30}
-          (background
-            {:bg :#ff0000}
-            (textbox
-              {:markup (map cnt #(.. :Hello $1))
-               :onButtonPress
-                       (fn []
-                         (cnt (+ (cnt) 1)))}))
-          (checkbox )
-          (background
-            {:bg :#00ff00}
-            (textbox
-              {:markup :world})))))))
+        (v-fixed
+          (h-fixed
+            {:spacing 30
+             :max_widget_size 100}
+            (background
+              {:bg :#ff0000}
+              (textbox
+                {:markup (map cnt #(.. :Hello $1))
+                 :onButtonPress
+                         (fn []
+                           (cnt (+ (cnt) 1)))}))
+            (button
+              {:onButtonPress (fn []
+                                (print :hello))})
+            (background
+              {:bg :#00ff00}
+              (textbox
+                {:markup :world}))
+           (textbox {:markup :Hello})
+           (h-fixed
+             (textbox {:markup :Hello})
+             (textbox {:markup :again}))))))))
 

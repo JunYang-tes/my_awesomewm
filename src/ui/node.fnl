@@ -2,6 +2,8 @@
                 : time-it} :utils)
 (local awful (require :awful))
 (local wibox (require :wibox))
+(local { : dpi : on-idle} (require :utils.wm))
+(local gears (require :gears))
 (local list (require :utils.list))
 (local {: assign} (require :utils.table))
 (local { : atom-node
@@ -17,6 +19,7 @@
 
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
+  (print :Setters (inspect props-setter))
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
@@ -61,11 +64,12 @@
 (local events
   (event-props
     [
-     [:onButtonPress "button::press"]]))
+     [:onButtonPress "button::press"]
+     [:onButtonRelease "button::release"]]))
 (local textbox
   (atom-node
     (make-builder (fn [props]
-                    (wibox.widget.textbox props.markup))
+                     (wibox.widget.textbox props.markup))
                   events)
     :textbox))
 
@@ -80,14 +84,49 @@
  : textbox
  :checkbox (atom-node
              (make-builder #(wibox.widget
-                              {:widget wibox.widget.checkbox})))
+                              {:widget wibox.widget.checkbox
+                               :forced_width (dpi 30)
+                               :forced_height (dpi 30)
+                               :shape gears.shape.circle})))
+ :button (atom-node
+           (make-builder #(awful.widget.button)
+                         events))
+ :progress-bar (atom-node
+                 (make-builder #(wibox.widget
+                                  {:widget
+                                    wibox.widget.progressbar
+                                   :forced_height (dpi 20)
+                                   :forced_width (dpi 100)})))
+ :slider (atom-node
+           (make-builder
+             #(wibox.widget
+                {:widget wibox.widget.slider
+                 :bar_height (dpi 3)
+                 :handle_width (dpi 16)
+                 :handle_shape gears.shape.circle})
+             (event-props
+               [[:onValueChange :property::value]]))
+           :slider)
  :background (one-child-container wibox.container.background)
  :margin (one-child-container wibox.container.margin)
  :h-flex (container-node
            (make-builder #(wibox.layout.flex.horizontal))
            (fn [children container]
              (tset container :children children)))
+ :place (one-child-container wibox.container.place)
  :v-flex (container-node
            (make-builder #(wibox.layout.flex.vertical))
            (fn [children container]
-             (tset container :children children)))}
+             (tset container :children children)))
+ :h-fixed (container-node
+            (make-builder #(wibox.layout.fixed.horizontal))
+            (fn [children container]
+              (tset container :children children)))
+ :v-fixed (container-node
+            (make-builder #(wibox.layout.fixed.vertical))
+            (fn [children container]
+              (tset container :children children)))
+ :stack (container-node
+          (make-builder #(wibox.layout.stack))
+          (fn [children container]
+            (tset container :children children)))}
