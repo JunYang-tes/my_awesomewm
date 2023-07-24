@@ -39,7 +39,10 @@
     (local tag client.first_tag)
      ;; When a client exited,select a client in the same tag focus to it
     (client:connect_signal :unmanage
-                           (fn [] (wm.focus (wm.get-focusable-client tag))))
+                           (fn [client] 
+                             (if (or (= client awesome-global.client.focus)
+                                     (= awesome-global.client.focus nil))
+                               (wm.focus (wm.get-focusable-client tag)))))
     (local clients (-> client
                      (. :first_tag)
                      (: :clients)))

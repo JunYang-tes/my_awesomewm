@@ -34,17 +34,25 @@
 (local handle-switch-tag-focus
   (do
     (local focus-map {})
+    (awesome-global.client.connect_signal 
+      :unmanage
+      (fn [client]
+        (let [c (. focus-map client.first_tag)]
+          (if (= c client)
+            (tset focus-map client.first_tag nil)))))
     (awesome-global.client.connect_signal :focus
       (fn [client]
-        (tset focus-map client.first_tag client)))
+        (if (and client.focusable
+                 (not= client.role :prompt))
+          (tset focus-map client.first_tag client))))
     (fn get-focus [tag]
-      (print :get-focus)
       (local client (or (. focus-map tag)
                         (wm.get-focusable-client tag)))
       (tset focus-map tag client)
       client)
     (fn [tag]
-      (wm.focus (get-focus tag)))))
+      (if tag.selected
+        (wm.focus (get-focus tag))))))
 
 (fn create [tag-info]
   (local tag-info (or tag-info {:name "(Anonymous)"
