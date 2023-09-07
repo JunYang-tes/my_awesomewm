@@ -18,6 +18,7 @@
 (local mouse (require :mouse.main))
 (local {: view-tag } (require :command-palette.tag))
 (local {: applications } (require :command-palette.applications))
+(local jd (require :components.jd))
 
 
 (fn run-lua []
@@ -164,9 +165,9 @@
   (key [modkey] "b" bar.toggle-visible
        { :description "Toggle function bar"
          :group "awesome"})
-  (key [modkey] "d" tag.delete
-       { :description "Delete tag"
-         :group :tag})
+  (key [modkey] "d" jd.toggle-visible
+       { :description "Toggle jd map"
+         :group :others})
   (key [modkey "Shift"] "d" toggle-desktop
        { :description "Toggle desktop"
          :group "awesome"})
