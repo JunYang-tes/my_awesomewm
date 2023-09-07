@@ -1,26 +1,26 @@
 (local awful (require :awful))
 (local key-bindings (require :client-key-bindings))
 (local beautiful (require :beautiful))
-(local gears (require :gears))                  
-(local { : modkey : mouse-button} (require :const))                    
+(local gears (require :gears))
+(local { : modkey : mouse-button} (require :const))
 (local inspect (require :inspect))
 
 (local activate #($1:emit_signal "request::activate" "mouse_click" { :raise true}))
 (local mouse-buttons
   (gears.table.join
-    (awful.button [] mouse-button.left activate) 
-    (awful.button [modkey] mouse-button.left 
+    (awful.button [] mouse-button.left activate)
+    (awful.button [modkey] mouse-button.left
       (fn [c]
-        (activate c) 
-        (awful.mouse.client.move c))) 
-    (awful.button [modkey] mouse-button.right 
+        (activate c)
+        (awful.mouse.client.move c)))
+    (awful.button [modkey] mouse-button.right
       (fn [c]
-        (activate c) 
-        (awful.mouse.client.resize c))))) 
+        (activate c)
+        (awful.mouse.client.resize c)))))
 
-(tset 
-  awful.rules 
-  :rules 
+(tset
+  awful.rules
+  :rules
   [
     { :rule {}
       :properties {
@@ -43,7 +43,6 @@
                     :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))}}
-                    
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
@@ -59,7 +58,6 @@
                    :raise true
                    :ontop true
                    :keys key-bindings
-                   :titlebars_enabled   true
+                   :titlebar   true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)
                    :floating true}}])
-                   

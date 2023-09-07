@@ -10,6 +10,7 @@
 (local {: root } (require :awesome-global))
 (local {: switch-tag
         : create} (require :tag))
+(local default-titlebar (require :title-bars.default))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal)
@@ -57,19 +58,22 @@
   (fn [c]
     (tset c :minimized false)
     (c:jump_to)))
+(awesome-global.client.connect_signal
+  "property::titlebar"
+  (fn [c]
+    (print :????)
+    (if c.titlebar
+      (default-titlebar c))))
 
 (awesome-global.client.connect_signal 
   :manage
   (fn [client]
-    (print :new-client client)
-    (print :tag client.first_tag)
     (if (= nil client.first_tag)
       (set client.first_tag
            (let [screen client.screen]
              (create { :name "(Anonymous)"
                        :screen screen
                        :selected true}))))))
-
 
 
 ; (awesome-global.client.connect_signal
@@ -86,7 +90,6 @@
 (fn focus-by-direction [dir]
   (let [client awesome-global.client.focus
         screen (awful.screen.focused)]
-        
     (if (and client
              (= client.screen screen))
       (awful.client.focus.global_bydirection dir client)
