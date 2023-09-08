@@ -1,0 +1,7 @@
+{
+  "macro-path": "./src/macros/?.fnl",
+  "checks":{
+          "unused-definition": false,
+      "unknown-module-field": false
+  }
+}

@@ -11,6 +11,7 @@
 (local {: switch-tag
         : create} (require :tag))
 (local default-titlebar (require :title-bars.default))
+(local win-clastic (require :title-bars.win-clastic))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal)
@@ -85,7 +86,8 @@
   "property::titlebar"
   (fn [c]
     (if c.titlebar
-      (default-titlebar c)
+      (win-clastic c)
+      ;(default-titlebar c)
       (awful.titlebar.hide c))))
 
 (awesome-global.client.connect_signal 
