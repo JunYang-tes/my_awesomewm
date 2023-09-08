@@ -19,6 +19,8 @@
 (local {: view-tag } (require :command-palette.tag))
 (local {: applications } (require :command-palette.applications))
 (local jd (require :components.jd))
+(local wm (require :utils.wm))
+(local {: weak-key-table} (require :utils.table))
 
 
 (fn run-lua []
@@ -171,6 +173,24 @@
   (key [modkey "Shift"] "d" toggle-desktop
        { :description "Toggle desktop"
          :group "awesome"})
+  (key [modkey "Shift"] "space"
+       (let [map (weak-key-table)]
+         (fn restore-layout [tag]
+           (print :RESTORE)
+           (let [layout (or (. map tag)
+                            awful.layout.suit.tile)]
+             (awful.layout.set layout)))
+         (fn turn-to-floating [tag]
+           (print :TAG_FLOATING)
+           (tset map tag tag.layout)
+           (awful.layout.set awful.layout.suit.floating))
+         (fn []
+           (let [tag (wm.get-current-tag)]
+             (if (= tag.layout awful.layout.suit.floating)
+               (restore-layout tag)
+               (turn-to-floating tag))))))
+         ; (awful.layout.set
+         ;    awful.layout.suit.floating)))
   (key [modkey] :m mouse.run
        {:description :mouse
         :group :awesome}))

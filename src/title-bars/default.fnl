@@ -21,9 +21,10 @@
                         (hybrid [{:halign :center
                                   :widget (awful.titlebar.widget.titlewidget client)}]
                                 {: buttons :layout wibox.layout.fixed.horizontal})
-                        (hybrid [(awful.titlebar.widget.closebutton client)]
+                        (hybrid [(awful.titlebar.widget.maximizedbutton client)
+                                 (awful.titlebar.widget.closebutton client)]
                                 { :layout wibox.layout.fixed.horizontal})]
                        {:layout wibox.layout.align.horizontal})]
 
-    (print (inspect (hybrid [(hybrid [1 2] {:layout :a-1}) 2] {:layout :a})))
-    (bar:setup widget)))
+    (bar:setup widget)
+    bar))

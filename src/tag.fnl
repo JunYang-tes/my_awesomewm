@@ -18,6 +18,7 @@
 (local screen-utils (require :utils.screen))
 (local {: select-item } (require :ui.select))
 (local list (require :utils.list))
+(local titlebar (require :title-bars.init))
 
 (fn save-tags []
   (fn save []
@@ -54,6 +55,18 @@
       (if tag.selected
         (wm.focus (get-focus tag))))))
 
+(fn handle-layout-change [tag]
+  (if (= tag.layout awful.layout.suit.floating)
+    ;; display title bar for floating layout
+    (each [_ c (ipairs (tag:clients))]
+      (let [titlebar-height (titlebar.get-title-height)]
+        (tset c :height (- c.height titlebar-height))
+        (tset c :y (+ c.y titlebar-height)))
+      (tset c :titlebar true))
+    (each [_ c (ipairs (tag:clients))]
+      (if (not c.floating)
+        (tset c :titlebar false)))))
+
 (fn create [tag-info]
   (local tag-info (or tag-info {:name "(Anonymous)"
                                 :screen ":focused"
@@ -73,6 +86,7 @@
           (signal.emit "tag::selected" tag)
           (save-tags)
           (awful.screen.focus tag.screen)))))
+  (t:connect_signal "property::layout" handle-layout-change)
   (save-tags)
   (if tag-info.selected
     (t:view_only))
