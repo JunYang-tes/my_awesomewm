@@ -15,7 +15,11 @@
 (local naughty (require :naughty))
 (local {: tag-untaged} (require :client))
 (local cmd-palette (require :command-palette.palette))
-(local mouse (require :mouse.main))
+(local mouse (let [(ok? data) (pcall #(require :mouse.main))]
+               (if ok?
+                 data
+                 {:run (fn [] (print (.. "Failed to load mouse module,internal error is :"
+                                         (tostring data))))})))
 (local {: view-tag } (require :command-palette.tag))
 (local {: applications } (require :command-palette.applications))
 (local jd (require :components.jd))

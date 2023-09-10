@@ -8,6 +8,9 @@
 (local {: focus
         : focused} (require :utils.wm))
 (local awesome-global (require :awesome-global))
+(local {: make-button-widget
+        : close} (require :theme.win-clastic))
+(local { : dpi } (require :utils.wm))
 
 (fn titlebar-color [width focus]
   (gears.color.create_linear_pattern
@@ -84,7 +87,11 @@
                       :widget (awful.titlebar.widget.titlewidget client)}]
                     {: buttons :layout layout.fixed.horizontal})
             (hybrid [(awful.titlebar.widget.maximizedbutton client)
-                     (awful.titlebar.widget.closebutton client)]
+                     (awful.titlebar.widget.closebutton client)
+                     {:widget close
+                      :forced_width (dpi 20)
+                      :forced_height (dpi 20)}]
+                     
                     {:layout layout.align.horizontal})]
            {:layout layout.align.horizontal})]
         {:layout (titlebar client)}))
