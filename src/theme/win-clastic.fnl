@@ -97,7 +97,22 @@
                    (cr:move_to ex sy)
                    (cr:line_to sx ey)
                    (cr:stroke)))))
+(local maximize (make-button-widget
+                  (fn [ctx cr w h]
+                    (let [x (* w 0.4)
+                          y (* h 0.2)
+                          w (* w 0.4)
+                          h (* h 0.4)]
+                      (cr:set_line_width 1)
+                      (cr:set_source colors.black)
+                      (cr:rectangle x y w h)
+                      (cr:stroke)
+                      (cr:rectangle x y w
+                                        (* h 0.2))
+                      (cr:fill)))))
+
 
 {: make-button-widget
+ : maximize
  : close}
 
