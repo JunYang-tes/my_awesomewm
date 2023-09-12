@@ -60,6 +60,17 @@
                                   :visible true})))
     (fn [child popup]
       (tset popup :widget (. child 1)))))
+(local wibar
+  (container-node
+    (make-builder (fn [props]
+                    (print (inspect props))
+                    (awful.wibar
+                      {:widget (wibox.widget {:text ""
+                                              :widget wibox.widget.textbox})
+                       :height props.height
+                       :position :bottom})))
+    (fn [child p]
+      (tset p :widget (. child 1)))))
 
 (local events
   (event-props
@@ -73,15 +84,22 @@
                   events)
     :textbox))
 
-(fn one-child-container [Ctor]
+(fn one-child-container [Ctor props-setter]
   (container-node
-    (make-builder #(Ctor))
+    (make-builder #(Ctor) props-setter)
     (fn [child container]
-      (print :set-child)
+      (print :parent container :set-child (. child 1))
       (tset container :widget (. child 1)))))
 
 {: popup
  : textbox
+ : wibar
+ : events
+ :factory {: one-child-container}
+ :imagebox (atom-node
+             (make-builder
+               #(wibox.widget
+                  {:widget wibox.widget.imagebox})))
  :checkbox (atom-node
              (make-builder #(wibox.widget
                               {:widget wibox.widget.checkbox

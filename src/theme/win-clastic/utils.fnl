@@ -9,6 +9,7 @@
 (local colors
   {:primary (gears.color :#d4d0c8)
    :white (gears.color :#ffffff)
+   :line-white (gears.color :#ebebeb)
    :black (gears.color :#000)
    :gray (gears.color :gray)})
 
@@ -52,6 +53,41 @@
             [[border-width (- height border-width)] [(- width border-width) (- height border-width)]
              [(- width border-width) border-width] [width 0] [width height] [0 height]])
     (cr:fill)))
+
+(fn xp-frame []
+  (let [widget (base.make_widget
+                 nil
+                 :xp-frame
+                 {:enable_properties true})]
+    (fn get-child []
+      (. widget :widget))
+    (tset widget :fit
+          (fn [self ctx w h]
+            (let [child (get-child)
+                  padding 4]
+              (if child
+                (let [(w h) (base.fit_widget self ctx child w h)]
+                  (values (+ w (* 2 padding))
+                          (+ h (* 2 padding))))
+                (values w h)))))
+    (tset widget :draw
+          (fn [self context cr width height]
+            (print :DDDraw?????)
+            (cr:set_source colors.primary)
+            (cr:rectangle
+              0 0 widget height)
+            (cr:fill)
+            (draw-border false cr width height 2)))
+    (tset widget :layout
+          (fn [_ _ w h]
+            (let [child (get-child)]
+              (if child
+                [(base.place_widget_at
+                   child
+                   0 0
+                   w h)]
+                []))))
+    widget))
 
 (fn make-button-widget [draw]
   (fn []
@@ -144,10 +180,38 @@
                      (cr:set_source colors.black)
                      (cr:rectangle x y w h)
                      (cr:fill)))))
+(local button-container
+  (let [button-container (make-button-widget)]
+    (fn []
+      (let [widget (button-container)]
+        (fn get-child []
+          (. widget :widget))
+        (tset widget :fit
+              (fn [self ctx w h]
+                (let [child (get-child)
+                      padding 4]
+                  (if child
+                    (let [(w h) (base.fit_widget self ctx child w h)]
+                      (values (+ w (* 2 padding))
+                              (+ h (* 2 padding))))
+                    (values w h)))))
+        (tset widget :layout
+              (fn [_ _ w h]
+                (let [child (get-child)]
+                  (if child
+                    [(base.place_widget_at
+                       child
+                       0 0
+                       w h)]
+                    []))))
+        widget))))
 
 
 {: make-button-widget
+ : button-container
  : maximize
  : minmize
+ : xp-frame
+ : colors
  : close}
 

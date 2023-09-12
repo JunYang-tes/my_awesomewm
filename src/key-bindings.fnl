@@ -25,6 +25,7 @@
 (local jd (require :components.jd))
 (local wm (require :utils.wm))
 (local {: weak-key-table} (require :utils.table))
+(local win-clastic-taskbar (require :theme.win-clastic.taskbar))
 
 
 (fn run-lua []
@@ -187,7 +188,8 @@
          (fn turn-to-floating [tag]
            (print :TAG_FLOATING)
            (tset map tag tag.layout)
-           (awful.layout.set awful.layout.suit.floating))
+           (awful.layout.set awful.layout.suit.floating)
+           (win-clastic-taskbar tag.screen))
          (fn []
            (let [tag (wm.get-current-tag)]
              (if (= tag.layout awful.layout.suit.floating)
