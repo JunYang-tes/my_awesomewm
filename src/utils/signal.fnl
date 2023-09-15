@@ -7,11 +7,11 @@
         (table.insert cb callback)) 
       (do 
         (tset callbacks name [callback])))) 
-        
+
 (fn emit [name ...]
   (each [_ cb (ipairs (or (. callbacks name) 
                           []))]
     (pcall cb ...))) 
-                
+
 { : emit
   : connect-signal} 

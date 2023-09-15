@@ -100,9 +100,13 @@
                                ;(awful.titlebar.widget.closebutton client)
                                {:widget minmize
                                 :forced_width size
+                                :on-release-left #(tset client
+                                                        :minimized true)
                                 :forced_height size}
                                {:widget maximize
                                 :forced_width size
+                                :on-release-left #(tset client
+                                                       :maximized (not client.maximized))
                                 :forced_height size}
                                {:widget close
                                 :on-release-left (fn []

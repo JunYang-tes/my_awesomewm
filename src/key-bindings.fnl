@@ -6,6 +6,7 @@
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const))
 (local tag (require :tag))
+(local {: save-tags} tag)
 (local {: range
         : find} (require :utils.list))
 (local wibox  (require :wibox))
@@ -98,11 +99,10 @@
          :group "client"})
   (key [modkey "Shift"] "f" (fn []
                              (local client awesome-global.client.focus)
-                             (if client
-                               (do
-                                 (print :toggle-fullscreen)
+                             (when client
+                               (if (= client.first_tag.layout awful.layout.suit.floating)
+                                 (set client.maximized (not client.maximized))
                                  (set client.fullscreen (not client.fullscreen)))))
-                            (print :no-client??)
        { :description "Focus window"
          :group "client"})
   (key [modkey] "s" swap-win)
@@ -184,12 +184,14 @@
            (print :RESTORE)
            (let [layout (or (. map tag)
                             awful.layout.suit.tile)]
+             (win-clastic-taskbar.hide tag.screen)
              (awful.layout.set layout)))
          (fn turn-to-floating [tag]
            (print :TAG_FLOATING)
            (tset map tag tag.layout)
            (awful.layout.set awful.layout.suit.floating)
-           (win-clastic-taskbar tag.screen))
+           (save-tags)
+           (win-clastic-taskbar.show tag.screen))
          (fn []
            (let [tag (wm.get-current-tag)]
              (if (= tag.layout awful.layout.suit.floating)

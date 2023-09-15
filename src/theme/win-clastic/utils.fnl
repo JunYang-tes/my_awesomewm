@@ -72,10 +72,9 @@
                 (values w h)))))
     (tset widget :draw
           (fn [self context cr width height]
-            (print :DDDraw?????)
             (cr:set_source colors.primary)
             (cr:rectangle
-              0 0 widget height)
+              0 0 width height)
             (cr:fill)
             (draw-border false cr width height 2)))
     (tset widget :layout
@@ -94,7 +93,8 @@
     (let [widget (base.make_widget
                    nil nil
                    {:enable_properties true})
-          state {:pressed false}]
+          state {:pressed false
+                 :force_pressed false}]
       (tset widget :fit
             (fn [self context w h]
               (values w h)))
@@ -117,7 +117,7 @@
         (cr:rectangle
           0 0 w h)
         (cr:fill)
-        (draw-border state.pressed cr w h 2.5)
+        (draw-border false cr w h 2.5)
         (if draw
           (draw context cr w h state.pressed)))
       (fn draw-pressed [context cr w h]
@@ -125,16 +125,19 @@
         (cr:rectangle
           0 0 w h)
         (cr:fill)
-        (draw-border state.pressed cr w h 2.5)
+        (draw-border true cr w h 2.5)
         (if draw
           (draw context cr w h state.pressed)))
       (tset widget :draw
-            (fn [self context cr width height]
-              (let [w (or widget.forced_width width)
-                    h (or widget.forced_height height)]
-                (if state.pressed
-                  (draw-pressed context cr w h)
-                  (draw-normal context cr  w h)))))
+            (fn [self context cr w h]
+              (if (or state.pressed
+                      state.force_pressed)
+                (draw-pressed context cr w h)
+                (draw-normal context cr  w h))))
+      (tset widget :set_pressed
+            (fn [_ pressed]
+              (tset state :force_pressed pressed)
+              (widget:emit_signal :widget::redraw_needed)))
       widget)))
 
 (local close (make-button-widget
@@ -205,6 +208,43 @@
                        w h)]
                     []))))
         widget))))
+
+(fn systray-widget []
+  (let [widget (base.make_widget
+                 nil
+                 nil
+                 {:enable_properties true})]
+    (tset widget :draw
+          (fn [context cr width height]
+            (if (not (?. context :wibox))
+              (error :Need-wibox))
+            (let [(x y) (base.rect_to_device_geometry
+                          cr 0 0 width height)
+                  awesome _G.awesome
+                  num_entries (awesome.systray)
+                  (dir_x dir_y) (cr:user_to_device_distance 1 0)
+                  in_dir width
+                  ortho height
+                  base (if (<= (* ortho num_entries) in_dir)
+                         ortho
+                         (/ in_dir num_entries))]
+              (awesome.systray
+                context.wibox.drawin
+                (math.ceil x)
+                (math.ceil y)
+                base
+                false
+                colors.primary
+                false
+                0))))
+    (tset widget :fit
+          (fn [context width height]
+            (let [awesome _G.awesome
+                  num_entries (awesome.systray)
+                  base (if (< width height)
+                         width
+                         height)]
+              (values base (* base num_entries)))))))
 
 
 {: make-button-widget
