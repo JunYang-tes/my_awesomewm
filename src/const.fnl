@@ -4,7 +4,6 @@
                 :right 3 
                 :wheel-up 4 
                 :wheel-down 5} 
-                
  :terminal :kitty
  ;; Mod1 = Alt_L 
  ;; Mod2 = Num_Lock

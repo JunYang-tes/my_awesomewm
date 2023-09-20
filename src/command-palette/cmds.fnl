@@ -77,11 +77,11 @@
                                                 cmds (current-commands)]
                                             (-> input
                                                 (fzy.filter (list.map cmds (fn [cmd] cmd.label)))
-                                                (list.map (fn [item] (let [cmd (. cmds (. item 1)) ]
+                                                (list.map (fn [item] (let [cmd (. cmds (. item 1))]
                                                                        (assign cmd
                                                                                {:label (markup cmd.label (. item 2))})))))))}))}))
 
 
 {: commands
- :register commands.register
- }
+ :register commands.register}
+ 

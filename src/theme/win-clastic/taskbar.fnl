@@ -20,13 +20,14 @@
         : factory
         : popup
         : place
+        : systray
         : margin
         : client-icon
         : imagebox
-        : systray
         : constraint
         : h-flex
         : h-align
+        : v-align
         : rotate
         : h-fixed
         : v-fixed
@@ -45,7 +46,7 @@
                 button-container
                 events))
 (local {: get-codebase-dir} (require :utils.utils))
-(local xp-frame (factory.one-child-container win-utils.xp-frame))
+(local xp-frame win-utils.xp-frame)
 
 
 (local container
@@ -96,16 +97,21 @@
      :forced_width 250
      :onButtonPress (fn []
                       (let [c (props.client)]
-                        (c:raise)
-                        (focus c)))}
+                        (if (not= awesome-global.client.focus c)
+                          (do
+                            (c:raise)
+                            (focus c))
+                          (tset c :minimized true))))}
     (h-fixed
       (place
         {:valign :center
          :halign :center}
-        (constraint
-          {:width (dpi 20)
-           :height (dpi 20)}
-          (client-icon {:client props.client})))
+        (margin {:left (dpi 2)
+                 :right (dpi 2)}
+          (constraint
+            {:width (dpi 20)
+             :height (dpi 20)}
+            (client-icon {:client props.client}))))
       (background
         {:fg :black}
         (textbox {:markup (map props.client
@@ -135,16 +141,29 @@
              :right 2}
             (client-item
               {:client $1})))))))
+(defn menu-item
+  (win-utils.menu-item
+    (h-fixed
+      {:onButtonRelease props.on-click}
+      (margin
+        {:right (dpi 10)}
+        (imagebox {:image (map props.image
+                               get-asset)
+                   :forced_width (dpi 30)
+                   :forced_height (dpi 30)}))
+      (textbox {:markup props.text}))))
 (defn start-menu
   (popup
     {:visible props.visible
+     :screen props.screen
      :placement (fn [c]
                   (awful.placement.bottom_left
                     c
                     {:margins {:bottom (dpi 30)}}))}
     (margin
       (xp-frame
-        {:forced_width (dpi 200)}
+        {:forced_width (dpi 200)
+         :onButtonRelease props.on-close}
         (margin 
           {:letf (dpi 2)
            :right (dpi 2)
@@ -162,7 +181,14 @@
                    :bottom (dpi 4)}
                   (textbox {:markup "Arch Linux Unprofessional"}))))
             (background
-              {:fg :#000000})))))))
+              {:fg :#000000}
+              (v-fixed
+                (menu-item {:image :shutdown.png
+                            :text :Run...
+                            :on-click #(print :RUN)})
+                (menu-item {:image :shutdown.png
+                            :on-click #(awful.spawn "pkexec systemctl suspend -i")
+                            :text :Shutdown...})))))))))
 
 (fn titlebar [screen tag visible]
   (let [cnt (value 0)
@@ -173,7 +199,7 @@
          : visible
          :height (dpi 30)
          ; :height (map visible
-         ;              #(if $1 (dpi 30) 0))
+         ;              #(if $1 (dpi 30) 0.1))
          :ontop true
          :position :bottom}
         ;(container)
@@ -218,12 +244,15 @@
                   {:pressed true}
                   (background
                     {:fg :#000}
-                    (place
-                      (h-fixed
-                        (textclock {:format "%a %b %d"})))))))))))
+                    (h-fixed
+                      (margin {:left (dpi 2)}
+                        (win-utils.systray))
+                      (textclock {:format "%H:%M"}))))))))))
     (run
       (start-menu
-        {:visible (mapn [visible start-menu-visible]
+        {:screen screen
+         :on-close #(start-menu-visible false)
+         :visible (mapn [visible start-menu-visible]
                         #(and (. $1 1)
                               (. $1 2)))}))))
 (local titlebar-mgr

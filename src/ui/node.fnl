@@ -88,12 +88,15 @@
   (container-node
     (make-builder #(Ctor) props-setter)
     (fn [child container]
+      (if container.set_child
+        (container:set_child (. child 1)))
       (tset container :widget (. child 1)))))
 
 {: popup
  : textbox
  : wibar
  : events
+ : make-builder
  :textclock (atom-node
               (make-builder #(wibox.widget.textclock)))
  :factory {: one-child-container}
@@ -153,7 +156,7 @@
            (fn [children container]
              (tset container :children children)))
  :h-fixed (container-node
-            (make-builder #(wibox.layout.fixed.horizontal))
+            (make-builder #(wibox.layout.fixed.horizontal) events)
             (fn [children container]
               (tset container :children children)))
  :v-fixed (container-node

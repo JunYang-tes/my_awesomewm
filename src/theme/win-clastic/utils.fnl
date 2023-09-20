@@ -10,8 +10,15 @@
   {:primary (gears.color :#d4d0c8)
    :white (gears.color :#ffffff)
    :line-white (gears.color :#ebebeb)
+   :selected-menu (gears.color :#0a246a)
    :black (gears.color :#000)
    :gray (gears.color :gray)})
+(local {: make-builder
+        : events
+        : factory } (require :ui.node))
+(local {: dpi } (require :utils.wm))
+(local { : atom-node}
+       (require :lite-reactive.node))
 
 (fn polygon [cr points]
   (let [[first & rest] points]
@@ -54,7 +61,7 @@
              [(- width border-width) border-width] [width 0] [width height] [0 height]])
     (cr:fill)))
 
-(fn xp-frame []
+(fn xp-frame-widget []
   (let [widget (base.make_widget
                  nil
                  :xp-frame
@@ -213,45 +220,118 @@
   (let [widget (base.make_widget
                  nil
                  nil
-                 {:enable_properties true})]
+                 {:enable_properties true})
+        awesome _G.awesome
+        state {:size (dpi 20)}]
+    (awesome.connect_signal
+      :systray::update
+      #(do
+         (widget:emit_signal :widget::redraw_needed)))
+    (tset widget :set_size
+          (fn [_ size]
+            (tset state :size size)))
+    (tset widget :get_size 
+          (fn [_ size]
+            state.size))
     (tset widget :draw
-          (fn [context cr width height]
-            (if (not (?. context :wibox))
+          (fn [_ context cr width height]
+            (if (and context
+                     (not (?. context :wibox)))
               (error :Need-wibox))
-            (let [(x y) (base.rect_to_device_geometry
-                          cr 0 0 width height)
-                  awesome _G.awesome
-                  num_entries (awesome.systray)
-                  (dir_x dir_y) (cr:user_to_device_distance 1 0)
-                  in_dir width
-                  ortho height
-                  base (if (<= (* ortho num_entries) in_dir)
-                         ortho
-                         (/ in_dir num_entries))]
+            (let [size (widget:get_size)
+                  local-x 0
+                  local-y (/ (- height size) 2)
+                  (x y) (base.rect_to_device_geometry
+                          cr local-x local-y width height)]
               (awesome.systray
                 context.wibox.drawin
                 (math.ceil x)
                 (math.ceil y)
-                base
-                false
-                colors.primary
+                size
+                true
+                :#d4d0c8
                 false
                 0))))
     (tset widget :fit
-          (fn [context width height]
+          (fn [_ context width height]
             (let [awesome _G.awesome
-                  num_entries (awesome.systray)
-                  base (if (< width height)
-                         width
-                         height)]
-              (values base (* base num_entries)))))))
+                  size (widget:get_size)
+                  (num_entries) (awesome.systray)]
+              (values (* size 2)
+                      size))))
+    widget))
+(local systray
+  (atom-node
+    (make-builder
+      #(systray-widget))))
+
+(fn make-widget [props methods signals]
+  (fn []
+    (let [widget (base.make_widget
+                   nil
+                   nil {:enable_properties true})
+          state {}]
+      (each [name f (pairs methods)]
+        (tset widget
+              name f))
+      (each [name value (pairs props)]
+        (tset state name value)
+        (tset widget (.. :set_ name)
+              (fn [_ value]
+                (tset state name value)
+                (widget:emit_signal :widget::redraw_needed)))
+        (tset widget (.. :get_ name)
+              (fn [_]
+                (. state name))))
+      (each [name f (pairs signals)]
+        (widget:connect_signal name f))
+      widget)))
+
+(local menu-item
+  (make-widget
+    { :mouse-in false
+     :child 0
+     :padding 4}
+    {:layout (fn [widget _ w h]
+               (let [child (widget:get_child)
+                     padding (widget:get_padding)]
+                 (print :menu-item-child child)
+                 (if child
+                   [(base.place_widget_at
+                      child
+                      padding padding
+                      (- w padding) (- h padding))]
+                   [])))
+     :before_draw_children (fn [self ctx cr w h]
+                             (when (self:get_mouse-in)
+                               (cr:set_source colors.selected-menu)
+                               (cr:rectangle 0 0 w h)
+                               (cr:fill)
+                               (cr:set_source colors.white)))
+     :fit (fn [widget ctx width height]
+            (let [child (widget:get_child)
+                  padding (widget:get_padding)]
+              (if child
+                (let [(w h) (base.fit_widget widget ctx child width height)]
+                  (values width
+                          (+ h (* 2 padding))))
+                (values width height))))}
+    {:mouse::enter (fn [widget]
+                     (widget:set_mouse-in true))
+     :mouse::leave (fn [widget]
+                     (widget:set_mouse-in false))}))
 
 
 {: make-button-widget
  : button-container
  : maximize
  : minmize
- : xp-frame
+ :xp-frame (factory.one-child-container
+             xp-frame-widget events)
+ : systray-widget
+ :menu-item (factory.one-child-container
+              menu-item)
+ : systray
  : colors
  : close}
 

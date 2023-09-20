@@ -51,6 +51,7 @@
 (fn copy-asserts [postfix]
   (let [src-dir "src/"
         dist-dir "lua/"
+
         files (read-popen (.. "find " src-dir " -name *." postfix))]
     (each [_ file (ipairs files)]
       (let [dist (.. dist-dir (stringx.replace file src-dir ""))]
@@ -72,6 +73,7 @@
 
 (fn run []
   (copy-asserts "png")
+  (copy-asserts "jpg")
   (let [files (get-src-list)
         need-compile (icollect [_ v (ipairs files)]
                        (if (test-should-be-compile v) v))]

@@ -96,7 +96,10 @@
     (do
      (t:view_only)
      (wm.on-idle
-       #(signal.emit "tag::selected" t))))
+       #(do
+          (when tag-info.floating
+            (signal.emit :layout::floating t))
+          (signal.emit "tag::selected" t)))))
   t)
 
 (fn name-tag []

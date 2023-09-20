@@ -73,10 +73,16 @@
 (fn get-current-tag []
   (local screen (awful.screen.focused))
   screen.selected_tag)
+(fn get-modkey-name [modkey]
+  (case modkey
+    :Mod1 :Alt_L
+    :Mod2 :Num_Lock
+    :Mod4 :Super_L))
 
 { : on-idle
   : focus
   : focused
+  : get-modkey-name
   : get-focusable-client
   : get-by-direct
   : get-current-tag

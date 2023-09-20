@@ -27,6 +27,9 @@
 (local wm (require :utils.wm))
 (local {: weak-key-table} (require :utils.table))
 (local win-clastic-taskbar (require :theme.win-clastic.taskbar))
+(local signal (require :utils.signal))
+(local {: win-switcher} (require :theme.components))
+(local inspect (require :inspect))
 
 
 (fn run-lua []
@@ -109,6 +112,10 @@
   (key [modkey "Control"] "u" awful.client.urgent.jmpto
        { :description "jump to urgent client"
          :group "client"})
+  (key [modkey] "Tab"
+       (fn []
+         (win-switcher.show
+           (wm.get-current-tag))))
   (key [modkey "Control"] "Tab"
        (fn []
          (awful.client.focus.history.previous)
@@ -181,17 +188,15 @@
   (key [modkey "Shift"] "space"
        (let [map (weak-key-table)]
          (fn restore-layout [tag]
-           (print :RESTORE)
            (let [layout (or (. map tag)
                             awful.layout.suit.tile)]
-             (win-clastic-taskbar.hide tag.screen)
-             (awful.layout.set layout)))
+             (awful.layout.set layout)
+             (signal.emit :layout:un-floating tag)))
          (fn turn-to-floating [tag]
-           (print :TAG_FLOATING)
            (tset map tag tag.layout)
            (awful.layout.set awful.layout.suit.floating)
            (save-tags)
-           (win-clastic-taskbar.show tag.screen))
+           (signal.emit :layout::floating tag))
          (fn []
            (let [tag (wm.get-current-tag)]
              (if (= tag.layout awful.layout.suit.floating)

@@ -1,6 +1,7 @@
 (local signal (require :utils.signal))
 (local awful (require :awful))
-(local {: taskbar} (require :theme.components))
+(local {: taskbar
+        : set-wallpaper} (require :theme.components))
 
 (signal.connect-signal
   :tag::unselect
@@ -12,3 +13,12 @@
     (if (= tag.layout
           awful.layout.suit.floating)
       (taskbar.show tag))))
+(signal.connect-signal
+  :layout::floating
+  (fn [tag]
+    (set-wallpaper tag)
+    (taskbar.show tag)))
+(signal.connect-signal
+  :layout::un-floating
+  (fn [tag]
+    (taskbar.hide tag)))
