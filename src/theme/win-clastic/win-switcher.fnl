@@ -107,7 +107,6 @@
         (awful.keygrabber
                 {
                  :keypressed_callback (fn [_ mod key]
-                                        (print (inspect key))
                                         (if (= key :Tab)
                                           (if (list.some mod #(= $1 :Shift))
                                             (set-index :dec)
@@ -119,7 +118,7 @@
                                    (visible false)
                                    (let [c (. (clients) (index))]
                                      (when c
-                                       (previous-client c)
+                                       (previous-client _G.client.focus)
                                        (focus c)
                                        (c:raise))))}))))
   (fn show [tag]

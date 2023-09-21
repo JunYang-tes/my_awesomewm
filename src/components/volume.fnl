@@ -83,10 +83,10 @@
   (fn close-slider-popup []
     (set slider-popup.visible false)) 
   (awesome-global.client.connect_signal "button::press" close-slider-popup)
-  (awesome-global.root.buttons
-    (awful.util.table.join
-      ;(awesome-global.root.buttons) 
-      (awful.button {} 1 close-slider-popup)))
+  ; (awesome-global.root.buttons
+  ;   (awful.util.table.join
+  ;     ;(awesome-global.root.buttons) 
+  ;     (awful.button {} 1 close-slider-popup)))
 
   (local w
     (wibox.widget

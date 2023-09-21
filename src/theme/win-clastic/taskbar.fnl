@@ -38,6 +38,7 @@
 (local win-utils (require :theme.win-clastic.utils))
 (local base (require :wibox.widget.base))
 (local { : dpi
+         : click-away
          : focus
          : get-current-tag } (require :utils.wm))
 (local beautiful (require :beautiful))
@@ -47,6 +48,8 @@
                 events))
 (local {: get-codebase-dir} (require :utils.utils))
 (local xp-frame win-utils.xp-frame)
+(local keybing (require :utils.key-binding))
+(local signal (require :utils.signal))
 
 
 (local container
@@ -152,43 +155,56 @@
                    :forced_width (dpi 30)
                    :forced_height (dpi 30)}))
       (textbox {:markup props.text}))))
+(let [a 1
+      b (+ a 1)
+      c (fn []
+          (+ a 1))]
+  :TDO)
 (defn start-menu
-  (popup
-    {:visible props.visible
-     :screen props.screen
-     :placement (fn [c]
-                  (awful.placement.bottom_left
-                    c
-                    {:margins {:bottom (dpi 30)}}))}
-    (margin
-      (xp-frame
-        {:forced_width (dpi 200)
-         :onButtonRelease props.on-close}
-        (margin 
-          {:letf (dpi 2)
-           :right (dpi 2)
-           :top (dpi 2)
-           :bottom (dpi 2)}
-          (h-fixed
-            (rotate
-              {:direction :east}
-              (background
-                {:fg :white
-                 :bg :#000080}
-                (margin
-                  {:left (dpi 4)
-                   :top (dpi 4)
-                   :bottom (dpi 4)}
-                  (textbox {:markup "Arch Linux Unprofessional"}))))
-            (background
-              {:fg :#000000}
-              (v-fixed
-                (menu-item {:image :shutdown.png
-                            :text :Run...
-                            :on-click #(print :RUN)})
-                (menu-item {:image :shutdown.png
-                            :on-click #(awful.spawn "pkexec systemctl suspend -i")
-                            :text :Shutdown...})))))))))
+  (local hide #(((props.on-close))))
+  (let [popover
+        (popup
+          {:visible props.visible
+           :screen props.screen
+           :placement (fn [c]
+                        (awful.placement.bottom_left
+                          c
+                          {:margins {:bottom (dpi 30)}}))}
+          (margin
+            (xp-frame
+              {:forced_width (dpi 200)
+               :onButtonRelease props.on-close}
+              (margin 
+                {:letf (dpi 2)
+                 :right (dpi 2)
+                 :top (dpi 2)
+                 :bottom (dpi 2)}
+                (h-fixed
+                  (rotate
+                    {:direction :east}
+                    (background
+                      {:fg :white
+                       :bg :#000080}
+                      (margin
+                        {:left (dpi 4)
+                         :top (dpi 4)
+                         :bottom (dpi 4)}
+                        (textbox {:markup "Arch Linux Unprofessional"}))))
+                  (background
+                    {:fg :#000000}
+                    (v-fixed
+                      (menu-item {:image :shutdown.png
+                                  :text :Run...
+                                  :on-click #(print :RUN)})
+                      (menu-item {:image :shutdown.png
+                                  :on-click #(awful.spawn "pkexec systemctl suspend -i")
+                                  :text :Shutdown...}))))))))]
+    (print :props.on-click props.on-close)
+    (effect [props.visible]
+            (if (props.visible)
+              (click-away popover
+                          hide)))
+    popover))
 
 (fn titlebar [screen tag visible]
   (let [cnt (value 0)

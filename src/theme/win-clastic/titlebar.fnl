@@ -70,6 +70,8 @@
 
 ;#d4d0c8
 (fn [client]
+  (tset client :border_color :#d4d0c8)
+  (tset client :border_width (dpi 2))
   (let [buttons (gears.table.join
                   (awful.button [] 1 (fn []
                                        (focus client)

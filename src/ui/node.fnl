@@ -50,6 +50,11 @@
       (if curr
         (widget:disconnect_signal curr)
         (widget:connect_signal event-name cb)))))
+(local events
+  (event-props
+    [
+     [:onButtonPress "button::press"]
+     [:onButtonRelease "button::release"]]))
 
 (local popup
   (container-node
@@ -57,7 +62,7 @@
                     (awful.popup {:widget (wibox.widget {:text ""
                                                          :widget wibox.widget.textbox})
                                   :ontop true
-                                  :visible true})))
+                                  :visible true})) events)
     (fn [child popup]
       (tset popup :widget (. child 1)))))
 (local wibar
@@ -72,11 +77,6 @@
     (fn [child p]
       (tset p :widget (. child 1)))))
 
-(local events
-  (event-props
-    [
-     [:onButtonPress "button::press"]
-     [:onButtonRelease "button::release"]]))
 (local textbox
   (atom-node
     (make-builder (fn [props]

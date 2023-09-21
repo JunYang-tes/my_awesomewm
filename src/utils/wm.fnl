@@ -1,4 +1,6 @@
 (local awful (require :awful))
+(local wibox (require :wibox))
+(local signal (require :utils.signal))
 (local awesome-global (require :awesome-global))
 (local { : find
          : filter
@@ -78,10 +80,27 @@
     :Mod1 :Alt_L
     :Mod2 :Num_Lock
     :Mod4 :Super_L))
+(fn click-away [widget on-click]
+  (var disconnect-signal nil)
+  (let [on-click #(when (not= $1 widget)
+                      (print :click-away)
+                      (pcall on-click)
+                      (disconnect-signal))]
+    (set disconnect-signal
+        (fn []
+          (_G.client.disconnect_signal :button::press on-click)
+          (signal.disconnect-signal :wallpaper::click on-click)
+          (wibox.disconnect_signal :button::press on-click)))
+    (fn connect-signal []
+      (_G.client.connect_signal :button::press on-click)
+      (signal.connect-signal :wallpaper::click on-click)
+      (wibox.connect_signal :button::press on-click))
+    (connect-signal)))
 
 { : on-idle
   : focus
   : focused
+  : click-away
   : get-modkey-name
   : get-focusable-client
   : get-by-direct

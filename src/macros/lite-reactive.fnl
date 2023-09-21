@@ -23,8 +23,6 @@
           (each [_# f# (ipairs dispose#)]
              (f#))))))
 
-     
-  
 
 { : defn
   : unmount
