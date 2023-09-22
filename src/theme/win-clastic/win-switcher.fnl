@@ -40,31 +40,48 @@
 (local {: modkey} (require :const))
 (local keybing (require :utils.key-binding))
 (local {: hybrid} (require :utils.table))
+(fn slice [items index range-length]
+  (let [n (math.floor (/ (- index 1)  range-length))
+        start (+ (* n 1 range-length) 1)
+        end (- (+ start range-length) 1)]
+    (list.slice items start end)))
 (defn win-switcher
-  (let [size (dpi 100)]
+  (let [size (dpi 100)
+        gap (dpi 2)
+        max-width (props.width)
+        item-count (length (props.clients))
+        count-per-row (math.floor (/ max-width (+ size gap)))
+        width (+ (* (+ size gap) (math.min count-per-row
+                                           item-count))
+                 gap)
+        slice (mapn [props.clients props.index]
+                    (fn [[clients index]]
+                      (if (< item-count count-per-row)
+                        clients
+                        (slice clients index count-per-row))))]
     (popup
       {:placement awful.placement.centered
        :visible props.visible}
       (xp-frame
-        {:forced_width (dpi 800)
+        {:forced_width width
          :forced_height (dpi 150)}
         (margin
           {:left (dpi 2)}
           (h-fixed
             {:spacing (dpi 2)}
-            (map-list props.clients
+            (map-list slice
                       #(let [index $2
                              client $1]
                          (place
                            {:valign :center}
                            (background
                                 {:fg (map props.index
-                                          #(if (= $1 index)
+                                          #(if (= (+ 1 (% $1 count-per-row)) (+ index 1))
                                              :white
                                              :black))
                                  :forced_width size
                                  :bg (map props.index
-                                          #(if (= $1 index)
+                                          #(if (= (% (- $1 1) count-per-row) (- index 1))
                                              colors.selected-menu
                                              colors.primary))}
                                 (v-fixed
@@ -85,6 +102,10 @@
     (let [switcher (get tag)]
       (when switcher
         (switcher.visible false))))
+  (fn view-client [clients index]
+    (each [i c (ipairs clients)]
+      (if (= i index)
+        (c:raise))))
   (fn setup-keygrabber [switcher]
     (let [index switcher.index
           visible switcher.visible
@@ -107,10 +128,11 @@
         (awful.keygrabber
                 {
                  :keypressed_callback (fn [_ mod key]
-                                        (if (= key :Tab)
+                                        (when (= key :Tab)
                                           (if (list.some mod #(= $1 :Shift))
                                             (set-index :dec)
-                                            (set-index :inc))))
+                                            (set-index :inc))
+                                          (view-client (clients) (index))))
                  :stop_key modkey
                  :stop_event :release
                  :autostart true
@@ -146,6 +168,7 @@
                   (win-switcher
                     {: visible
                      : clients
+                     :width tag.screen.geometry.width
                      : index
                      :on-hide #(visible false)}))
                 switcher {: visible : widget
