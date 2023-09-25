@@ -43,6 +43,12 @@
                     :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))}}
+    {:rule_any { :class [:kitty]}
+     :callback (fn [c]
+                 (if (= c.first_tag.layout.name :floating)
+                   (do
+                     (let [y (+ c.y 30)]
+                       (tset c :y y)))))}
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
@@ -59,5 +65,6 @@
                    :ontop true
                    :keys key-bindings
                    :titlebar   true
+                   :titlebars_enabled true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)
                    :floating true}}])

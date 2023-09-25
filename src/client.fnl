@@ -52,10 +52,12 @@
       (each [_ v (ipairs clients)]
             (normalize-client v))))
 
+;; Add titlebar for floating tag client
 (awesome-global.client.connect_signal
   :manage
   (let [handlers-for-layout
         {:floating (fn [client]
+                     (tset client :titlebars_enabled true)
                      (tset client :titlebar true))
          :tile (fn [client]
                 (move-chrome-devtools client)
@@ -82,6 +84,7 @@
   (fn [c]
     (tset c :minimized false)
     (c:jump_to)))
+
 (awesome-global.client.connect_signal
   "property::titlebar"
   (fn [c]
