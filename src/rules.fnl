@@ -43,11 +43,14 @@
                     :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))}}
-    {:rule_any { :class [:kitty]}
+    ;; If a client's size hints is static, when floating, the title bar is out of screen
+    ;; don't know why. move it down a little bit.
+    {:rule {}
      :callback (fn [c]
-                 (if (= c.first_tag.layout.name :floating)
+                 (if (and (= c.first_tag.layout.name :floating)
+                          (= c.size_hints.win_gravity :static))
                    (do
-                     (let [y (+ c.y 30)]
+                     (let [y (+ c.y 40)]
                        (tset c :y y)))))}
     ;; Floating
     { :rule_any {

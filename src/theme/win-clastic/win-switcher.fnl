@@ -48,7 +48,9 @@
 (defn win-switcher
   (let [size (dpi 100)
         gap (dpi 2)
-        max-width (props.width)
+        max-width (. (props.screen)
+                     :geometry
+                     :width)
         item-count (length (props.clients))
         count-per-row (math.floor (/ max-width (+ size gap)))
         width (+ (* (+ size gap) (math.min count-per-row
@@ -61,6 +63,7 @@
                         (slice clients index count-per-row))))]
     (popup
       {:placement awful.placement.centered
+       :screen props.screen
        :visible props.visible}
       (xp-frame
         {:forced_width width
@@ -168,7 +171,7 @@
                   (win-switcher
                     {: visible
                      : clients
-                     :width tag.screen.geometry.width
+                     :screen tag.screen
                      : index
                      :on-hide #(visible false)}))
                 switcher {: visible : widget
