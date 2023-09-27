@@ -51,13 +51,15 @@
         max-width (. (props.screen)
                      :geometry
                      :width)
-        item-count (length (props.clients))
+        item-count (map props.clients #(length $1));(length (props.clients))
         count-per-row (math.floor (/ max-width (+ size gap)))
-        width (+ (* (+ size gap) (math.min count-per-row
+        width (map item-count
+                  (fn [item-count]
+                    (+ (* (+ size gap) (math.min count-per-row
                                            item-count))
-                 gap)
-        slice (mapn [props.clients props.index]
-                    (fn [[clients index]]
+                       gap)))
+        slice (mapn [props.clients props.index item-count]
+                    (fn [[clients index item-count]]
                       (if (< item-count count-per-row)
                         clients
                         (slice clients index count-per-row))))]
@@ -128,24 +130,26 @@
                                    n)))]
                 (index new)))
       (if (visible)
-        (awful.keygrabber
-                {
-                 :keypressed_callback (fn [_ mod key]
-                                        (when (= key :Tab)
-                                          (if (list.some mod #(= $1 :Shift))
-                                            (set-index :dec)
-                                            (set-index :inc))
-                                          (view-client (clients) (index))))
-                 :stop_key modkey
-                 :stop_event :release
-                 :autostart true
-                 :stop_callback #(do
-                                   (visible false)
-                                   (let [c (. (clients) (index))]
-                                     (when c
-                                       (previous-client _G.client.focus)
-                                       (focus c)
-                                       (c:raise))))}))))
+        (do
+          (view-client (clients) 1)
+          (awful.keygrabber
+                  {
+                   :keypressed_callback (fn [_ mod key]
+                                          (when (= key :Tab)
+                                            (if (list.some mod #(= $1 :Shift))
+                                              (set-index :dec)
+                                              (set-index :inc))
+                                            (view-client (clients) (index))))
+                   :stop_key modkey
+                   :stop_event :release
+                   :autostart true
+                   :stop_callback #(do
+                                     (visible false)
+                                     (let [c (. (clients) (index))]
+                                       (when c
+                                         (previous-client _G.client.focus)
+                                         (focus c)
+                                         (c:raise))))})))))
   (fn show [tag]
     (when (= tag.layout awful.layout.suit.floating)
       (let [switcher (get tag)]
