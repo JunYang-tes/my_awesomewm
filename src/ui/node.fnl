@@ -54,6 +54,8 @@
   (event-props
     [
      [:onButtonPress "button::press"]
+     [:onMouseEnter "mouse::enter"]
+     [:onMouseLeave "mouse::leave"]
      [:onButtonRelease "button::release"]]))
 
 (local popup

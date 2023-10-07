@@ -109,7 +109,9 @@
         (switcher.visible false))))
   (fn view-client [clients index]
     (each [i c (ipairs clients)]
-      (if (= i index)
+      (when (= i index)
+        (if c.minimized
+          (tset c :minimized false))
         (c:raise))))
   (fn setup-keygrabber [switcher]
     (let [index switcher.index
