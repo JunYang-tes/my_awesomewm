@@ -126,7 +126,7 @@
         (cr:rectangle
           0 0 w h)
         (cr:fill)
-        (draw-border false cr w h BORDER_WIDTH)
+        (draw-border false cr w h (or widget.border-width BORDER_WIDTH))
         (if draw
           (draw context cr w h state.pressed)))
       (fn draw-pressed [context cr w h]
@@ -134,7 +134,7 @@
         (cr:rectangle
           0 0 w h)
         (cr:fill)
-        (draw-border true cr w h BORDER_WIDTH)
+        (draw-border true cr w h (or widget.border-width BORDER_WIDTH))
         (if draw
           (draw context cr w h state.pressed)))
       (tset widget :draw

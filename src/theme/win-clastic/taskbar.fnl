@@ -274,7 +274,8 @@
                  :left (dpi 2)
                  :right (dpi 2)}
                 (button
-                  {:pressed true}
+                  {:pressed true
+                   :border-width 1}
                   (background
                     {:fg :#000}
                     (h-fixed
