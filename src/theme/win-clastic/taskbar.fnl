@@ -99,7 +99,7 @@
   (button
     {
      :pressed focused
-     :forced_width 250
+     :forced_width (dpi 180)
      :onMouseEnter (fn []
                      (when timer-id
                        (timer.clear-timeout timer-id))

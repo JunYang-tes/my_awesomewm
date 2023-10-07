@@ -19,6 +19,7 @@
 (local {: dpi } (require :utils.wm))
 (local { : atom-node}
        (require :lite-reactive.node))
+(local BORDER_WIDTH 1.5)
 
 (fn polygon [cr points]
   (let [[first & rest] points]
@@ -42,6 +43,7 @@
                 [[0  "#0a246a"] [1.0 "#a6caf0"]]
                 [[0  "#808080"] [1.0 "#bfbfbf"]])}))
   (let [white (gears.color :#ebebeb)
+        border-width (dpi border-width)
         [left-top right-bottom] (if depressed?
                                   [(gears.color :#363535)
                                    white]
@@ -83,7 +85,7 @@
             (cr:rectangle
               0 0 width height)
             (cr:fill)
-            (draw-border false cr width height 2)))
+            (draw-border false cr width height BORDER_WIDTH)))
     (tset widget :layout
           (fn [_ _ w h]
             (let [child (get-child)]
@@ -124,7 +126,7 @@
         (cr:rectangle
           0 0 w h)
         (cr:fill)
-        (draw-border false cr w h 2.5)
+        (draw-border false cr w h BORDER_WIDTH)
         (if draw
           (draw context cr w h state.pressed)))
       (fn draw-pressed [context cr w h]
@@ -132,7 +134,7 @@
         (cr:rectangle
           0 0 w h)
         (cr:fill)
-        (draw-border true cr w h 2.5)
+        (draw-border true cr w h BORDER_WIDTH)
         (if draw
           (draw context cr w h state.pressed)))
       (tset widget :draw
