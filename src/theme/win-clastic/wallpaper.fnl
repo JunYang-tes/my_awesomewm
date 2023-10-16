@@ -41,8 +41,8 @@
                     (let [surf (gears.surface.load path)
                           (sw sh) (gears.surface.get_size surf)]
                       (cr:scale
-                        (/ sw screen-w)
-                        (/ sh screen-h))
+                        (/ screen-w sw)
+                        (/ screen-h sh))
                       (cr:set_source_surface surf 0 0)
                       (tset cr :operator
                             cairo.Operator.SOURCE)

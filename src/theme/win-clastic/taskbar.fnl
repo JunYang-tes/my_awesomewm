@@ -12,6 +12,8 @@
         : mapn} (require :lite-reactive.observable))
 (local wibox (require :wibox))
 (local inspect (require :inspect))
+(local {: spawn} (require :awful))
+(local consts (require :const))
 (local {: wibar
         : textbox
         : textclock
@@ -210,6 +212,12 @@
                   (background
                     {:fg :#000000}
                     (v-fixed
+                      (menu-item {:image :explorer.png
+                                  :text "My computer"
+                                  :on-click #(spawn consts.filemanager)})
+                      (menu-item {:image :cmd.png
+                                  :text :Terminal
+                                  :on-click #(spawn consts.terminal)})
                       (menu-item {:image :shutdown.png
                                   :text :Run...
                                   :on-click #(print :RUN)})
