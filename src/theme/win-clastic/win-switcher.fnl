@@ -93,7 +93,11 @@
                                   (place
                                     (imagebox {:forced_height (* size 0.7)
                                                :forced_height (* size 0.7)
-                                               :image (client:get_icon 1)}))
+                                               :image (let [(ok r) (pcall client.get_icon 
+                                                                    client
+                                                                    1)]
+                                                        (when ok
+                                                          r))}))
                                   (place
                                     (textbox {:markup client.name
                                               :forced_height (dpi 20)})))))))))))))
