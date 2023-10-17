@@ -113,7 +113,7 @@
                             (if c.minimized
                               (tset c :minimized false))
                             (c:raise))
-                         1)))
+                         3)))
      :onMouseLeave (fn []
                      (when timer-id
                        (timer.clear-timeout timer-id)))
