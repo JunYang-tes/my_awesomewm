@@ -191,7 +191,7 @@
            (let [layout (or (. map tag)
                             awful.layout.suit.tile)]
              (awful.layout.set layout)
-             (signal.emit :layout:un-floating tag)))
+             (signal.emit :layout::un-floating tag)))
          (fn turn-to-floating [tag]
            (tset map tag tag.layout)
            (awful.layout.set awful.layout.suit.floating)

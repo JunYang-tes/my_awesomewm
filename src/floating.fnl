@@ -2,6 +2,7 @@
 (local awful (require :awful))
 (local {: taskbar
         : set-wallpaper} (require :theme.components))
+(local {: save-tags} (require :tag))
 
 (signal.connect-signal
   :tag::unselect
@@ -16,9 +17,11 @@
 (signal.connect-signal
   :layout::floating
   (fn [tag]
+    (save-tags)
     (set-wallpaper tag)
     (taskbar.show tag)))
 (signal.connect-signal
   :layout::un-floating
   (fn [tag]
+    (save-tags)
     (taskbar.hide tag)))
