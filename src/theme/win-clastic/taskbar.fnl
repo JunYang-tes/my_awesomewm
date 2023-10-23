@@ -92,11 +92,20 @@
 
 (defn client-item
   (local focused (value false))
-  (let [c (props.client)]
-    (c:connect_signal "unfocus"
-                      #(focused false))
-    (c:connect_signal "focus"
-                      #(focused true)))
+  (local name (value (. (props.client) :name)))
+  (effect [props.client]
+          (fn rename []
+            (name (. (props.client) :name)))
+          (fn unfocus [] (focused false))
+          (fn focus [] 
+            (focused true))
+          (let [client (props.client)]
+            (client:connect_signal :unfocus unfocus)
+            (client:connect_signal :focus focus)
+            (client:connect_signal :property::name rename)
+            (fn []
+              (client:disconnect_signal :unfocus unfocus)
+              (client:disconnect_signal :focus focus))))
   (var timer-id nil)
   (button
     {
@@ -136,8 +145,7 @@
             (client-icon {:client props.client}))))
       (background
         {:fg :black}
-        (textbox {:markup (map props.client
-                               #(. $1 :name))})))))
+        (textbox {:markup name})))))
 
 (defn clients
   (let [tag (props.tag)

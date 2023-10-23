@@ -17,8 +17,17 @@
   (let [run-effect `(fn [])]
     (each [_ e (ipairs [...])]
       (table.insert run-effect e))
-    `(let [dispose# (icollect [_# k# (ipairs ,obs)]
-                       (k#.add-observer ,run-effect))]
+    `(let [noop# (fn [])
+           effect-clearup# {:clear noop#}
+           observer# (fn [...]
+                         (effect-clearup#.clear)
+                         (tset effect-clearup# :clear noop#)
+                         (let [ret# (,run-effect)]
+                           (if (= (type ret#) :function)
+                             (tset effect-clearup# :clear ret#))))
+           dispose# (icollect [_# k# (ipairs ,obs)]
+                       (k#.add-observer observer#))]
+        (observer#)
         (unmount
           (each [_# f# (ipairs dispose#)]
              (f#))))))
