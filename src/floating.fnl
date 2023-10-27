@@ -25,3 +25,23 @@
   (fn [tag]
     (save-tags)
     (taskbar.hide tag)))
+(signal.connect-signal
+  :client::fullscreen
+  (fn [client]
+    (print :fullscreen)
+    (print :fullscreen)
+    (print :fullscreen)
+    (print :fullscreen)
+    (let [tag client.first_tag]
+      (print :============ tag.layout.name)
+      (when (= tag.layout.name
+               :floating)
+        (taskbar.hide tag)))))
+(signal.connect-signal
+  :client::unfullscreen
+  (fn [client]
+    (print :unfullscreen)
+    (let [tag client.first_tag]
+      (when (= tag.layout.name
+               :floating)
+        (taskbar.show tag)))))

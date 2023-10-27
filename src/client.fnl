@@ -12,6 +12,7 @@
         : create} (require :tag))
 (local default-titlebar (require :title-bars.default))
 (local win-clastic (require :title-bars.win-clastic))
+(local signal (require :utils.signal))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal)
@@ -96,6 +97,11 @@
 (awesome-global.client.connect_signal 
   :manage
   (fn [client]
+    (client:connect_signal :property::fullscreen
+                            (fn [client]
+                              (if client.fullscreen
+                                (signal.emit :client::fullscreen client)
+                                (signal.emit :client::unfullscreen client))))
     (if (= nil client.first_tag)
       (set client.first_tag
            (let [screen client.screen]
