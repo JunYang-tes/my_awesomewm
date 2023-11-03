@@ -9,7 +9,7 @@
 ![](./screenshots/labelled-win.png)
 
 **Floating layout with windows clastic theme**
-!![](./screenshots/floating.png)
+![](./screenshots/floating.png)
 
 **Command palette**
 ![](./screenshots/command-palette.png)
