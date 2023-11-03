@@ -11,6 +11,8 @@
 (local {: switch-tag
         : create} (require :tag))
 (local default-titlebar (require :title-bars.default))
+(local win-clastic (require :title-bars.win-clastic))
+(local signal (require :utils.signal))
 
 (fn normalize-client [client]
   (if (or client.fullscreen client.maximized client.maximized_vertical client.maximized_horizontal)
@@ -33,59 +35,79 @@
           (do
             (client:move_to_tag tag)
             (switch-tag tag))))))
+(fn [client]
+  (move-chrome-devtools client)
+  (local tag client.first_tag)
+   ;; When a client exited,select a client in the same tag focus to it
+  (client:connect_signal :unmanage
+                         (fn [client] 
+                           (if (or (= client awesome-global.client.focus)
+                                   (= awesome-global.client.focus nil))
+                             (wm.focus (wm.get-focusable-client tag)))))
+  (local clients (-> client
+                   (. :first_tag)
+                   (: :clients)))
 
-(awesome-global.client.connect_signal :manage
-  (fn [client]
-    (move-chrome-devtools client)
-    (local tag client.first_tag)
-     ;; When a client exited,select a client in the same tag focus to it
-    (client:connect_signal :unmanage
-                           (fn [client] 
-                             (if (or (= client awesome-global.client.focus)
-                                     (= awesome-global.client.focus nil))
-                               (wm.focus (wm.get-focusable-client tag)))))
-    (local clients (-> client
-                     (. :first_tag)
-                     (: :clients)))
+  (if (and (= client.type :normal)
+           (not= client.role :prompt))
+      (each [_ v (ipairs clients)]
+            (normalize-client v))))
 
-    (if (and (= client.type :normal)
-             (not= client.role :prompt))
-        (each [_ v (ipairs clients)]
-              (normalize-client v)))))
+;; Add titlebar for floating tag client
+(awesome-global.client.connect_signal
+  :manage
+  (let [handlers-for-layout
+        {:floating (fn [client]
+                     (tset client :titlebars_enabled true)
+                     (tset client :titlebar true))
+         :tile (fn [client]
+                (move-chrome-devtools client)
+                (local tag client.first_tag)
+                 ;; When a client exited,select a client in the same tag focus to it
+                (client:connect_signal :unmanage
+                                       (fn [client] 
+                                         (if (or (= client awesome-global.client.focus)
+                                                 (= awesome-global.client.focus nil))
+                                           (wm.focus (wm.get-focusable-client tag)))))
+                (local clients (-> client
+                                 (. :first_tag)
+                                 (: :clients))))}]
+
+    (fn [client]
+      (let [tag client.first_tag
+            layout (. tag :layout :name)
+            handler (. handlers-for-layout layout)]
+        (if handler
+          (handler client))))))
 
 (awesome-global.client.connect_signal
   "property::urgent"
   (fn [c]
     (tset c :minimized false)
     (c:jump_to)))
+
 (awesome-global.client.connect_signal
   "property::titlebar"
   (fn [c]
-    (print :????)
     (if c.titlebar
-      (default-titlebar c))))
+      (win-clastic c)
+      ;(default-titlebar c)
+      (awful.titlebar.hide c))))
 
 (awesome-global.client.connect_signal 
   :manage
   (fn [client]
+    (client:connect_signal :property::fullscreen
+                            (fn [client]
+                              (if client.fullscreen
+                                (signal.emit :client::fullscreen client)
+                                (signal.emit :client::unfullscreen client))))
     (if (= nil client.first_tag)
       (set client.first_tag
            (let [screen client.screen]
              (create { :name "(Anonymous)"
                        :screen screen
                        :selected true}))))))
-
-
-; (awesome-global.client.connect_signal
-;   :focus (fn [client]
-;            (let [fullscreen client.fullscreen]
-;              ;; don't know why set ontop to true will close fullscreen
-;             (tset client :above true)
-;             (tset client :fullscreen fullscreen))))
-; (awesome-global.client.connect_signal
-;   :unfocus (fn [client]
-;             (tset client :above false)))
-
 
 (fn focus-by-direction [dir]
   (let [client awesome-global.client.focus

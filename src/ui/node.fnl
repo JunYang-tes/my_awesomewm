@@ -50,6 +50,13 @@
       (if curr
         (widget:disconnect_signal curr)
         (widget:connect_signal event-name cb)))))
+(local events
+  (event-props
+    [
+     [:onButtonPress "button::press"]
+     [:onMouseEnter "mouse::enter"]
+     [:onMouseLeave "mouse::leave"]
+     [:onButtonRelease "button::release"]]))
 
 (local popup
   (container-node
@@ -57,15 +64,21 @@
                     (awful.popup {:widget (wibox.widget {:text ""
                                                          :widget wibox.widget.textbox})
                                   :ontop true
-                                  :visible true})))
+                                  :visible true})) events)
     (fn [child popup]
       (tset popup :widget (. child 1)))))
+(local wibar
+  (container-node
+    (make-builder (fn [props]
+                    (print (inspect props))
+                    (awful.wibar
+                      {:widget (wibox.widget {:text ""
+                                              :widget wibox.widget.textbox})
+                       :height props.height
+                       :position :bottom})))
+    (fn [child p]
+      (tset p :widget (. child 1)))))
 
-(local events
-  (event-props
-    [
-     [:onButtonPress "button::press"]
-     [:onButtonRelease "button::release"]]))
 (local textbox
   (atom-node
     (make-builder (fn [props]
@@ -73,15 +86,29 @@
                   events)
     :textbox))
 
-(fn one-child-container [Ctor]
+(fn one-child-container [Ctor props-setter]
   (container-node
-    (make-builder #(Ctor))
+    (make-builder #(Ctor) props-setter)
     (fn [child container]
-      (print :set-child)
+      (if container.set_child
+        (container:set_child (. child 1)))
       (tset container :widget (. child 1)))))
 
 {: popup
  : textbox
+ : wibar
+ : events
+ : make-builder
+ :textclock (atom-node
+              (make-builder #(wibox.widget.textclock)))
+ :factory {: one-child-container}
+ :imagebox (atom-node
+             (make-builder
+               #(wibox.widget
+                  {:widget wibox.widget.imagebox})))
+ :client-icon (atom-node
+                (make-builder
+                  #(awful.widget.clienticon (. $1 :client))))
  :checkbox (atom-node
              (make-builder #(wibox.widget
                               {:widget wibox.widget.checkbox
@@ -91,6 +118,8 @@
  :button (atom-node
            (make-builder #(awful.widget.button)
                          events))
+ :systray (atom-node
+            (make-builder #(wibox.widget.systray)))
  :progress-bar (atom-node
                  (make-builder #(wibox.widget
                                   {:widget
@@ -114,12 +143,22 @@
            (fn [children container]
              (tset container :children children)))
  :place (one-child-container wibox.container.place)
+ :constraint (one-child-container wibox.container.constraint)
+ :rotate (one-child-container wibox.container.rotate)
+ :h-align (container-node
+           (make-builder #(wibox.layout.align.horizontal))
+           (fn [children container]
+             (tset container :children children)))
+ :v-align (container-node
+           (make-builder #(wibox.layout.align.vertical))
+           (fn [children container]
+             (tset container :children children)))
  :v-flex (container-node
            (make-builder #(wibox.layout.flex.vertical))
            (fn [children container]
              (tset container :children children)))
  :h-fixed (container-node
-            (make-builder #(wibox.layout.fixed.horizontal))
+            (make-builder #(wibox.layout.fixed.horizontal) events)
             (fn [children container]
               (tset container :children children)))
  :v-fixed (container-node

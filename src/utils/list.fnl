@@ -150,9 +150,15 @@
     (if (> (length collecting) 0)
         (table.insert splited collecting))
     splited))
+(fn slice [list start end]
+  (let [r []]
+    (for [i start end]
+      (table.insert r (. list i)))
+    r))
 
 {
   : filter
+  : slice
   : map
   : some
   : every

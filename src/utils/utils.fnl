@@ -38,9 +38,17 @@
   (not= (string.match s "[A-Z]")
         nil))
 
+(fn get-codebase-dir []
+  (let [config-path (os.getenv "AWESOME_CONFIG")]
+    (if (not config-path)
+        (error "AWESOME_CONFIG not set"))
+    (.. config-path
+        "/lua")))
+
 {: not-nil
  : catch
  : is-number
  : is-digital
+ : get-codebase-dir
  : is-uppercase
  : memoed}

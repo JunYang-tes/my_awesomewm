@@ -8,6 +8,7 @@
 (local awful (require :awful))
 (local inspect (require :inspect))
 (local modkey "Mod4")
+(require :floating)
 (local tag (require :tag))
 (local {: tag-untaged} (require :client))
 (local wp (require :utils.wallpapers))

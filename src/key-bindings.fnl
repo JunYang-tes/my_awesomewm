@@ -6,6 +6,7 @@
 (local awesome-global (require :awesome-global))
 (local {: terminal : modkey} (require :const))
 (local tag (require :tag))
+(local {: save-tags} tag)
 (local {: range
         : find} (require :utils.list))
 (local wibox  (require :wibox))
@@ -15,10 +16,20 @@
 (local naughty (require :naughty))
 (local {: tag-untaged} (require :client))
 (local cmd-palette (require :command-palette.palette))
-(local mouse (require :mouse.main))
+(local mouse (let [(ok? data) (pcall #(require :mouse.main))]
+               (if ok?
+                 data
+                 {:run (fn [] (print (.. "Failed to load mouse module,internal error is :"
+                                         (tostring data))))})))
 (local {: view-tag } (require :command-palette.tag))
 (local {: applications } (require :command-palette.applications))
 (local jd (require :components.jd))
+(local wm (require :utils.wm))
+(local {: weak-key-table} (require :utils.table))
+(local win-clastic-taskbar (require :theme.win-clastic.taskbar))
+(local signal (require :utils.signal))
+(local {: win-switcher} (require :theme.components))
+(local inspect (require :inspect))
 
 
 (fn run-lua []
@@ -91,17 +102,20 @@
          :group "client"})
   (key [modkey "Shift"] "f" (fn []
                              (local client awesome-global.client.focus)
-                             (if client
-                               (do
-                                 (print :toggle-fullscreen)
+                             (when client
+                               (if (= client.first_tag.layout awful.layout.suit.floating)
+                                 (set client.maximized (not client.maximized))
                                  (set client.fullscreen (not client.fullscreen)))))
-                            (print :no-client??)
        { :description "Focus window"
          :group "client"})
   (key [modkey] "s" swap-win)
   (key [modkey "Control"] "u" awful.client.urgent.jmpto
        { :description "jump to urgent client"
          :group "client"})
+  (key [modkey] "Tab"
+       (fn []
+         (win-switcher.show
+           (wm.get-current-tag))))
   (key [modkey "Control"] "Tab"
        (fn []
          (awful.client.focus.history.previous)
@@ -171,6 +185,25 @@
   (key [modkey "Shift"] "d" toggle-desktop
        { :description "Toggle desktop"
          :group "awesome"})
+  (key [modkey "Shift"] "space"
+       (let [map (weak-key-table)]
+         (fn restore-layout [tag]
+           (let [layout (or (. map tag)
+                            awful.layout.suit.tile)]
+             (awful.layout.set layout)
+             (signal.emit :layout::un-floating tag)))
+         (fn turn-to-floating [tag]
+           (tset map tag tag.layout)
+           (awful.layout.set awful.layout.suit.floating)
+           (save-tags)
+           (signal.emit :layout::floating tag))
+         (fn []
+           (let [tag (wm.get-current-tag)]
+             (if (= tag.layout awful.layout.suit.floating)
+               (restore-layout tag)
+               (turn-to-floating tag))))))
+         ; (awful.layout.set
+         ;    awful.layout.suit.floating)))
   (key [modkey] :m mouse.run
        {:description :mouse
         :group :awesome}))

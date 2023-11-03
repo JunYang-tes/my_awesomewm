@@ -18,6 +18,7 @@
 (local screen-utils (require :utils.screen))
 (local {: select-item } (require :ui.select))
 (local list (require :utils.list))
+(local titlebar (require :title-bars.init))
 
 (fn save-tags []
   (fn save []
@@ -26,6 +27,7 @@
     (-> (root.tags)
       (map (fn [t] {:name t.name
                     :selected t.selected
+                    :floating (= t.layout awful.layout.suit.floating)
                     :screen (.. "interface:" (parse-interface t.screen))}))
       mk-cfg
       (cfg.save-cfg :tag)))
@@ -54,6 +56,18 @@
       (if tag.selected
         (wm.focus (get-focus tag))))))
 
+(fn handle-layout-change [tag]
+  (if (= tag.layout awful.layout.suit.floating)
+    ;; display title bar for floating layout
+    (each [_ c (ipairs (tag:clients))]
+      (let [titlebar-height (titlebar.get-title-height)]
+        (tset c :height (- c.height titlebar-height))
+        (tset c :y (+ c.y titlebar-height)))
+      (tset c :titlebar true))
+    (each [_ c (ipairs (tag:clients))]
+      (if (not c.floating)
+        (tset c :titlebar false)))))
+
 (fn create [tag-info]
   (local tag-info (or tag-info {:name "(Anonymous)"
                                 :screen ":focused"
@@ -64,7 +78,9 @@
                       :screen (if (is-screen tag-info.screen)
                                   tag-info.screen
                                   (get-prefered-screen tag-info.screen))
-                      :layout awful.layout.suit.tile}))
+                      :layout (if tag-info.floating
+                                awful.layout.suit.floating
+                                awful.layout.suit.tile)}))
   (t:connect_signal "property::selected" handle-switch-tag-focus)
   (t:connect_signal "property::selected"
     (fn [tag]
@@ -72,10 +88,18 @@
         (do
           (signal.emit "tag::selected" tag)
           (save-tags)
-          (awful.screen.focus tag.screen)))))
+          (awful.screen.focus tag.screen))
+        (signal.emit "tag::unselect" tag))))
+  (t:connect_signal "property::layout" handle-layout-change)
   (save-tags)
   (if tag-info.selected
-    (t:view_only))
+    (do
+     (t:view_only)
+     (wm.on-idle
+       #(do
+          (when tag-info.floating
+            (signal.emit :layout::floating t))
+          (signal.emit "tag::selected" t)))))
   t)
 
 (fn name-tag []
@@ -154,13 +178,13 @@
 (fn init []
   (let [ def-tags (icollect [k _ (pairs (screen-utils.get-screens))]
                     {:name "Default"
+                     :floating false
                      :screen (.. "interface:" k)})
         tag-config (cfg.load-cfg :tag {
                                        :tags def-tags})
         tags (if (= 0 (length tag-config.tags))
                 def-tags
                 tag-config.tags)]
-        
     (each [_ tag-info (ipairs tags)]
       (create tag-info))
     (each [k screen (pairs (screen-utils.get-screens))]
@@ -187,6 +211,7 @@
 
 { : create
   : delete
+  : save-tags
   : init
   : name-tag
   : switch-tag

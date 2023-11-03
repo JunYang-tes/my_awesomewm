@@ -43,6 +43,15 @@
                     :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))}}
+    ;; If a client's size hints is static, when floating, the title bar is out of screen
+    ;; don't know why. move it down a little bit.
+    {:rule {}
+     :callback (fn [c]
+                 (if (and (= c.first_tag.layout.name :floating)
+                          (= c.size_hints.win_gravity :static))
+                   (do
+                     (let [y (+ c.y 40)]
+                       (tset c :y y)))))}
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
@@ -59,5 +68,6 @@
                    :ontop true
                    :keys key-bindings
                    :titlebar   true
+                   :titlebars_enabled true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)
                    :floating true}}])

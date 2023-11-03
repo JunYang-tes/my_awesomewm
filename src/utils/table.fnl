@@ -28,11 +28,15 @@
         (tset a k v)
         (tset b k v)))
     [a b]))
+(fn keys [tbl]
+  (icollect [_ v (pairs tbl)]
+    v))
 
 { : assign!
   : assign 
   : hybrid
   : partition
+  : keys
   : weak-table
   : weak-key-table
   : weak-value-table}
