@@ -228,9 +228,9 @@
                                   :on-click #(spawn consts.terminal)})
                       (menu-item {:image :shutdown.png
                                   :text :Run...
-                                  :on-click #(print :RUN)})
+                                  :on-click #(awful.spawn [:sh :-c "shutdown now"])})
                       (menu-item {:image :shutdown.png
-                                  :on-click #(awful.spawn "pkexec systemctl suspend -i")
+                                  :on-click #(awful.spawn ["sh" "-c" "pkexec systemctl suspend -i"])
                                   :text :Shutdown...}))))))))]
     (print :props.on-click props.on-close)
     (effect [props.visible]
