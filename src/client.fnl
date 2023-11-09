@@ -35,23 +35,6 @@
           (do
             (client:move_to_tag tag)
             (switch-tag tag))))))
-(fn [client]
-  (move-chrome-devtools client)
-  (local tag client.first_tag)
-   ;; When a client exited,select a client in the same tag focus to it
-  (client:connect_signal :unmanage
-                         (fn [client] 
-                           (if (or (= client awesome-global.client.focus)
-                                   (= awesome-global.client.focus nil))
-                             (wm.focus (wm.get-focusable-client tag)))))
-  (local clients (-> client
-                   (. :first_tag)
-                   (: :clients)))
-
-  (if (and (= client.type :normal)
-           (not= client.role :prompt))
-      (each [_ v (ipairs clients)]
-            (normalize-client v))))
 
 ;; Add titlebar for floating tag client
 (awesome-global.client.connect_signal
@@ -71,7 +54,11 @@
                                            (wm.focus (wm.get-focusable-client tag)))))
                 (local clients (-> client
                                  (. :first_tag)
-                                 (: :clients))))}]
+                                 (: :clients)))
+                (if (and (= client.type :normal)
+                         (not= client.role :prompt))
+                  (each [_ v (ipairs clients)]
+                        (normalize-client v))))}]
 
     (fn [client]
       (let [tag client.first_tag
@@ -107,7 +94,10 @@
            (let [screen client.screen]
              (create { :name "(Anonymous)"
                        :screen screen
-                       :selected true}))))))
+                       :selected true}))))
+    (let [tag client.first_tag]
+      (when (not= tag.layout.name :floating)
+        (normalize-client)))))
 
 (fn focus-by-direction [dir]
   (let [client awesome-global.client.focus
