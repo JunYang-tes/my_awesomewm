@@ -65,7 +65,10 @@
       :properties {
                    :border_width 1
                    :raise true
-                   :ontop true
+                   :ontop (fn [client]
+                            (let [tag client.first_tag]
+                              ;Don't set ontop if current tag layout is floating
+                              (not (= tag.layout.name :floating))))
                    :keys key-bindings
                    :titlebar   true
                    :titlebars_enabled true
