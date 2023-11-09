@@ -228,6 +228,7 @@
     (awesome.connect_signal
       :systray::update
       #(do
+         (widget:emit_signal :widget::layout_changed)
          (widget:emit_signal :widget::redraw_needed)))
     (tset widget :set_size
           (fn [_ size]
@@ -259,7 +260,7 @@
             (let [awesome _G.awesome
                   size (widget:get_size)
                   (num_entries) (awesome.systray)]
-              (values (* size 2)
+              (values (* size (or num_entries 2))
                       size))))
     widget))
 (local systray
