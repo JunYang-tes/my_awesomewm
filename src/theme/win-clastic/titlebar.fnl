@@ -62,8 +62,7 @@
               (cr:fill)))
       (client:connect_signal :focus
                              (fn []
-                               (widget:emit_signal :widget::redraw_needed)
-                               (print :FFFFF)))
+                               (widget:emit_signal :widget::redraw_needed)))
       widget)))
 
 
