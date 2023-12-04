@@ -58,7 +58,8 @@
                 (if (and (= client.type :normal)
                          (not= client.role :prompt))
                   (each [_ v (ipairs clients)]
-                        (normalize-client v))))}]
+                    (when (not= v client)
+                      (normalize-client v)))))}]
 
     (fn [client]
       (let [tag client.first_tag
