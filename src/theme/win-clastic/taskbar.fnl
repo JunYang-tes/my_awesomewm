@@ -111,21 +111,6 @@
     {
      :pressed focused
      :forced_width (dpi 180)
-     :onMouseEnter (fn []
-                     (when timer-id
-                       (timer.clear-timeout timer-id))
-                     ;; hover to raise this client
-                     ;; is convenient for user to drag something into this client
-                     (set timer-id
-                       (timer.set-timeout
-                         #(let [c (props.client)]
-                            (if c.minimized
-                              (tset c :minimized false))
-                            (c:raise))
-                         3)))
-     :onMouseLeave (fn []
-                     (when timer-id
-                       (timer.clear-timeout timer-id)))
      :onButtonPress (fn []
                       (let [c (props.client)]
                         (if (not= awesome-global.client.focus c)
