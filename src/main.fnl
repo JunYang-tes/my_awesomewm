@@ -23,6 +23,12 @@
   (local ks (require :key-bindings))
   (root.keys ks))
 
+(print
+  (pcall #(do
+            (let [m (require :widgets)]
+              (print
+                (m.hello :hello))))))
+
 ;; TODO
 ;; move focus
 ;; search key

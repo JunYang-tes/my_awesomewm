@@ -3,6 +3,7 @@ local function boot()
   local gears = require("gears")
   pcall(require, "luarocks.loader")
   package.path = os.getenv("AWESOME_LUA_PATH") .. package.path
+  package.cpath = os.getenv("AWESOME_CONFIG") .. "/lua/?.so;" .. package.cpath
   require("main")
 end
 local ok, err = pcall(boot)
