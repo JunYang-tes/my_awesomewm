@@ -10,3 +10,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 mlua={version ="0.9.1",features=["lua53","module"]}
+cairo-rs ={version="0.18.2",features=["xcb","svg"]}
+xcb = "1.2.2"
+once_cell = "1.18.0"
+
