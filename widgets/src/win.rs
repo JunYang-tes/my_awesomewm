@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{cell::RefCell, sync::Arc};
 
 use cairo::*;
 use mlua::prelude::*;
@@ -6,6 +6,7 @@ use once_cell::sync::Lazy;
 use xcb::x;
 struct Win {
     window: xcb::x::Window,
+    root: RefCell<Option<std::rc::Rc<crate::widgets::Node>>>,
 }
 struct Context {
     connection: std::sync::Arc<xcb::Connection>,
@@ -53,7 +54,7 @@ impl Context {
         Context {
             connection,
             screen_num,
-            event_loop
+            event_loop,
         }
     }
 }
@@ -103,6 +104,22 @@ impl LuaUserData for Win {
     }
 
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        methods.add_method("set_root", |_, this, value: LuaValue| match value {
+            LuaValue::UserData(node) => {
+                let root: std::rc::Rc<crate::widgets::Node> =
+                    std::rc::Rc::clone(&node.borrow().unwrap());
+                let _ = this.root.borrow_mut().insert(root);
+                Ok(())
+            }
+            _ => panic!(""),
+        });
+        methods.add_method("check", |_, this, _: ()| {
+            println!("Is some:{}", this.root.borrow().is_some());
+            this.root.borrow().as_ref().map(|root| {
+                println!("Count:{}", std::rc::Rc::strong_count(&root));
+            });
+            Ok(())
+        });
         methods.add_method("show", |_, this, ()| {
             CONTEXT.connection.send_request(&x::MapWindow {
                 window: this.window,
@@ -137,7 +154,10 @@ impl Win {
                 x::Cw::EventMask(x::EventMask::EXPOSURE | x::EventMask::KEY_PRESS),
             ],
         });
-        Win { window }
+        Win {
+            window,
+            root: None.into(),
+        }
     }
 }
 fn new(_: &Lua, _: ()) -> LuaResult<Win> {
