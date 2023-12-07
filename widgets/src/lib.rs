@@ -1,3 +1,4 @@
+mod gtk;
 mod win;
 
 use mlua::prelude::*;
@@ -6,6 +7,6 @@ use mlua::prelude::*;
 fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     let exports = lua.create_table()?;
     exports.set("win", win::exports(lua)?)?;
+    exports.set("gtk", gtk::exports(lua)?)?;
     Ok(exports)
 }
-
