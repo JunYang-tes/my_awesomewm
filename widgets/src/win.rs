@@ -6,7 +6,8 @@ use once_cell::sync::Lazy;
 use xcb::x;
 struct Win {
     window: xcb::x::Window,
-    root: RefCell<Option<std::rc::Rc<crate::widgets::Node>>>,
+    root: Option<std::rc::Rc<crate::widgets::Node>>,
+    //layout: RefCell<taffy::prelude::TaffyTree>,
 }
 struct Context {
     connection: std::sync::Arc<xcb::Connection>,
@@ -104,20 +105,19 @@ impl LuaUserData for Win {
     }
 
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_method("set_root", |_, this, value: LuaValue| match value {
+        methods.add_method_mut("set_root", |_, this, value: LuaValue| match value {
             LuaValue::UserData(node) => {
                 let root: std::rc::Rc<crate::widgets::Node> =
                     std::rc::Rc::clone(&node.borrow().unwrap());
-                let _ = this.root.borrow_mut().insert(root);
+                this.root = Some(root);
                 Ok(())
             }
-            _ => panic!(""),
+            _ => panic!("Not a node"),
         });
         methods.add_method("check", |_, this, _: ()| {
-            println!("Is some:{}", this.root.borrow().is_some());
-            this.root.borrow().as_ref().map(|root| {
-                println!("Count:{}", std::rc::Rc::strong_count(&root));
-            });
+            if let Some(root) = &this.root {
+                println!("Count::{}", std::rc::Rc::strong_count(root));
+            }
             Ok(())
         });
         methods.add_method("show", |_, this, ()| {
