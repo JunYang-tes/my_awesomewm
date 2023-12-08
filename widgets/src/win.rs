@@ -1,4 +1,10 @@
 use std::{cell::RefCell, sync::Arc};
+use taffy::prelude::*;
+use taffy::{
+    prelude::{Size, Style as LayoutStyle, Taffy},
+    style::FlexDirection,
+    style_helpers::TaffyMaxContent,
+};
 
 use cairo::*;
 use mlua::prelude::*;
@@ -6,8 +12,11 @@ use once_cell::sync::Lazy;
 use xcb::x;
 struct Win {
     window: xcb::x::Window,
-    root: Option<std::rc::Rc<crate::widgets::Node>>,
-    //layout: RefCell<taffy::prelude::TaffyTree>,
+    drawable: XCBDrawable,
+    surface: XCBSurface,
+    cairo_context: cairo::Context,
+    root: Option<std::rc::Rc<std::cell::RefCell<crate::widgets::Node>>>,
+    layout: Taffy,
 }
 struct Context {
     connection: std::sync::Arc<xcb::Connection>,
@@ -107,19 +116,45 @@ impl LuaUserData for Win {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         methods.add_method_mut("set_root", |_, this, value: LuaValue| match value {
             LuaValue::UserData(node) => {
-                let root: std::rc::Rc<crate::widgets::Node> =
+                let root: std::rc::Rc<RefCell<crate::widgets::Node>> =
                     std::rc::Rc::clone(&node.borrow().unwrap());
+                {
+                    let mut r = root.borrow_mut();
+                    let layout_node = this
+                        .layout
+                        .new_leaf(LayoutStyle {
+                            size: Size {
+                                width: points(150.0),  // TODO window width
+                                height: points(150.0), // TODO window height
+                            },
+                            ..r.layout.clone()
+                        })
+                        .unwrap();
+                    r.layout_node = Some(layout_node);
+                }
                 this.root = Some(root);
                 Ok(())
             }
             _ => panic!("Not a node"),
         });
-        methods.add_method("check", |_, this, _: ()| {
+        methods.add_method_mut("check", |_, this, _: ()| {
             if let Some(root) = &this.root {
                 println!("Count::{}", std::rc::Rc::strong_count(root));
+                if let Some(layout_node) = root.borrow().layout_node {
+                    println!("Layout node is some");
+                    this.layout
+                        .compute_layout(layout_node, Size::MAX_CONTENT)
+                        .unwrap();
+                    let _ = this.layout.layout(layout_node).map(|r| {
+                        println!("{:?}", r);
+                    });
+                } else {
+                    println!("Layout node is none")
+                }
             }
             Ok(())
         });
+        methods.add_method_mut("draw", |_, this, _: ()| Ok(()));
         methods.add_method("show", |_, this, ()| {
             CONTEXT.connection.send_request(&x::MapWindow {
                 window: this.window,
@@ -154,9 +189,26 @@ impl Win {
                 x::Cw::EventMask(x::EventMask::EXPOSURE | x::EventMask::KEY_PRESS),
             ],
         });
+        let visual = find_visual(&conn, screen.root_visual()).unwrap();
+        let (drawable, surface, cairo_context) = unsafe {
+            let raw_conn = conn.get_raw_conn();
+            let xcb_conn = XCBConnection::from_raw_full(std::mem::transmute(raw_conn));
+            let drawable = XCBDrawable(xcb::Xid::resource_id(&window));
+            let xcb_visual = XCBVisualType::from_raw_full(std::mem::transmute(&visual));
+            let surface =
+                cairo::XCBSurface::create(&xcb_conn, &drawable, &xcb_visual, 150, 150).unwrap();
+            let cr = cairo::Context::new(&surface).unwrap();
+            (drawable, surface, cr)
+        };
+
+        let layout = Taffy::new();
         Win {
             window,
+            drawable,
+            surface,
             root: None.into(),
+            cairo_context,
+            layout,
         }
     }
 }
