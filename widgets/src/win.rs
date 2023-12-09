@@ -156,18 +156,8 @@ impl LuaUserData for Win {
             }
             Ok(())
         });
-        methods.add_method_mut("draw", |_, this, _: ()| {
-            let layout = &this.layout;
-            if let Some(root) = this.root.as_ref() {
-                crate::widgets::draw(
-                    &*root.as_ref().borrow(),
-                    &this.cairo_context,
-                    &(|n| layout.layout(n.clone()).unwrap()),
-                );
-                Ok(())
-            } else {
-                Err(LuaError::RuntimeError("No root set".into()))
-            }
+        methods.add_method("draw", |_, this, _: ()| {
+            this.draw().map_err(LuaError::RuntimeError)
         });
         methods.add_method("show", |_, this, ()| {
             CONTEXT.connection.send_request(&x::MapWindow {
@@ -181,6 +171,19 @@ impl LuaUserData for Win {
 }
 
 impl Win {
+    fn draw(&self) -> std::result::Result<(), String> {
+        let layout = &self.layout;
+        if let Some(root) = self.root.as_ref() {
+            crate::widgets::draw(
+                &*root.as_ref().borrow(),
+                &self.cairo_context,
+                &(|n| layout.layout(n.clone()).unwrap()),
+            );
+            Ok(())
+        } else {
+            Err("No root set".into())
+        }
+    }
     fn new() -> Win {
         let conn = &CONTEXT.connection;
         let screen_num = CONTEXT.screen_num;
