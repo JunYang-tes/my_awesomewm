@@ -39,22 +39,31 @@ impl Node {
     }
 }
 impl LuaUserData for Node {}
-type LayoutFn = fn(node: &Node) -> &taffy::layout::Layout;
 
-fn draw_box(node: &Node, cr: &cairo::Context, layout: LayoutFn) {
-    let layout = layout(node);
-    cr.set_source_rgb(1.0, 0.0, 0.0);
-    cr.set_line_width(2.0);
-    cr.rectangle(
-        layout.location.x as f64,
-        layout.location.y as f64,
-        layout.size.width as f64,
-        layout.size.height as f64,
-    );
-    let _ = cr.stroke();
+fn draw_box<'a,F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
+    node: &'a Node,
+    cr: &cairo::Context,
+    layout: &F,
+) {
+    if let Some(layout_node) = node.layout_node.as_ref() {
+        let layout = layout(layout_node);
+        cr.set_source_rgb(1.0, 0.0, 0.0);
+        cr.set_line_width(2.0);
+        cr.rectangle(
+            layout.location.x as f64,
+            layout.location.y as f64,
+            layout.size.width as f64,
+            layout.size.height as f64,
+        );
+        let _ = cr.stroke();
+    }
 }
 
-pub fn draw(node: &Node, cr: &cairo::Context, layout: LayoutFn) -> () {
+pub fn draw<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
+    node: &'a Node,
+    cr: &cairo::Context,
+    layout: &F,
+) -> () {
     match &node.node_type {
         NodeType::Box(children) => {
             draw_box(node, cr, layout);

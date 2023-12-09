@@ -24,6 +24,8 @@ struct Context {
     event_loop: std::thread::JoinHandle<()>,
 }
 
+fn test<F: Fn(&crate::widgets::Node)>(n: &crate::widgets::Node, f: F) {}
+
 impl Context {
     fn new() -> Context {
         let (conn, screen_num) = xcb::Connection::connect(None).unwrap();
@@ -154,7 +156,19 @@ impl LuaUserData for Win {
             }
             Ok(())
         });
-        methods.add_method_mut("draw", |_, this, _: ()| Ok(()));
+        methods.add_method_mut("draw", |_, this, _: ()| {
+            let layout = &this.layout;
+            if let Some(root) = this.root.as_ref() {
+                crate::widgets::draw(
+                    &*root.as_ref().borrow(),
+                    &this.cairo_context,
+                    &(|n| layout.layout(n.clone()).unwrap()),
+                );
+                Ok(())
+            } else {
+                Err(LuaError::RuntimeError("No root set".into()))
+            }
+        });
         methods.add_method("show", |_, this, ()| {
             CONTEXT.connection.send_request(&x::MapWindow {
                 window: this.window,
