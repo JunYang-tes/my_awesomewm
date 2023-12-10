@@ -40,13 +40,15 @@ impl Node {
 }
 impl LuaUserData for Node {}
 
-fn draw_box<'a,F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
+fn draw_box<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
     node: &'a Node,
     cr: &cairo::Context,
     layout: &F,
 ) {
+    println!("@draw_box");
     if let Some(layout_node) = node.layout_node.as_ref() {
         let layout = layout(layout_node);
+        println!("draw!box! {:?}",layout);
         cr.set_source_rgb(1.0, 0.0, 0.0);
         cr.set_line_width(2.0);
         cr.rectangle(

@@ -1,4 +1,6 @@
-use std::{cell::RefCell, sync::Arc};
+use std::ops::{Deref, DerefMut};
+use std::thread::JoinHandle;
+use std::{cell::RefCell, rc::Rc, sync::Arc, sync::Mutex};
 use taffy::prelude::*;
 use taffy::{
     prelude::{Size, Style as LayoutStyle, Taffy},
@@ -14,64 +16,22 @@ struct Win {
     window: xcb::x::Window,
     drawable: XCBDrawable,
     surface: XCBSurface,
+    connection: Arc<xcb::Connection>,
     cairo_context: cairo::Context,
     root: Option<std::rc::Rc<std::cell::RefCell<crate::widgets::Node>>>,
     layout: Taffy,
+    event_loop: Option<JoinHandle<()>>,
 }
-struct Context {
-    connection: std::sync::Arc<xcb::Connection>,
-    screen_num: i32,
-    event_loop: std::thread::JoinHandle<()>,
-}
+unsafe impl Sync for Win {}
+unsafe impl Send for Win {}
+struct MutexWin(Mutex<Win>);
+impl Deref for MutexWin {
+    type Target = Mutex<Win>;
 
-fn test<F: Fn(&crate::widgets::Node)>(n: &crate::widgets::Node, f: F) {}
-
-impl Context {
-    fn new() -> Context {
-        let (conn, screen_num) = xcb::Connection::connect(None).unwrap();
-        let connection = Arc::new(conn);
-        let conn = connection.clone();
-        println!("create context");
-
-        let event_loop = std::thread::spawn(move || {
-            println!("Event loop started");
-            let setup = conn.get_setup();
-            let screen = setup.roots().nth(screen_num as usize).unwrap();
-            loop {
-                let event = match conn.wait_for_event() {
-                    Ok(event) => event,
-                    Err(_) => {
-                        return;
-                    }
-                };
-                match event {
-                    xcb::Event::X(x::Event::Expose(e)) => {
-                        let visual = find_visual(&conn, screen.root_visual()).unwrap();
-                        unsafe {
-                            let raw_conn = conn.get_raw_conn();
-                            let xcb_conn =
-                                XCBConnection::from_raw_full(std::mem::transmute(raw_conn));
-                            let drawable = XCBDrawable(xcb::Xid::resource_id(&e.window()));
-                            let xcb_visual =
-                                XCBVisualType::from_raw_full(std::mem::transmute(&visual));
-                            draw_on_win(&xcb_conn, &drawable, &xcb_visual, 150, 150).unwrap();
-                            conn.flush().unwrap();
-                        }
-                        println!("Expose")
-                    }
-                    _ => {}
-                }
-            }
-        });
-        Context {
-            connection,
-            screen_num,
-            event_loop,
-        }
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
-
-static CONTEXT: Lazy<Context> = Lazy::new(|| Context::new());
 
 fn find_visual<'a>(
     conn: &'a xcb::Connection,
@@ -91,82 +51,71 @@ fn find_visual<'a>(
     }
     None
 }
-fn draw_on_win(
-    conn: &XCBConnection,
-    drawable: &XCBDrawable,
-    visual: &XCBVisualType,
-    width: i32,
-    height: i32,
-) -> Result<()> {
-    let surface = cairo::XCBSurface::create(conn, drawable, visual, width, height)?;
-    let cr = cairo::Context::new(&surface)?;
-    cr.set_source_rgb(0.0, 1.0, 0.0);
-    cr.move_to(0.0, 0.0);
-    cr.line_to(100.0, 100.0);
-    cr.stroke()?;
-    surface.flush();
-    //cr.paint()?;
-    println!("DONE");
-    Ok(())
-}
 
-impl LuaUserData for Win {
+impl LuaUserData for MutexWin {
     fn add_fields<'lua, F: LuaUserDataFields<'lua, Self>>(fields: &mut F) {
         let _ = fields;
     }
 
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_method_mut("set_root", |_, this, value: LuaValue| match value {
-            LuaValue::UserData(node) => {
-                let root: std::rc::Rc<RefCell<crate::widgets::Node>> =
-                    std::rc::Rc::clone(&node.borrow().unwrap());
-                {
-                    let mut r = root.borrow_mut();
-                    let layout_node = this
-                        .layout
-                        .new_leaf(LayoutStyle {
-                            size: Size {
-                                width: points(150.0),  // TODO window width
-                                height: points(150.0), // TODO window height
-                            },
-                            ..r.layout.clone()
-                        })
-                        .unwrap();
-                    r.layout_node = Some(layout_node);
+        methods.add_method("set_root", |_, mutex_win, value: LuaValue| {
+            let mut this = mutex_win.lock().unwrap();
+            match value {
+                LuaValue::UserData(node) => {
+                    let root: std::rc::Rc<RefCell<crate::widgets::Node>> =
+                        std::rc::Rc::clone(&node.borrow().unwrap());
+
+                    {
+                        let mut r = root.borrow_mut();
+                        let layout_node = this
+                            .layout
+                            .new_leaf(LayoutStyle {
+                                size: Size {
+                                    width: points(150.0),  // TODO window width
+                                    height: points(150.0), // TODO window height
+                                },
+                                ..r.layout.clone()
+                            })
+                            .unwrap();
+                        this.layout.compute_layout(layout_node, Size::MAX_CONTENT);
+                        r.layout_node = Some(layout_node);
+                    }
+                    this.root = Some(root);
+
+                    Ok(())
                 }
-                this.root = Some(root);
-                Ok(())
+                _ => panic!("Not a node"),
             }
-            _ => panic!("Not a node"),
         });
-        methods.add_method_mut("check", |_, this, _: ()| {
-            if let Some(root) = &this.root {
-                println!("Count::{}", std::rc::Rc::strong_count(root));
+        methods.add_method("check", |_, this, _: ()| {
+            let mut this = this.lock().unwrap();
+            let a: &mut Win = this.deref_mut();
+            let root = &a.root;
+            let layout = &mut a.layout;
+            if let Some(root) = root.as_ref() {
+                println!("Count:: {}", Rc::strong_count(root));
                 if let Some(layout_node) = root.borrow().layout_node {
-                    println!("Layout node is some");
-                    this.layout
+                    layout
                         .compute_layout(layout_node, Size::MAX_CONTENT)
                         .unwrap();
-                    let _ = this.layout.layout(layout_node).map(|r| {
+                    let _ = layout.layout(layout_node).map(|r| {
                         println!("{:?}", r);
                     });
-                } else {
-                    println!("Layout node is none")
                 }
             }
             Ok(())
         });
         methods.add_method("draw", |_, this, _: ()| {
-            this.draw().map_err(LuaError::RuntimeError)
+            let win = this.lock().unwrap();
+            win.draw().map_err(LuaError::RuntimeError)
         });
         methods.add_method("show", |_, this, ()| {
-            CONTEXT.connection.send_request(&x::MapWindow {
-                window: this.window,
-            });
-            CONTEXT.connection.flush().unwrap();
-            println!("show");
+            let win = this.lock().unwrap();
+            win.connection
+                .send_request(&x::MapWindow { window: win.window });
+            win.connection.flush().unwrap();
             Ok(())
-        })
+        });
     }
 }
 
@@ -179,17 +128,18 @@ impl Win {
                 &self.cairo_context,
                 &(|n| layout.layout(n.clone()).unwrap()),
             );
+            self.surface.flush();
             Ok(())
         } else {
             Err("No root set".into())
         }
     }
-    fn new() -> Win {
-        let conn = &CONTEXT.connection;
-        let screen_num = CONTEXT.screen_num;
+    fn new() -> Arc<MutexWin> {
+        let (conn, screen_num) = xcb::Connection::connect(None).unwrap();
         let setup = conn.get_setup();
-        let screen = setup.roots().nth(screen_num as usize).unwrap();
         let window: xcb::x::Window = conn.generate_id();
+
+        let screen = setup.roots().nth(screen_num as usize).unwrap();
         conn.send_request(&xcb::x::CreateWindow {
             depth: x::COPY_FROM_PARENT as u8,
             wid: window,
@@ -217,19 +167,49 @@ impl Win {
             let cr = cairo::Context::new(&surface).unwrap();
             (drawable, surface, cr)
         };
+        let connection = Arc::new(conn);
+        let conn = connection.clone();
 
         let layout = Taffy::new();
-        Win {
+        let win = Win {
+            connection,
             window,
             drawable,
             surface,
             root: None.into(),
             cairo_context,
             layout,
-        }
+            event_loop: None,
+        };
+        let win = MutexWin(Mutex::new(win));
+        let win = Arc::new(win);
+
+        let win1 = win.clone();
+        let event_loop = std::thread::spawn(move || {
+            println!("Event loop started");
+            loop {
+                let event = match conn.wait_for_event() {
+                    Ok(event) => event,
+                    Err(_) => {
+                        return;
+                    }
+                };
+                match event {
+                    xcb::Event::X(x::Event::Expose(e)) => {
+                        let w = win1.0.lock().unwrap();
+                        let _ = w.draw();
+                        let _ = w.connection.flush();
+                        println!("Expose")
+                    }
+                    _ => {}
+                }
+            }
+        });
+        let _ = win.lock().unwrap().event_loop.insert(event_loop);
+        win
     }
 }
-fn new(_: &Lua, _: ()) -> LuaResult<Win> {
+fn new(_: &Lua, _: ()) -> LuaResult<Arc<MutexWin>> {
     Ok(Win::new())
 }
 
