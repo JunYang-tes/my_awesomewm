@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use mlua::prelude::*;
 use taffy::prelude::Style as LayoutStyle;
@@ -12,7 +13,7 @@ pub struct Style {
 
 #[derive(Debug)]
 pub enum NodeType {
-    Box(Vec<Node>),
+    Box(Vec<Rc<RefCell<Node>>>),
     Img,
     Text,
 }
@@ -38,7 +39,25 @@ impl Node {
         }
     }
 }
-impl LuaUserData for Node {}
+impl LuaUserData for Node {
+    fn add_fields<'lua, F: LuaUserDataFields<'lua, Self>>(fields: &mut F) {}
+
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        methods.add_method_mut("add_child", |_, this, child: LuaValue| {
+            match child {
+                LuaValue::UserData(node) => {
+                    let root: std::rc::Rc<RefCell<crate::widgets::Node>> =
+                        std::rc::Rc::clone(&node.borrow().unwrap());
+                    if let NodeType::Box(children) = &mut this.node_type {
+                        children.push(root);
+                    }
+                }
+                _ => panic!("Not a valid child"),
+            }
+            Ok(())
+        });
+    }
+}
 
 fn draw_box<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
     node: &'a Node,
@@ -48,7 +67,7 @@ fn draw_box<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
     println!("@draw_box");
     if let Some(layout_node) = node.layout_node.as_ref() {
         let layout = layout(layout_node);
-        println!("draw!box! {:?}",layout);
+        println!("draw!box! {:?}", layout);
         cr.set_source_rgb(1.0, 0.0, 0.0);
         cr.set_line_width(2.0);
         cr.rectangle(
@@ -70,7 +89,9 @@ pub fn draw<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
         NodeType::Box(children) => {
             draw_box(node, cr, layout);
             for child in children.iter() {
-                draw(child, cr, layout)
+                let child = child.borrow();
+                let child_ref = &*child as *const Node;
+                unsafe { draw(unsafe { std::mem::transmute(child_ref) }, cr, layout) }
             }
         }
         _ => {}
