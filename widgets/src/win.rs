@@ -1,13 +1,8 @@
 use std::ops::{Deref, DerefMut};
 use std::thread::JoinHandle;
 use std::{cell::RefCell, rc::Rc, sync::Arc, sync::Mutex};
-use taffy::prelude::*;
-use taffy::{
-    prelude::{Size, Style as LayoutStyle, Taffy},
-    style::FlexDirection,
-    style_helpers::TaffyMaxContent,
-};
 
+use crate::widgets::*;
 use cairo::*;
 use mlua::prelude::*;
 use once_cell::sync::Lazy;
@@ -18,8 +13,7 @@ struct Win {
     surface: XCBSurface,
     connection: Arc<xcb::Connection>,
     cairo_context: cairo::Context,
-    root: Option<std::rc::Rc<std::cell::RefCell<crate::widgets::Node>>>,
-    layout: Taffy,
+    root: Option<Rc<RefCell<Root>>>,
     event_loop: Option<JoinHandle<()>>,
 }
 unsafe impl Sync for Win {}
@@ -59,52 +53,41 @@ impl LuaUserData for MutexWin {
 
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         methods.add_method("set_root", |_, mutex_win, value: LuaValue| {
+            println!("set_root {:?}", value);
             let mut this = mutex_win.lock().unwrap();
             match value {
                 LuaValue::UserData(node) => {
-                    let root: std::rc::Rc<RefCell<crate::widgets::Node>> =
-                        std::rc::Rc::clone(&node.borrow().unwrap());
-
-                    {
-                        let mut r = root.borrow_mut();
-                        let layout_node = this
-                            .layout
-                            .new_leaf(LayoutStyle {
-                                size: Size {
-                                    width: points(150.0),  // TODO window width
-                                    height: points(150.0), // TODO window height
-                                },
-                                ..r.layout.clone()
-                            })
-                            .unwrap();
-                        this.layout.compute_layout(layout_node, Size::MAX_CONTENT);
-                        r.layout_node = Some(layout_node);
-                    }
-                    this.root = Some(root);
-
+                    println!("UserData {:?}", node);
+                    let root: std::cell::Ref<'_, RootCell> = node.borrow().unwrap();
+                    let _ = root.0.borrow_mut().new_node_callback.insert(move || {
+                        //mutex_win.lock().unwrap();
+                        println!("NEW");
+                        println!("CHILD");
+                    });
+                    this.root = Some(Rc::clone(&root.0));
                     Ok(())
                 }
                 _ => panic!("Not a node"),
             }
         });
-        methods.add_method("check", |_, this, _: ()| {
-            let mut this = this.lock().unwrap();
-            let a: &mut Win = this.deref_mut();
-            let root = &a.root;
-            let layout = &mut a.layout;
-            if let Some(root) = root.as_ref() {
-                println!("Count:: {}", Rc::strong_count(root));
-                if let Some(layout_node) = root.borrow().layout_node {
-                    layout
-                        .compute_layout(layout_node, Size::MAX_CONTENT)
-                        .unwrap();
-                    let _ = layout.layout(layout_node).map(|r| {
-                        println!("{:?}", r);
-                    });
-                }
-            }
-            Ok(())
-        });
+        // methods.add_method("check", |_, this, _: ()| {
+        //     let mut this = this.lock().unwrap();
+        //     let a: &mut Win = this.deref_mut();
+        //     let root = &a.root;
+        //     let layout = &mut a.layout;
+        //     if let Some(root) = root.as_ref() {
+        //         println!("Count:: {}", Rc::strong_count(root));
+        //         if let Some(layout_node) = root.borrow().layout_node {
+        //             layout
+        //                 .compute_layout(layout_node, Size::MAX_CONTENT)
+        //                 .unwrap();
+        //             let _ = layout.layout(layout_node).map(|r| {
+        //                 println!("{:?}", r);
+        //             });
+        //         }
+        //     }
+        //     Ok(())
+        // });
         methods.add_method("draw", |_, this, _: ()| {
             let win = this.lock().unwrap();
             win.draw().map_err(LuaError::RuntimeError)
@@ -121,18 +104,21 @@ impl LuaUserData for MutexWin {
 
 impl Win {
     fn draw(&self) -> std::result::Result<(), String> {
-        let layout = &self.layout;
-        if let Some(root) = self.root.as_ref() {
-            crate::widgets::draw(
-                &*root.as_ref().borrow(),
-                &self.cairo_context,
-                &(|n| layout.layout(n.clone()).unwrap()),
-            );
-            self.surface.flush();
-            Ok(())
-        } else {
-            Err("No root set".into())
-        }
+        // let layout = &self.layout;
+        // if let Some(root) = self.root.as_ref() {
+        //     if let Some(root_node) = &root.borrow().root {
+        //         crate::widgets::draw(
+        //             &*root_node.borrow(),
+        //             &self.cairo_context,
+        //             &(|n| layout.layout(n.clone()).unwrap()),
+        //         );
+        //         self.surface.flush();
+        //     }
+        //     Ok(())
+        // } else {
+        //     Err("No root set".into())
+        // }
+        todo!()
     }
     fn new() -> Arc<MutexWin> {
         let (conn, screen_num) = xcb::Connection::connect(None).unwrap();
@@ -170,7 +156,6 @@ impl Win {
         let connection = Arc::new(conn);
         let conn = connection.clone();
 
-        let layout = Taffy::new();
         let win = Win {
             connection,
             window,
@@ -178,7 +163,6 @@ impl Win {
             surface,
             root: None.into(),
             cairo_context,
-            layout,
             event_loop: None,
         };
         let win = MutexWin(Mutex::new(win));

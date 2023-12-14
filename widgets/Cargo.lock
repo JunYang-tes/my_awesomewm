@@ -222,9 +222,9 @@ dependencies = [
 
 [[package]]
 name = "grid"
-version = "0.10.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eec1c01eb1de97451ee0d60de7d81cf1e72aabefb021616027f3d1c3ec1c723c"
+checksum = "d196ffc1627db18a531359249b2bf8416178d84b729f3cebeb278f285fb9b58c"
 
 [[package]]
 name = "hashbrown"
@@ -484,13 +484,13 @@ dependencies = [
 
 [[package]]
 name = "taffy"
-version = "0.3.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c2287b6d7f721ada4cddf61ade5e760b2c6207df041cac9bfaa192897362fd3"
+version = "0.3.11"
+source = "git+https://github.com/DioxusLabs/taffy.git?branch=main#a2d9829807d7720ccbf8736cb1720e55bf2bbdbb"
 dependencies = [
  "arrayvec",
  "grid",
  "num-traits",
+ "serde",
  "slotmap",
 ]
 
