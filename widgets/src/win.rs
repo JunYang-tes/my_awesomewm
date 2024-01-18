@@ -6,6 +6,7 @@ use crate::widgets::*;
 use cairo::*;
 use mlua::prelude::*;
 use once_cell::sync::Lazy;
+use taffy::Size;
 use xcb::x;
 struct Win {
     window: xcb::x::Window,
@@ -64,6 +65,10 @@ impl LuaUserData for MutexWin {
                         println!("NEW");
                         println!("CHILD");
                     });
+                    if let Some(r) = &mut root.borrow_mut().root {
+                        println!("calc layout");
+                        r.compute_layout(Size::max_content())
+                    }
                     this.root = Some(Rc::clone(&root.0));
                     Ok(())
                 }
@@ -105,20 +110,15 @@ impl LuaUserData for MutexWin {
 impl Win {
     fn draw(&self) -> std::result::Result<(), String> {
         // let layout = &self.layout;
-        // if let Some(root) = self.root.as_ref() {
-        //     if let Some(root_node) = &root.borrow().root {
-        //         crate::widgets::draw(
-        //             &*root_node.borrow(),
-        //             &self.cairo_context,
-        //             &(|n| layout.layout(n.clone()).unwrap()),
-        //         );
-        //         self.surface.flush();
-        //     }
-        //     Ok(())
-        // } else {
-        //     Err("No root set".into())
-        // }
-        todo!()
+        if let Some(root) = self.root.as_ref() {
+            if let Some(root_node) = &root.borrow().root {
+                crate::widgets::draw(&root_node, &self.cairo_context);
+                self.surface.flush();
+            }
+            Ok(())
+        } else {
+            Err("No root set".into())
+        }
     }
     fn new() -> Arc<MutexWin> {
         let (conn, screen_num) = xcb::Connection::connect(None).unwrap();

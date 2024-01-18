@@ -8,7 +8,8 @@ use mlua::prelude::*;
 use taffy::prelude::Layout as TaffyLayout;
 use taffy::prelude::Style as LayoutStyle;
 use taffy::{
-    compute_cached_layout, compute_flexbox_layout, prelude::*, Cache, LayoutInput, LayoutOutput,
+    compute_cached_layout, compute_flexbox_layout, compute_root_layout, prelude::*, Cache,
+    LayoutInput, LayoutOutput,
 };
 
 #[derive(Debug)]
@@ -19,13 +20,12 @@ pub struct WidgetStyle {
 
 #[derive(Debug)]
 pub enum NodeType {
-    Box(Vec<Node>),
+    Box(Vec<NodeInCell>),
     Img,
     Text,
 }
 pub struct Node {
     node_type: NodeType,
-    pub layout: LayoutStyle,
     cache: Cache,
     final_layout: TaffyLayout,
     unrounded_layout: TaffyLayout,
@@ -33,6 +33,53 @@ pub struct Node {
     layout_style: LayoutStyle,
     root: std::rc::Weak<RefCell<Root>>,
 }
+#[derive(Debug)]
+pub struct NodeInCell(Rc<RefCell<Node>>);
+impl Deref for NodeInCell {
+    type Target = Rc<RefCell<Node>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl DerefMut for NodeInCell {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+impl NodeInCell {
+    fn node_from_id(&self, node_id: NodeId) -> NodeInCell {
+        let idx = usize::from(node_id);
+        if idx == usize::MAX {
+            NodeInCell(self.0.clone())
+        } else {
+            let node = &*self.borrow();
+            match &node.node_type {
+                NodeType::Box(children) => NodeInCell(children[idx].0.clone()),
+                _ => NodeInCell(self.0.clone()),
+            }
+        }
+    }
+    pub fn compute_layout(&mut self, available_space: Size<AvailableSpace>) {
+        println!("style of root {:?}",self.borrow().layout_style);
+        compute_root_layout(self, NodeId::from(usize::MAX), available_space);
+    }
+
+    // fn node_from_id_mut(&mut self, node_id: NodeId) -> &mut NodeInCell {
+    //     let idx = usize::from(node_id);
+    //     if idx == usize::MAX {
+    //         self
+    //     } else {
+    //         let mut node_ref = self.borrow_mut();
+    //         let node = &mut *node_ref;
+    //         match node.node_type {
+    //             NodeType::Box(children)=> &mut children[idx],
+    //             _ => self
+    //         }
+    //     }
+    // }
+}
+
 impl std::fmt::Debug for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(
@@ -49,9 +96,6 @@ impl Node {
     pub fn new_box() -> Node {
         Node {
             node_type: NodeType::Box(vec![]),
-            layout: LayoutStyle {
-                ..Default::default()
-            },
             cache: Cache::new(),
             unrounded_layout: Layout::with_order(0),
             final_layout: Layout::with_order(0),
@@ -63,27 +107,27 @@ impl Node {
             root: std::rc::Weak::new(),
         }
     }
-    fn node_from_id(&self, node_id: NodeId) -> &Node {
-        let idx = usize::from(node_id);
-        if idx == usize::MAX {
-            self
-        } else if let NodeType::Box(children) = &self.node_type {
-            &children[idx]
-        } else {
-            self
-        }
-    }
-    fn node_from_id_mut(&mut self, node_id: NodeId) -> &mut Node {
-        let idx = usize::from(node_id);
-        if idx == usize::MAX {
-            return self;
-        }
-        let s = self as *const Node;
-        match &mut self.node_type {
-            NodeType::Box(ref mut child) => &mut child[idx],
-            _ => unsafe { std::mem::transmute(s) },
-        }
-    }
+    // fn node_from_id(&self, node_id: NodeId) -> &Node {
+    //     let idx = usize::from(node_id);
+    //     if idx == usize::MAX {
+    //         self
+    //     } else if let NodeType::Box(children) = &self.node_type {
+    //         &children[idx]
+    //     } else {
+    //         self
+    //     }
+    // }
+    // fn node_from_id_mut(&mut self, node_id: NodeId) -> &mut Node {
+    //     let idx = usize::from(node_id);
+    //     if idx == usize::MAX {
+    //         return self;
+    //     }
+    //     let s = self as *const Node;
+    //     match &mut self.node_type {
+    //         NodeType::Box(ref mut child) => &mut child[idx],
+    //         _ => unsafe { std::mem::transmute(s) },
+    //     }
+    // }
 }
 
 pub struct ChildIter(std::ops::Range<usize>);
@@ -95,18 +139,22 @@ impl Iterator for ChildIter {
     }
 }
 
-impl taffy::TraversePartialTree for Node {
+impl taffy::TraversePartialTree for NodeInCell {
     type ChildIter<'a> = ChildIter;
 
     fn child_ids(&self, parent_node_id: NodeId) -> Self::ChildIter<'_> {
-        match &self.node_type {
+        let node_ref = self.borrow();
+        let node = &*node_ref;
+        match &node.node_type {
             NodeType::Box(children) => ChildIter(0..children.len()),
             _ => ChildIter(0..0),
         }
     }
 
     fn child_count(&self, parent_node_id: NodeId) -> usize {
-        match &self.node_type {
+        let node_ref = self.borrow();
+        let node = &*node_ref;
+        match &node.node_type {
             NodeType::Box(children) => children.len(),
             _ => 0,
         }
@@ -116,24 +164,40 @@ impl taffy::TraversePartialTree for Node {
         NodeId::from(child_index)
     }
 }
-impl taffy::LayoutPartialTree for Node {
+impl taffy::LayoutPartialTree for NodeInCell {
     fn get_style(&self, node_id: NodeId) -> &Style {
-        &self.node_from_id(node_id).layout_style
+        let node_in_cell = self.node_from_id(node_id);
+        let node_ref = node_in_cell.borrow();
+        let node = &*node_ref;
+        let style = &node.layout_style as *const Style;
+        unsafe { std::mem::transmute(style) }
     }
 
     fn set_unrounded_layout(&mut self, node_id: NodeId, layout: &Layout) {
-        self.node_from_id_mut(node_id).unrounded_layout = *layout
+        let node_in_cell = self.node_from_id(node_id);
+        let mut node_ref = node_in_cell.borrow_mut();
+        let node = &mut *node_ref;
+        node.unrounded_layout = *layout;
     }
 
     fn get_cache_mut(&mut self, node_id: NodeId) -> &mut Cache {
-        &mut self.node_from_id_mut(node_id).cache
+        let node_in_cell = self.node_from_id(node_id);
+        let node_ref = node_in_cell.borrow();
+        let node = &*node_ref;
+        let style = &node.layout_style as *const Style;
+        unsafe { std::mem::transmute(style) }
     }
 
     fn compute_child_layout(&mut self, node_id: NodeId, inputs: LayoutInput) -> LayoutOutput {
         compute_cached_layout(self, node_id, inputs, |parent, node_id, inputs| {
-            let node = parent.node_from_id_mut(node_id);
+            let mut node_in_cell = parent.node_from_id(node_id);
+            let mut node_ref = node_in_cell.borrow_mut();
+            let node = &mut *node_ref;
             match node.node_type {
-                NodeType::Box(_) => compute_flexbox_layout(node, node_id, inputs),
+                NodeType::Box(_) => {
+                    drop(node_ref);
+                    compute_flexbox_layout(&mut node_in_cell, node_id, inputs)
+                }
                 _ => {
                     todo!()
                 }
@@ -144,7 +208,7 @@ impl taffy::LayoutPartialTree for Node {
 
 #[derive(Debug)]
 pub struct Root {
-    pub root: Option<Rc<RefCell<Node>>>,
+    pub root: Option<NodeInCell>,
     pub new_node_callback: Option<fn()>,
 }
 
@@ -171,13 +235,14 @@ impl LuaUserData for RootCell {
             let mut node = Node::new_box();
             node.root = this.downgrade();
 
-            Ok(node)
+            Ok(Rc::new(RefCell::new(node)))
         });
         methods.add_method_mut("set_root_node", |_, this, value: LuaValue| {
             let mut this = this.borrow_mut();
             match value {
                 LuaValue::UserData(node) => {
-                    this.root.insert(Rc::clone(&node.borrow().unwrap()));
+                    this.root
+                        .insert(NodeInCell(Rc::clone(&node.borrow().unwrap())));
                     Ok(())
                 }
                 _ => {
@@ -197,13 +262,41 @@ impl LuaUserData for Node {
             println!("{:?}", this.root.upgrade());
             Ok(())
         });
+        methods.add_method_mut("set_width", |_, this, w: LuaValue| {
+            println!("set_width {:?}", w);
+            match w {
+                LuaValue::Integer(w) => {
+                    this.layout_style.size.width = Dimension::Length(w as f32)
+                }
+                LuaValue::Number(w) => {
+                    this.layout_style.size.width = Dimension::Length(w as f32)
+                }
+                _ => {
+                    panic!("Expect number")
+                }
+            }
+            Ok(())
+        });
+        methods.add_method_mut("set_height", |_, this, w: LuaValue| {
+            match w {
+                LuaValue::Integer(w) => {
+                    this.layout_style.size.height = Dimension::Length(w as f32)
+                }
+                LuaValue::Number(w) => {
+                    this.layout_style.size.height = Dimension::Length(w as f32)
+                }
+                _ => {
+                    panic!("Expect number")
+                }
+            }
+            Ok(())
+        });
         methods.add_method_mut("add_child", |_, this, child: LuaValue| {
             println!("{:?}", child);
             match child {
                 LuaValue::UserData(node) => {
-                    // let child_node: std::rc::Rc<RefCell<crate::widgets::Node>> =
-                    //     std::rc::Rc::clone(&node.borrow().unwrap());
-                    let child_node: std::cell::Ref<Node> = node.borrow().unwrap();
+                    let child_node: std::rc::Rc<RefCell<crate::widgets::Node>> =
+                        std::rc::Rc::clone(&node.borrow().unwrap());
                     let root = this.root.upgrade();
                     if let Some(root) = root {
                         if let Some(cb) = root.borrow().new_node_callback {
@@ -213,7 +306,7 @@ impl LuaUserData for Node {
                         println!("No root found")
                     }
                     if let NodeType::Box(children) = &mut this.node_type {
-                        //children.push(*child_node);
+                        children.push(NodeInCell(child_node));
                     } else {
                         panic!("Not a container")
                     }
@@ -225,45 +318,33 @@ impl LuaUserData for Node {
     }
 }
 
-// fn draw_box<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
-//     node: &'a Node,
-//     cr: &cairo::Context,
-//     layout: &F,
-// ) {
-//     println!("@draw_box");
-//     if let Some(layout_node) = node.layout_node.as_ref() {
-//         let layout = layout(layout_node);
-//         println!("draw!box! {:?}", layout);
-//         cr.set_source_rgb(1.0, 0.0, 0.0);
-//         cr.set_line_width(2.0);
-//         cr.rectangle(
-//             layout.location.x as f64,
-//             layout.location.y as f64,
-//             layout.size.width as f64,
-//             layout.size.height as f64,
-//         );
-//         let _ = cr.stroke();
-//     }
-// }
+fn draw_box(node: &Node, cr: &cairo::Context) {
+    println!("@draw_box");
+    println!("draw!box! {:?}", node.unrounded_layout);
+    cr.set_source_rgb(1.0, 0.0, 0.0);
+    cr.set_line_width(2.0);
+    cr.rectangle(
+        node.unrounded_layout.location.x as f64,
+        node.unrounded_layout.location.y as f64,
+        node.unrounded_layout.size.width as f64,
+        node.unrounded_layout.size.height as f64,
+    );
+    let _ = cr.stroke();
+}
 
-// pub fn draw<'a, F: Fn(&'a taffy::node::Node) -> &'a taffy::layout::Layout>(
-//     node: &'a Node,
-//     cr: &cairo::Context,
-//     layout: &F,
-// ) -> () {
-//     match &node.node_type {
-//         NodeType::Box(children) => {
-//             draw_box(node, cr, layout);
-//             for child in children.iter() {
-//                 println!("draw child");
-//                 let child = child.borrow();
-//                 let child_ref = &*child as *const Node;
-//                 unsafe { draw(unsafe { std::mem::transmute(child_ref) }, cr, layout) }
-//             }
-//         }
-//         _ => {}
-//     }
-// }
+pub fn draw(node: &NodeInCell, cr: &cairo::Context) -> () {
+    let node = &*node.borrow();
+    match &node.node_type {
+        NodeType::Box(children) => {
+            draw_box(node, cr);
+            for child in children.iter() {
+                println!("draw child");
+                draw(child, cr)
+            }
+        }
+        _ => {}
+    }
+}
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
