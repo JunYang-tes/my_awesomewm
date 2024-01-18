@@ -14,5 +14,6 @@ cairo-rs ={version="0.18.2",features=["xcb","svg"]}
 xcb = "1.2.2"
 once_cell = "1.18.0"
 taffy = {git="https://github.com/DioxusLabs/taffy.git",branch="main"}
+fltk = "1.4.22"
 # gtk4 = "0.7.3"
 
