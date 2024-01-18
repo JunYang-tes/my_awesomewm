@@ -1,7 +1,7 @@
 use fltk::{app, button::Button, frame::Frame, prelude::*, window::Window};
 
 extern crate fltk as fltk_;
-use fltk_::prelude::WidgetExt;
+use fltk_::{prelude::WidgetExt, app::wait_for};
 use mlua::prelude::*;
 use std::ops::{Deref, DerefMut};
 
@@ -25,7 +25,7 @@ impl LuaUserData for App {
             app.run().unwrap();
             Ok(())
         });
-        methods.add_method("wait", |_, app, ()| Ok(app.wait()))
+        methods.add_method("wait", |_, app, ()|wait_for(0.001).or(Ok(false)))
     }
 }
 
