@@ -2,6 +2,7 @@ use fltk::{
     app::{self, wait_for},
     prelude::*,
 };
+use crate::lua_module::*;
 
 use mlua::prelude::*;
 use std::{
@@ -54,42 +55,6 @@ impl LuaUserData for App {
             Ok(())
         });
         methods.add_method("wait", |_, app, ()| wait_for(0.001).or(Ok(false)))
-    }
-}
-macro_rules! ParamlessCall {
-    ($methods:ident,$($name:ident),*) => {
-        $($methods.add_method_mut(stringify!($name), |_, self_, ()| {
-            self_.$name();
-            Ok(())
-        });)*
-    };
-}
-macro_rules! Getter {
-    ($methods:ident,$($name:ident),*) => {
-        $($methods.add_method_mut(stringify!($name),|_,self_,()|{
-            Ok(self_.$name())
-        });)*
-    }
-}
-macro_rules! Setter {
-    ($methods:ident,$($name:ident,$type:ty),*) => {
-        $($methods.add_method_mut(stringify!($name),|_,w,v:$type|{
-            w.$name(v);
-            Ok(())
-        });)*
-    };
-    ($methods:ident,$($name:ident $type:ty),*) => {
-        $($methods.add_method_mut(stringify!($name),|_,w,v:$type|{
-            w.$name(v);
-            Ok(())
-        });)*
-    };
-    ($methods:ident,$($name:ident,$lua_type:ty,
-                      $input:ident => $out:expr),*) => {
-        $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
-            w.$name($out);
-            Ok(())
-        }))*
     }
 }
 macro_rules! WidgetBaseMethods {
@@ -214,15 +179,15 @@ impl Flex {
         self.set_type(fltk::group::FlexType::Column)
     }
 }
-macro_rules! exports {
-    ($lua:ident,$($name:literal,$value:expr),*,) => {
-        {
-            let exports = $lua.create_table()?;
-            $(exports.set($name,$lua.create_function(|_,()|Ok($value))?)?;)*
-            Ok(exports)
-        }
-    }
-}
+// macro_rules! exports {
+//     ($lua:ident,$($name:literal,$value:expr),*,) => {
+//         {
+//             let exports = $lua.create_table()?;
+//             $(exports.set($name,$lua.create_function(|_,()|Ok($value))?)?;)*
+//             Ok(exports)
+//         }
+//     }
+// }
 MakeFltkWidgetWrapper!(Pack, fltk::group::Pack);
 impl LuaUserData for Pack {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {

@@ -2,6 +2,7 @@
 mod fltk;
 mod widgets;
 mod win;
+mod lua_module;
 
 use mlua::prelude::*;
 
