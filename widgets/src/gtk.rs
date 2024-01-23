@@ -1,7 +1,7 @@
 use crate::lua_module::*;
 use gtk::{prelude::*, Button, Entry,Window};
 use mlua::prelude::*;
-use mlua::prelude::*;
+
 use std::ops::{Deref, DerefMut};
 
 struct App {

@@ -1,12 +1,11 @@
 use fltk::{
-    app::{self, wait_for},
+    app::{wait_for},
     prelude::*,
 };
 use crate::lua_module::*;
 
 use mlua::prelude::*;
 use std::{
-    any::Any,
     ops::{Deref, DerefMut},
 };
 trait FltkWrapper<T: WidgetExt> {
@@ -54,7 +53,7 @@ impl LuaUserData for App {
             app.run().unwrap();
             Ok(())
         });
-        methods.add_method("wait", |_, app, ()| wait_for(0.001).or(Ok(false)))
+        methods.add_method("wait", |_, _app, ()| wait_for(0.001).or(Ok(false)))
     }
 }
 macro_rules! WidgetBaseMethods {
