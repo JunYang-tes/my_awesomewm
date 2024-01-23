@@ -1,6 +1,6 @@
 macro_rules! LuaUserDataWrapper {
     ($name:ident, $t:ty) => {
-        #[derive(Debug)]
+        //#[derive(Debug)]
         struct $name($t);
         impl Deref for $name {
             type Target = $t;
@@ -37,6 +37,12 @@ macro_rules! Setter {
             Ok(())
         });)*
     };
+    ($methods:ident,$($name:ident $lua_type:ty : $input:ident => $out:expr),*) => {
+        $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
+            w.$name($out);
+            Ok(())
+        }))*
+    };
     ($methods:ident,$($name:ident,$lua_type:ty,
                       $input:ident => $out:expr),*) => {
         $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
@@ -58,6 +64,12 @@ macro_rules! Getter {
     ($methods:ident,$($name:ident),*) => {
         $($methods.add_method_mut(stringify!($name),|_,self_,()|{
             Ok(self_.$name())
+        });)*
+    };
+    ($methods:ident,$($name:ident $i:ident => $cvt:expr),*) => {
+        $($methods.add_method_mut(stringify!($name),|_,self_,()|{
+            let $i = self_.$name();
+            Ok($cvt)
         });)*
     }
 }

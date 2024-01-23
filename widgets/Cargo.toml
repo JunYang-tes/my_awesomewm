@@ -17,5 +17,6 @@ taffy = {git="https://github.com/DioxusLabs/taffy.git",branch="main"}
 fltk = "1.4.22"
 fltk-sys = "1.4.22"
 glib = "0.18.5"
-# gtk = "0.18.1"
+gtk = "0.18.1"
+gtk-sys = "0.18.0"
 
