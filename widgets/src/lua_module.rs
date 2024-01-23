@@ -41,14 +41,14 @@ macro_rules! Setter {
         $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
             w.$name($out);
             Ok(())
-        }))*
+        });)*
     };
     ($methods:ident,$($name:ident,$lua_type:ty,
                       $input:ident => $out:expr),*) => {
         $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
             w.$name($out);
             Ok(())
-        }))*
+        });)*
     }
 }
 

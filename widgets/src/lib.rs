@@ -1,4 +1,5 @@
 mod gtk;
+mod gtk_enums;
 mod fltk;
 mod lua_module;
 

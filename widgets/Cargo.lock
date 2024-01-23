@@ -891,6 +891,7 @@ dependencies = [
  "gtk-sys",
  "mlua",
  "once_cell",
+ "pango",
  "taffy",
  "xcb",
 ]

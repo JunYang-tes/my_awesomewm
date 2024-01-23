@@ -1,5 +1,6 @@
+use crate::gtk_enums::*;
 use crate::lua_module::*;
-use gtk::{prelude::*, Button, Entry,Window};
+use gtk::{prelude::*, Button, Entry, Window};
 use mlua::prelude::*;
 
 use std::ops::{Deref, DerefMut};
@@ -54,7 +55,7 @@ macro_rules! MatchLuaUserData {
 }
 macro_rules! MatchWidget {
     ($data:ident,
-     $item: ident => $exp :block) => {MatchLuaUserData!($data, $item => $exp, Btn,Textbox,Box,);}
+     $item: ident => $exp :block) => {MatchLuaUserData!($data, $item => $exp, Btn,Textbox,Box,Label,);}
 }
 macro_rules! GtkContainer {
     ($methods:ident) => {
@@ -135,7 +136,59 @@ impl LuaUserData for Box {
         );
     }
 }
+LuaUserDataWrapper!(Justification, gtk::Justification);
 
+LuaUserDataWrapper!(Label, gtk::Label);
+impl LuaUserData for Label {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        use pango::EllipsizeMode;
+        Getter!(methods, angle, cursor_position, selection_bound, wraps);
+        Getter!(methods,
+        wrap_mode i => wrap_mode::to_num(i),
+        line_wrap_mode i => wrap_mode::to_num(i),
+        ellipsize i=> match i {
+            EllipsizeMode::None => 0,
+            EllipsizeMode::Start => 1,
+            EllipsizeMode::Middle => 2,
+            EllipsizeMode::End => 3,
+            EllipsizeMode::__Unknown(i)=>i,
+            _ => -1
+        },
+        justify i => justification::to_num(i)
+        );
+        Setter!(methods,
+                set_use_markup bool,
+                set_use_underline bool,
+                set_width_chars i32,
+                set_max_width_chars i32,
+                set_xalign f32,
+                set_selectable bool,
+                set_single_line_mode bool,
+                set_line_wrap bool,
+                set_yalign f32,
+                set_lines i32,
+                set_wrap bool);
+        Setter!(methods,
+                set_label String: i=>i.as_str(),
+                set_text String: i=>i.as_str(),
+                set_text_with_mnemonic String: i=>i.as_str(),
+                set_markup String: i=>i.as_str(),
+                set_pattern String: i=>i.as_str(),
+                set_markup_with_mnemonic String: i=>i.as_str(),
+                set_wrap_mode i32: i => wrap_mode::from_num(i),
+                set_line_wrap_mode i32: i => wrap_mode::from_num(i),
+                set_ellipsize i32: i=> match i {
+                    0 => EllipsizeMode::None,
+                    1 => EllipsizeMode::Start,
+                    2 => EllipsizeMode::Middle,
+                    3 => EllipsizeMode::End,
+                    i => EllipsizeMode::__Unknown(i)
+                },
+                set_justify i32: i => justification::from_num(i)
+        );
+    }
+}
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(
         lua,
@@ -149,5 +202,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         Textbox(Entry::new()),
         "box",
         Box(gtk::Box::new(gtk::Orientation::Horizontal, 0)),
+        "label",
+        Label(gtk::Label::new(None)),
     )
 }
