@@ -40,3 +40,26 @@ pub mod wrap_mode {
         }
     }
 }
+pub mod selection_mode {
+    use gtk::SelectionMode;
+
+    pub fn from_num(i: i32) -> SelectionMode {
+        match i {
+            0 => SelectionMode::None,
+            1 => SelectionMode::Single,
+            2 => SelectionMode::Browse,
+            3 => SelectionMode::Multiple,
+            i => SelectionMode::__Unknown(i),
+        }
+    }
+    pub fn to_num(i: SelectionMode) -> i32 {
+        match i {
+            SelectionMode::None => 0,
+            SelectionMode::Single => 1,
+            SelectionMode::Browse => 2,
+            SelectionMode::Multiple => 3,
+            SelectionMode::__Unknown(i) => i,
+            _ => panic!("Unknown selection mode"),
+        }
+    }
+}

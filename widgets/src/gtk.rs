@@ -138,8 +138,6 @@ impl LuaUserData for Box {
         );
     }
 }
-LuaUserDataWrapper!(Justification, gtk::Justification);
-
 LuaUserDataWrapper!(Label, gtk::Label);
 impl LuaUserData for Label {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
@@ -206,6 +204,47 @@ impl LuaUserData for ListBoxRow {
         GtkContainer!(methods);
     }
 }
+LuaUserDataWrapper!(FlowBox, gtk::FlowBox);
+impl LuaUserData for FlowBox {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        GtkContainer!(methods);
+        ParamlessCall!(methods,
+                       invalidate_filter,
+                       unselect_all,
+                       invalidate_sort,
+                       select_all);
+        Getter!(
+            methods,
+            activates_on_single_click,
+            column_spacing,
+            is_homogeneous,
+            max_children_per_line,
+            min_children_per_line,
+            row_spacing
+        );
+        Getter!(methods,
+                selection_mode i => selection_mode::to_num(i));
+        methods.add_method_mut("insert", |_, b, (w, i): (LuaValue, i32)| {
+            match w {
+                LuaValue::UserData(data) => {
+                    MatchWidget!(data, item=> {b.insert(&item.0,i)});
+                }
+                _ => panic!("Expect widget"),
+            }
+            Ok(())
+        });
+        Setter!(methods,
+                set_column_spacing u32,
+                set_homogeneous bool,
+                set_max_children_per_line u32,
+                set_min_children_per_line u32,
+                set_row_spacing u32,
+                set_activate_on_single_click bool);
+        Setter!(methods,
+                set_selection_mode i32: i => selection_mode::from_num(i));
+    }
+}
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(
@@ -216,7 +255,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         Win(Window::new(gtk::WindowType::Toplevel)),
         "button",
         Btn(Button::new()),
-        "textbox",
+        "text_box",
         Textbox(Entry::new()),
         "box",
         Box(gtk::Box::new(gtk::Orientation::Horizontal, 0)),
@@ -226,5 +265,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         ListBox(gtk::ListBox::new()),
         "list_box_row",
         ListBoxRow(gtk::ListBoxRow::new()),
+        "flow_box",
+        FlowBox(gtk::FlowBox::new()),
     )
 }
