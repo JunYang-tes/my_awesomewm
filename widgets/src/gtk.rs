@@ -55,10 +55,12 @@ macro_rules! MatchLuaUserData {
 }
 macro_rules! MatchWidget {
     ($data:ident,
-     $item: ident => $exp :block) => {MatchLuaUserData!($data, $item => $exp, Btn,Textbox,Box,Label,);}
+     $item: ident => $exp :block) => {MatchLuaUserData!($data, $item => $exp,
+                                                        Btn,Textbox,Box,Label,ListBox,);}
 }
 macro_rules! GtkContainer {
     ($methods:ident) => {
+        ParamlessCall!($methods,show_all);
         $methods.add_method_mut("add", |_, container, child: LuaValue| {
             match child {
                 LuaValue::UserData(data) => {
@@ -189,6 +191,22 @@ impl LuaUserData for Label {
         );
     }
 }
+
+LuaUserDataWrapper!(ListBox, gtk::ListBox);
+impl LuaUserData for ListBox {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        GtkContainer!(methods);
+    }
+}
+LuaUserDataWrapper!(ListBoxRow, gtk::ListBoxRow);
+impl LuaUserData for ListBoxRow {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        GtkContainer!(methods);
+    }
+}
+
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(
         lua,
@@ -204,5 +222,9 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         Box(gtk::Box::new(gtk::Orientation::Horizontal, 0)),
         "label",
         Label(gtk::Label::new(None)),
+        "list_box",
+        ListBox(gtk::ListBox::new()),
+        "list_box_row",
+        ListBoxRow(gtk::ListBoxRow::new()),
     )
 }
