@@ -76,3 +76,22 @@ pub mod position_type {
         }
     }
 }
+
+pub mod orientation {
+    use gtk::Orientation;
+    pub fn from_num(i: i32) -> Orientation {
+        match i {
+            0 => Orientation::Horizontal,
+            1 => Orientation::Vertical,
+            i => Orientation::__Unknown(i),
+        }
+    }
+    pub fn to_num(i: Orientation) -> i32 {
+        match i {
+            Orientation::Horizontal => 0,
+            Orientation::Vertical => 1,
+            Orientation::__Unknown(i) => i,
+            _ => panic!("Unknown Orientation"),
+        }
+    }
+}

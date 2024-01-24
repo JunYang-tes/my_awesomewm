@@ -41,6 +41,12 @@ macro_rules! GtkWidgetExt {
                 set_margin i32);
     };
 }
+macro_rules! GtkOrientableExt {
+    ($method:ident) => {
+        Getter!($method, orientation i => orientation::to_num(i));
+        Setter!($method, set_orientation i32: i => orientation::from_num(i));
+    }
+}
 macro_rules! MatchLuaUserData {
     ($data:ident,
      $item: ident => $exp : block,
@@ -109,6 +115,7 @@ LuaUserDataWrapper!(Box, gtk::Box);
 impl LuaUserData for Box {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         GtkWidgetExt!(methods);
+        GtkOrientableExt!(methods);
         methods.add_method_mut(
             "pack_start",
             |_, b, (child, expand, fill, padding): (LuaValue, bool, bool, u32)| {
