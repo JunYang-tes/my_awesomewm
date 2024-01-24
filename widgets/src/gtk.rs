@@ -62,10 +62,10 @@ macro_rules! MatchLuaUserData {
 macro_rules! MatchWidget {
     ($data:ident,
      $item: ident => $exp :block) => {
-        MatchLuaUserData!($data, 
+        MatchLuaUserData!($data,
                           $item => $exp,
                           Btn,Textbox,Box,Label,ListBox,ListBoxRow,
-                          FlowBox,Grid,);}
+                          FlowBox,Grid,Stack,StackSwitcher,);}
 }
 macro_rules! GtkContainer {
     ($methods:ident) => {
@@ -295,6 +295,63 @@ impl LuaUserData for Grid {
         );
     }
 }
+LuaUserDataWrapper!(CheckButton, gtk::CheckButton);
+impl LuaUserData for CheckButton {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+    }
+}
+LuaUserDataWrapper!(Stack, gtk::Stack);
+impl LuaUserData for Stack {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        GtkContainer!(methods);
+        methods.add_method_mut(
+            "add_titled",
+            |_, stack, (child, name, title): (LuaValue, String, String)| {
+                match child {
+                    LuaValue::UserData(data) => {
+                        MatchWidget!(data,item => {
+                            stack.add_titled(&item.0,name.as_str(),title.as_str());
+                        });
+                    }
+                    _ => panic!("Expect widget"),
+                }
+                Ok(())
+            },
+        );
+        methods.add_method_mut(
+            "add_named",
+            |_, stack, (child, name): (LuaValue, String)| {
+                match child {
+                    LuaValue::UserData(data) => {
+                        MatchWidget!(data,item => {
+                            stack.add_named(&item.0,name.as_str());
+                        });
+                    }
+                    _ => panic!("Expect widget"),
+                }
+                Ok(())
+            },
+        );
+    }
+}
+LuaUserDataWrapper!(StackSwitcher, gtk::StackSwitcher);
+impl LuaUserData for StackSwitcher {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        methods.add_method_mut("set_stack", |_, switcher, stack: LuaValue| {
+            match stack {
+                LuaValue::UserData(data) => {
+                    let stack = data.borrow::<Stack>().unwrap();
+                    switcher.set_stack(Some(&stack.0));
+                }
+                _ => panic!("Expect widget"),
+            }
+            Ok(())
+        });
+    }
+}
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(
@@ -319,5 +376,11 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         FlowBox(gtk::FlowBox::new()),
         "grid",
         Grid(gtk::Grid::new()),
+        "check_button",
+        CheckButton(gtk::CheckButton::new()),
+        "stack",
+        Stack(gtk::Stack::new()),
+        "stack_switcher",
+        StackSwitcher(gtk::StackSwitcher::new()),
     )
 }
