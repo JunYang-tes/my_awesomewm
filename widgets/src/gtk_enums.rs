@@ -63,3 +63,16 @@ pub mod selection_mode {
         }
     }
 }
+
+pub mod position_type {
+    use gtk::PositionType;
+    pub fn from_num(i: i32) -> PositionType {
+        match i {
+            0 => PositionType::Left,
+            1 => PositionType::Right,
+            2 => PositionType::Top,
+            3 => PositionType::Bottom,
+            i => PositionType::__Unknown(i),
+        }
+    }
+}

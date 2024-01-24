@@ -55,8 +55,11 @@ macro_rules! MatchLuaUserData {
 }
 macro_rules! MatchWidget {
     ($data:ident,
-     $item: ident => $exp :block) => {MatchLuaUserData!($data, $item => $exp,
-                                                        Btn,Textbox,Box,Label,ListBox,);}
+     $item: ident => $exp :block) => {
+        MatchLuaUserData!($data, 
+                          $item => $exp,
+                          Btn,Textbox,Box,Label,ListBox,ListBoxRow,
+                          FlowBox,Grid,);}
 }
 macro_rules! GtkContainer {
     ($methods:ident) => {
@@ -209,11 +212,13 @@ impl LuaUserData for FlowBox {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         GtkWidgetExt!(methods);
         GtkContainer!(methods);
-        ParamlessCall!(methods,
-                       invalidate_filter,
-                       unselect_all,
-                       invalidate_sort,
-                       select_all);
+        ParamlessCall!(
+            methods,
+            invalidate_filter,
+            unselect_all,
+            invalidate_sort,
+            select_all
+        );
         Getter!(
             methods,
             activates_on_single_click,
@@ -245,6 +250,44 @@ impl LuaUserData for FlowBox {
                 set_selection_mode i32: i => selection_mode::from_num(i));
     }
 }
+LuaUserDataWrapper!(Grid, gtk::Grid);
+impl LuaUserData for Grid {
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        GtkWidgetExt!(methods);
+        GtkContainer!(methods);
+        methods.add_method_mut(
+            "attach",
+            |_, b, (w, left, top, width, height): (LuaValue, i32, i32, i32, i32)| {
+                match w {
+                    LuaValue::UserData(data) => {
+                        MatchWidget!(data, item=> {
+                            b.attach(&item.0,left,top,width,height);
+                        });
+                    }
+                    _ => panic!("Expect widget"),
+                }
+                Ok(())
+            },
+        );
+        methods.add_method_mut(
+            "attach_next_to",
+            |_, b, (w1, w2, side, width, height): (LuaValue, LuaValue, i32, i32, i32)| {
+                match (w1, w2) {
+                    (LuaValue::UserData(data), LuaValue::UserData(data2)) => {
+                        MatchWidget!(data, item=> {
+                            MatchWidget!(data2, item2 => {
+                                b.attach_next_to(&item.0,Some(&item2.0),position_type::from_num(side),width,height);
+
+                            });
+                        });
+                    }
+                    _ => panic!("Expect widget"),
+                }
+                Ok(())
+            },
+        );
+    }
+}
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(
@@ -267,5 +310,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         ListBoxRow(gtk::ListBoxRow::new()),
         "flow_box",
         FlowBox(gtk::FlowBox::new()),
+        "grid",
+        Grid(gtk::Grid::new()),
     )
 }
