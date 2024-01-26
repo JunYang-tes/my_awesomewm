@@ -1,3 +1,4 @@
+#[allow(unused)]
 use crate::gtk_enums::*;
 use crate::lua_module::*;
 use gtk::{prelude::*, Button, Entry, Window};
@@ -74,7 +75,7 @@ macro_rules! GtkContainer {
             match child {
                 LuaValue::UserData(data) => {
                     MatchWidget!(data, item => {
-                        container.add(&item.0);
+                        container.add(item.to_ref());
                         return Ok(())
                     });
                 }
@@ -83,6 +84,27 @@ macro_rules! GtkContainer {
             Ok(())
         })
     };
+}
+macro_rules! GtkConnect {
+    ($methods:ident,$widget:ident,$($name:ident,)*)=>{
+        $($methods.add_method_mut(stringify!($name),|_,widget,f:LuaValue|{
+            match f {
+                LuaValue::Function(f) => {
+                    let f = unsafe { std::mem::transmute::<_, mlua::Function<'static>>(f) };
+                    widget.connect_clicked(move |w| {
+                        let b = $widget::new_with_ref(w);
+                        f.call::<$widget, ()>(unsafe { std::mem::transmute::<_, $widget<'static>>(b) })
+                             .unwrap();
+                    });
+                },
+                _ => {
+                    panic!("Expect a function")
+                }
+            }
+
+            Ok(())
+        }))*;
+    }
 }
 
 LuaUserDataWrapper!(Win, Window);
@@ -94,12 +116,13 @@ impl LuaUserData for Win {
     }
 }
 
-LuaUserDataWrapper!(Btn, Button);
-impl LuaUserData for Btn {
+LuaUserDataWrapper!(Btn, BtnEnum, Button);
+impl<'a> LuaUserData for Btn<'a> {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         Basic!(methods);
         GtkWidgetExt!(methods);
         Setter!(methods, set_label String: s => s.as_str());
+        GtkConnect!(methods, Btn, connect_clicked,);
     }
 }
 LuaUserDataWrapper!(Textbox, Entry);
@@ -123,7 +146,7 @@ impl LuaUserData for Box {
                     LuaValue::UserData(data) => {
                         MatchWidget!(data,
                         child => {
-                            b.pack_start(&child.0,expand,fill,padding);
+                            b.pack_start(child.to_ref(),expand,fill,padding);
                         });
                     }
                     _ => {}
@@ -138,7 +161,7 @@ impl LuaUserData for Box {
                     LuaValue::UserData(data) => {
                         MatchWidget!(data,
                         child => {
-                            b.pack_end(&child.0,expand,fill,padding);
+                            b.pack_end(child.to_ref(),expand,fill,padding);
                         });
                     }
                     _ => {}
@@ -240,7 +263,7 @@ impl LuaUserData for FlowBox {
         methods.add_method_mut("insert", |_, b, (w, i): (LuaValue, i32)| {
             match w {
                 LuaValue::UserData(data) => {
-                    MatchWidget!(data, item=> {b.insert(&item.0,i)});
+                    MatchWidget!(data, item=> {b.insert(item.to_ref(),i)});
                 }
                 _ => panic!("Expect widget"),
             }
@@ -268,7 +291,7 @@ impl LuaUserData for Grid {
                 match w {
                     LuaValue::UserData(data) => {
                         MatchWidget!(data, item=> {
-                            b.attach(&item.0,left,top,width,height);
+                            b.attach(item.to_ref(),left,top,width,height);
                         });
                     }
                     _ => panic!("Expect widget"),
@@ -283,7 +306,7 @@ impl LuaUserData for Grid {
                     (LuaValue::UserData(data), LuaValue::UserData(data2)) => {
                         MatchWidget!(data, item=> {
                             MatchWidget!(data2, item2 => {
-                                b.attach_next_to(&item.0,Some(&item2.0),position_type::from_num(side),width,height);
+                                b.attach_next_to(item.to_ref(),Some(item2.to_ref()),position_type::from_num(side),width,height);
 
                             });
                         });
@@ -312,7 +335,7 @@ impl LuaUserData for Stack {
                 match child {
                     LuaValue::UserData(data) => {
                         MatchWidget!(data,item => {
-                            stack.add_titled(&item.0,name.as_str(),title.as_str());
+                            stack.add_titled(item.to_ref(),name.as_str(),title.as_str());
                         });
                     }
                     _ => panic!("Expect widget"),
@@ -326,7 +349,7 @@ impl LuaUserData for Stack {
                 match child {
                     LuaValue::UserData(data) => {
                         MatchWidget!(data,item => {
-                            stack.add_named(&item.0,name.as_str());
+                            stack.add_named(item.to_ref(),name.as_str());
                         });
                     }
                     _ => panic!("Expect widget"),
@@ -361,7 +384,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         "win",
         Win(Window::new(gtk::WindowType::Toplevel)),
         "button",
-        Btn(Button::new()),
+        Btn::new(Button::new()),
         "text_box",
         Textbox(Entry::new()),
         "box",
