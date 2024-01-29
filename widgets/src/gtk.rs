@@ -131,22 +131,19 @@ macro_rules! GtkWidgetExt {
     };
 }
 macro_rules! GtkConnect {
-    ($methods:ident,$widget:ty,$($name:ident,)*)=>{
+    ($methods:ident,$widget:ty,$($name:ident, ($gtk_args:ident,$lua_f:ident) => $block:block,)*)=>{
         $($methods.add_method_mut(stringify!($name),|_,widget,f:LuaValue|{
             match f {
                 LuaValue::Function(f) => {
-                    let f = unsafe { std::mem::transmute::<_, mlua::Function<'static>>(f) };
-                    widget.$name(move |w| {
-                        let b = LuaWrapper(w);
-                        f.call::<LuaWrapper<&$widget>, ()>(unsafe { std::mem::transmute::<_, _>(b) })
-                             .unwrap();
+                    let $lua_f = unsafe { std::mem::transmute::<_, mlua::Function<'static>>(f) };
+                    widget.$name(move |$gtk_args| {
+                        $block;
                     });
                 },
                 _ => {
                     panic!("Expect a function")
                 }
             }
-
             Ok(())
         }))*;
     }
@@ -159,7 +156,14 @@ AddMethods!(Window,methods => {
 AddMethods!(gtk::Button,methods =>{
     GtkWidgetExt!(methods);
     Setter!(methods, set_label String: s => s.as_str());
-    GtkConnect!(methods,gtk::Button,connect_clicked,);
+    GtkConnect!(methods,gtk::Button,connect_clicked,(w,f) => {
+        let b = LuaWrapper(w);
+        f.call::<LuaWrapper<&gtk::Button>,()>(unsafe {
+            std::mem::transmute(b)
+        })
+        .unwrap();
+
+    },);
 });
 AddMethods!(gtk::Label,methods =>{
     GtkWidgetExt!(methods);
