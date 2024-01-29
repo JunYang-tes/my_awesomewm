@@ -129,14 +129,31 @@ macro_rules! GtkWidgetExt {
                 set_is_focus bool,
                 set_margin i32);
     };
+    ($widget:ty,$methods:ident) => {
+        GtkWidgetExt!($methods);
+        GtkConnect!($methods,$widget,
+                    connect_key_press_event:((w,_e),f)=>{
+                        let w = LuaWrapper(w);
+                        let stop = f.call::<LuaWrapper<&$widget>,bool>(unsafe {
+                            std::mem::transmute(w)
+                        })
+                        .unwrap();
+                        if stop {
+                            return glib::Propagation::Stop
+                        } else {
+                            return glib::Propagation::Proceed
+                        }
+                    },);
+
+    };
 }
 macro_rules! GtkConnect {
-    ($methods:ident,$widget:ty,$($name:ident, ($gtk_args:ident,$lua_f:ident) => $block:block,)*)=>{
+    ($methods:ident,$widget:ty,$($name:ident: (($($gtk_args:ident),+ $(,)?),$lua_f:ident) => $block:block,)*)=>{
         $($methods.add_method_mut(stringify!($name),|_,widget,f:LuaValue|{
             match f {
                 LuaValue::Function(f) => {
                     let $lua_f = unsafe { std::mem::transmute::<_, mlua::Function<'static>>(f) };
-                    widget.$name(move |$gtk_args| {
+                    widget.$name(move |$($gtk_args,)*|  {
                         $block;
                     });
                 },
@@ -145,7 +162,7 @@ macro_rules! GtkConnect {
                 }
             }
             Ok(())
-        }))*;
+        });)*
     }
 }
 
@@ -156,13 +173,12 @@ AddMethods!(Window,methods => {
 AddMethods!(gtk::Button,methods =>{
     GtkWidgetExt!(methods);
     Setter!(methods, set_label String: s => s.as_str());
-    GtkConnect!(methods,gtk::Button,connect_clicked,(w,f) => {
+    GtkConnect!(methods,gtk::Button,connect_clicked:((w),f) => {
         let b = LuaWrapper(w);
         f.call::<LuaWrapper<&gtk::Button>,()>(unsafe {
             std::mem::transmute(b)
         })
         .unwrap();
-
     },);
 });
 AddMethods!(gtk::Label,methods =>{
@@ -214,7 +230,7 @@ AddMethods!(gtk::Label,methods =>{
     );
 });
 AddMethods!(gtk::Entry,methods =>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::Entry, methods);
     Getter!(methods, text str => String::from(str));
     Setter!(methods,set_text String: str=> str.as_str());
 });
