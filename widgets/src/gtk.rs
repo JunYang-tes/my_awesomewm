@@ -110,10 +110,22 @@ macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         GtkWidgetExt!($methods);
         GtkConnect!($methods,$widget,
+
                     connect_key_press_event:((w,e),f)=>{
                         let w = LuaWrapper(w);
-                        let stop = f.call::<(LuaWrapper<&$widget>),bool>(unsafe {
-                            (std::mem::transmute(w))
+                        let stop = f.call::<(LuaWrapper<&$widget>,LuaWrapper<&gtk::gdk::EventKey>),bool>(unsafe {
+                            (std::mem::transmute(w),std::mem::transmute(LuaWrapper(e)))
+                        })
+                        .unwrap();
+                        if stop {
+                            return glib::Propagation::Stop
+                        } else {
+                            return glib::Propagation::Proceed
+                        }},
+                    connect_key_release_event:((w,e),f)=>{
+                        let w = LuaWrapper(w);
+                        let stop = f.call::<(LuaWrapper<&$widget>,LuaWrapper<&gtk::gdk::EventKey>),bool>(unsafe {
+                            (std::mem::transmute(w),std::mem::transmute(LuaWrapper(e)))
                         })
                         .unwrap();
                         if stop {
