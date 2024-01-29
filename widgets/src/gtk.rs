@@ -25,28 +25,6 @@ impl LuaUserData for App {
         Setter!(methods, iteration, bool);
     }
 }
-struct LuaWrapper<T>(T);
-impl<T> Deref for LuaWrapper<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-macro_rules! AddMethods {
-    ($type:ty, $methods:ident => $block:block) => {
-        impl LuaUserData for LuaWrapper<$type> {
-            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
-                $block;
-            }
-        }
-        impl LuaUserData for LuaWrapper<&$type> {
-            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
-                $block;
-            }
-        }
-    };
-}
 macro_rules! MatchLuaUserData {
     ($data:ident,
      $item: ident => $exp : block,
@@ -132,10 +110,10 @@ macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         GtkWidgetExt!($methods);
         GtkConnect!($methods,$widget,
-                    connect_key_press_event:((w,_e),f)=>{
+                    connect_key_press_event:((w,e),f)=>{
                         let w = LuaWrapper(w);
-                        let stop = f.call::<LuaWrapper<&$widget>,bool>(unsafe {
-                            std::mem::transmute(w)
+                        let stop = f.call::<(LuaWrapper<&$widget>),bool>(unsafe {
+                            (std::mem::transmute(w))
                         })
                         .unwrap();
                         if stop {
