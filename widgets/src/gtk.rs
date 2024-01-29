@@ -50,7 +50,7 @@ macro_rules! AddMethods {
 macro_rules! MatchLuaUserData {
     ($data:ident,
      $item: ident => $exp : block,
-     $($type:ty,)*) => {
+     $($type:ty),+ $(,)?) => {
         $(
         if $data.is::<$type>() {
             let $item = $data.borrow::<$type>().unwrap();
@@ -75,7 +75,7 @@ macro_rules! MatchWidget {
                           LuaWrapper<gtk::ListBoxRow>,
                           LuaWrapper<gtk::Label>,
                           LuaWrapper<gtk::Entry>,
-                          LuaWrapper<gtk::Button>,);
+                          LuaWrapper<gtk::Button>);
         MatchLuaUserData!($data,
                           // $item.0
                           $item => {
@@ -89,7 +89,7 @@ macro_rules! MatchWidget {
                           LuaWrapper<&gtk::ListBoxRow>,
                           LuaWrapper<&gtk::Label>,
                           LuaWrapper<&gtk::Entry>,
-                          LuaWrapper<&gtk::Button>,
+                          LuaWrapper<&gtk::Button>
                           );
 
     }
@@ -143,12 +143,12 @@ macro_rules! GtkWidgetExt {
                         } else {
                             return glib::Propagation::Proceed
                         }
-                    },);
+                    });
 
     };
 }
 macro_rules! GtkConnect {
-    ($methods:ident,$widget:ty,$($name:ident: (($($gtk_args:ident),+ $(,)?),$lua_f:ident) => $block:block,)*)=>{
+    ($methods:ident,$widget:ty,$($name:ident: (($($gtk_args:ident),+ $(,)?),$lua_f:ident) => $block:block),+ $(,)? )=>{
         $($methods.add_method_mut(stringify!($name),|_,widget,f:LuaValue|{
             match f {
                 LuaValue::Function(f) => {
@@ -179,7 +179,7 @@ AddMethods!(gtk::Button,methods =>{
             std::mem::transmute(b)
         })
         .unwrap();
-    },);
+    });
 });
 AddMethods!(gtk::Label,methods =>{
     GtkWidgetExt!(methods);

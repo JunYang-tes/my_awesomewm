@@ -1,3 +1,4 @@
+#[allow(unused)]
 macro_rules! LuaUserDataWrapper {
     ($name:ident, $t:ty) => {
         //#[derive(Debug)]
