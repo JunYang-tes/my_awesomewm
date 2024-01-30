@@ -1,0 +1,45 @@
+use crate::lua_module::*;
+use gtk::prelude::CssProviderExt;
+use gtk::prelude::StyleContextExt;
+use mlua::prelude::*;
+AddMethods!(gtk::StyleContext,methods => {
+    ParamlessCall!(methods,save,restore);
+    Getter!(methods,scale);
+    Getter!(methods,list_classes i=>i
+            .iter()
+            .map(|gstr|String::from(gstr.as_str()))
+            .collect::<Vec<_>>());
+    Setter!(methods,
+            set_scale i32: i=>i,
+            add_class String:i=>i.as_str());
+    Call!(methods,
+          has_class,
+          cls_name:String => cls_name.as_str(),
+          i => Ok(i));
+    Call!(methods,
+          remove_class,
+          cls_name:String => cls_name.as_str(),
+          i => Ok(i));
+    methods.add_method("add_provider",|_,ctx,(provider,priority):(LuaValue,u32)|{
+        match provider {
+            LuaValue::UserData(data)=>{
+                if data.is::<LuaWrapper<gtk::CssProvider>>(){
+                    let provider = data.borrow::<LuaWrapper<gtk::CssProvider>>().unwrap();
+                    ctx.add_provider(&provider.0,priority)
+                } else if data.is::<LuaWrapper<&gtk::CssProvider>>() {
+                    let provider = data.borrow::<LuaWrapper<&gtk::CssProvider>>().unwrap();
+                    ctx.add_provider(provider.0,priority)
+                }
+            },
+            _=>{}
+        }
+        Ok(())
+    });
+});
+AddMethods!(gtk::CssProvider,methods => {
+    Call!(methods,
+          load_from_data,
+          data:String => data.as_bytes(),
+          i => if i.is_ok() { Ok(String::from(""))} else {Ok(String::from(i.unwrap_err().to_string()))}
+          );
+});

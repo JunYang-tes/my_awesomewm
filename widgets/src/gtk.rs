@@ -100,7 +100,11 @@ macro_rules! GtkContainer {
 macro_rules! GtkWidgetExt {
     ($method:ident) => {
         ParamlessCall!($method, show);
-        Getter!($method, width_request, height_request,margin);
+        Getter!($method, width_request, height_request,
+                //style_context,
+                margin);
+        Getter!($method,
+                style_context ctx=>LuaWrapper(ctx));
         Setter!($method, set_expand bool,
                 set_has_default bool,
                 set_has_focus bool,
@@ -213,6 +217,7 @@ macro_rules! GtkConnectPropgatableEvent {
 
 AddMethods!(Window,methods => {
     ParamlessCall!(methods,present,maximize,close);
+    GtkWidgetExt!(methods);
     GtkContainer!(methods);
 });
 AddMethods!(gtk::Button,methods =>{
@@ -478,5 +483,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         LuaWrapper(gtk::StackSwitcher::new()),
         "event_box",
         LuaWrapper(gtk::EventBox::new()),
+        "css_provider",
+        LuaWrapper(gtk::CssProvider::new()),
     )
 }

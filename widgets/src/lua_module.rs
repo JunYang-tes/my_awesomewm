@@ -9,6 +9,21 @@ macro_rules! exports {
         }
     }
 }
+macro_rules! Call {
+    ($method:ident,
+     $name:ident,
+     // lua value to value
+     $lua_args:ident:$lua_args_type:ty=> $value:expr,
+     // return type
+     $ret:ident=> $ret_value:expr
+    )=>{
+        $method.add_method_mut(stringify!($name),|_,obj,$lua_args:$lua_args_type|{
+            let args = $value;
+            let $ret = obj.$name(args);
+            $ret_value
+        });
+    }
+}
 macro_rules! Setter {
     ($methods:ident,$($name:ident,$type:ty),*) => {
         $($methods.add_method_mut(stringify!($name),|_,w,v:$type|{
@@ -23,6 +38,12 @@ macro_rules! Setter {
         });)*
     };
     ($methods:ident,$($name:ident $lua_type:ty : $input:ident => $out:expr),*) => {
+        $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
+            w.$name($out);
+            Ok(())
+        });)*
+    };
+    ($methods:ident,$($name:ident $input:ident:$lua_type:ty=> $out:expr),*) => {
         $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
             w.$name($out);
             Ok(())
@@ -87,3 +108,4 @@ pub(crate) use Getter;
 pub(crate) use AddMethods;
 pub(crate) use ParamlessCall;
 pub(crate) use Setter;
+pub(crate) use Call;

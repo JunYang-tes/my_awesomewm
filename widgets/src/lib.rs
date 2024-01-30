@@ -1,6 +1,7 @@
 mod gtk;
 mod gtk_enums;
 mod gtk_events;
+mod gtk_style;
 mod fltk;
 mod lua_module;
 
