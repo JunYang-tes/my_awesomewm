@@ -43,3 +43,54 @@ AddMethods!(gtk::CssProvider,methods => {
           i => if i.is_ok() { Ok(String::from(""))} else {Ok(String::from(i.unwrap_err().to_string()))}
           );
 });
+pub fn styleContext(lua: &Lua) -> LuaResult<LuaTable> {
+    let styleContext = lua.create_table()?;
+    styleContext.set(
+        "add_provider_for_screen",
+        lua.create_function(
+            |_, (screen, provider, priority): (LuaValue, LuaValue, u32)| {
+                //gtk::StyleContext::add_provider_for_screen
+                match (screen, provider) {
+                    (LuaValue::UserData(screen), LuaValue::UserData(provider)) => {
+                        if screen.is::<LuaWrapper<gtk::gdk::Screen>>()
+                            && provider.is::<LuaWrapper<gtk::CssProvider>>()
+                        {
+                            let screen = screen.borrow::<LuaWrapper<_>>().unwrap();
+                            let provider =
+                                provider.borrow::<LuaWrapper<gtk::CssProvider>>().unwrap();
+                            gtk::StyleContext::add_provider_for_screen(
+                                &screen.0,
+                                &provider.0,
+                                priority,
+                            )
+                        }
+                    }
+                    _ => {}
+                }
+
+                Ok(())
+            },
+        )?,
+    )?;
+    styleContext.set(
+        "remove_provider_for_screen",
+        lua.create_function(|_, (screen, provider): (LuaValue, LuaValue)| {
+            //gtk::StyleContext::add_provider_for_screen
+            match (screen, provider) {
+                (LuaValue::UserData(screen), LuaValue::UserData(provider)) => {
+                    if screen.is::<LuaWrapper<gtk::gdk::Screen>>()
+                        && provider.is::<LuaWrapper<gtk::CssProvider>>()
+                    {
+                        let screen = screen.borrow::<LuaWrapper<_>>().unwrap();
+                        let provider = provider.borrow::<LuaWrapper<gtk::CssProvider>>().unwrap();
+                        gtk::StyleContext::remove_provider_for_screen(&screen.0, &provider.0)
+                    }
+                }
+                _ => {}
+            }
+
+            Ok(())
+        })?,
+    )?;
+    Ok(styleContext)
+}

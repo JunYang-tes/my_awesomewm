@@ -4,7 +4,7 @@ use crate::lua_module::*;
 use gtk::{prelude::*, Button, Entry, Window};
 use mlua::prelude::*;
 
-use std::ops::{Deref};
+use std::ops::Deref;
 
 struct App {
     ctx: gtk::glib::MainContext,
@@ -451,9 +451,8 @@ AddMethods!(gtk::EventBox,methods => {
     GtkContainer!(methods);
 });
 
-
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
-    exports!(
+    let exports: LuaResult<LuaTable> = exports!(
         lua,
         "app",
         App::new(),
@@ -485,5 +484,10 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         LuaWrapper(gtk::EventBox::new()),
         "css_provider",
         LuaWrapper(gtk::CssProvider::new()),
-    )
+    );
+    let exports = exports.unwrap();
+    exports.set("STYLE_PROVIDER_PRIORITY_USER", 800)?;
+    exports.set("StyleContext", crate::gtk_style::styleContext(lua)?)?;
+
+    Ok(exports)
 }
