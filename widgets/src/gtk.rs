@@ -110,7 +110,50 @@ macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         GtkWidgetExt!($methods);
         GtkConnect!($methods,$widget,
-
+                    connect_map,
+                    connect_unmap,
+                    connect_show,
+                    connect_app_paintable_notify,
+                    connect_can_focus_notify,
+                    connect_can_default_notify,
+                    connect_composite_child_notify,
+                    connect_events_notify,
+                    connect_expand_notify,
+                    connect_style_updated,
+                    connect_focus_on_click_notify,
+                    connect_halign_notify,
+                    connect_valign_notify,
+                    connect_has_default_notify,
+                    connect_has_focus_notify,
+                    connect_unrealize,
+                    connect_realize,
+                    connect_grab_focus,
+                    connect_has_tooltip_notify,
+                    connect_height_request_notify,
+                    connect_hexpand_notify,
+                    connect_hexpand_set_notify,
+                    connect_is_focus_notify,
+                    connect_margin_notify,
+                    connect_margin_bottom_notify,
+                    connect_margin_top_notify,
+                    connect_margin_start_notify,
+                    connect_margin_end_notify,
+                    connect_name_notify,
+                    connect_no_show_all_notify,
+                    connect_opacity_notify,
+                    connect_parent_notify,
+                    connect_receives_default_notify,
+                    connect_scale_factor_notify,
+                    connect_sensitive_notify,
+                    connect_tooltip_markup_notify,
+                    connect_tooltip_text_notify,
+                    connect_vexpand_notify,
+                    connect_vexpand_set_notify,
+                    connect_visible_notify,
+                    connect_width_request_notify,
+                    connect_window_notify,
+                    connect_hide);
+        GtkConnect!($methods,$widget,
                     connect_key_press_event:((w,e),f)=>{
                         let w = LuaWrapper(w);
                         let stop = f.call::<(LuaWrapper<&$widget>,LuaWrapper<&gtk::gdk::EventKey>),bool>(unsafe {
@@ -153,6 +196,15 @@ macro_rules! GtkConnect {
             }
             Ok(())
         });)*
+    };
+    ($methods:ident,$widget:ty,$($name:ident),+ $(,)?)=>{
+        $(GtkConnect!($methods,$widget,$name:((w),f)=>{
+            let b = LuaWrapper(w);
+            f.call::<LuaWrapper<&gtk::Button>,()>(unsafe {
+                std::mem::transmute(b)
+            })
+            .unwrap();
+        });)*
     }
 }
 
@@ -163,13 +215,7 @@ AddMethods!(Window,methods => {
 AddMethods!(gtk::Button,methods =>{
     GtkWidgetExt!(methods);
     Setter!(methods, set_label String: s => s.as_str());
-    GtkConnect!(methods,gtk::Button,connect_clicked:((w),f) => {
-        let b = LuaWrapper(w);
-        f.call::<LuaWrapper<&gtk::Button>,()>(unsafe {
-            std::mem::transmute(b)
-        })
-        .unwrap();
-    });
+    GtkConnect!(methods,gtk::Button,connect_clicked);
 });
 AddMethods!(gtk::Label,methods =>{
     GtkWidgetExt!(methods);
