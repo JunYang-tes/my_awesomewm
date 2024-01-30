@@ -46,6 +46,7 @@ macro_rules! MatchWidget {
                               let $item = &$item.0;
                               $exp;
                           },
+                          LuaWrapper<gtk::EventBox>,
                           LuaWrapper<gtk::CheckButton>,
                           LuaWrapper<gtk::Grid>,
                           LuaWrapper<gtk::Box>,
@@ -60,6 +61,7 @@ macro_rules! MatchWidget {
                               let $item = $item.0;
                               $exp;
                           },
+                          LuaWrapper<&gtk::EventBox>,
                           LuaWrapper<&gtk::CheckButton>,
                           LuaWrapper<&gtk::Grid>,
                           LuaWrapper<&gtk::Box>,
@@ -153,31 +155,11 @@ macro_rules! GtkWidgetExt {
                     connect_width_request_notify,
                     connect_window_notify,
                     connect_hide);
-        GtkConnect!($methods,$widget,
-                    connect_key_press_event:((w,e),f)=>{
-                        let w = LuaWrapper(w);
-                        let stop = f.call::<(LuaWrapper<&$widget>,LuaWrapper<&gtk::gdk::EventKey>),bool>(unsafe {
-                            (std::mem::transmute(w),std::mem::transmute(LuaWrapper(e)))
-                        })
-                        .unwrap();
-                        if stop {
-                            return glib::Propagation::Stop
-                        } else {
-                            return glib::Propagation::Proceed
-                        }},
-                    connect_key_release_event:((w,e),f)=>{
-                        let w = LuaWrapper(w);
-                        let stop = f.call::<(LuaWrapper<&$widget>,LuaWrapper<&gtk::gdk::EventKey>),bool>(unsafe {
-                            (std::mem::transmute(w),std::mem::transmute(LuaWrapper(e)))
-                        })
-                        .unwrap();
-                        if stop {
-                            return glib::Propagation::Stop
-                        } else {
-                            return glib::Propagation::Proceed
-                        }
-                    });
-
+        GtkConnectPropgatableEvent!($methods,$widget,
+                    connect_key_press_event gtk::gdk::EventKey,
+                    connect_key_release_event gtk::gdk::EventKey,
+                    connect_button_release_event gtk::gdk::EventButton,
+                    connect_button_press_event gtk::gdk::EventButton);
     };
 }
 macro_rules! GtkConnect {
@@ -200,10 +182,31 @@ macro_rules! GtkConnect {
     ($methods:ident,$widget:ty,$($name:ident),+ $(,)?)=>{
         $(GtkConnect!($methods,$widget,$name:((w),f)=>{
             let b = LuaWrapper(w);
-            f.call::<LuaWrapper<&gtk::Button>,()>(unsafe {
+            let r = f.call::<LuaWrapper<&$widget>,()>(unsafe {
                 std::mem::transmute(b)
-            })
-            .unwrap();
+            });
+            if r.is_err() {
+                eprintln!("Event callback err: {:?}",r);
+            }
+        });)*
+    }
+}
+macro_rules! GtkConnectPropgatableEvent {
+    ($methods:ident,$widget:ty,$($name:ident $event:ty),+ $(,)?)=>{
+        $(GtkConnect!($methods,$widget,$name:((w,e),f)=>{
+            let w = LuaWrapper(w);
+            let stop = f.call::<(LuaWrapper<&$widget>,LuaWrapper<&$event>),bool>(unsafe {
+                (std::mem::transmute(w),std::mem::transmute(LuaWrapper(e)))
+            });
+            if stop.is_err() {
+                eprintln!("Event callback err: {:?}",stop);
+            }
+            let stop = stop.unwrap_or(false);
+            if stop {
+                return glib::Propagation::Stop
+            } else {
+                return glib::Propagation::Proceed
+            }
         });)*
     }
 }
@@ -426,7 +429,6 @@ AddMethods!(gtk::Stack, methods=>{
   );
 });
 AddMethods!(gtk::StackSwitcher,methods=>{
-
         GtkWidgetExt!(methods);
         methods.add_method_mut("set_stack", |_, switcher, stack: LuaValue| {
             match stack {
@@ -438,6 +440,10 @@ AddMethods!(gtk::StackSwitcher,methods=>{
             }
             Ok(())
         });
+});
+AddMethods!(gtk::EventBox,methods => {
+    GtkWidgetExt!(gtk::EventBox,methods);
+    GtkContainer!(methods);
 });
 
 
@@ -470,5 +476,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         LuaWrapper(gtk::Stack::new()),
         "stack_switcher",
         LuaWrapper(gtk::StackSwitcher::new()),
+        "event_box",
+        LuaWrapper(gtk::EventBox::new()),
     )
 }

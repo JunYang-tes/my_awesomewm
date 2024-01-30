@@ -11,4 +11,12 @@ AddMethods!(gtk::gdk::keys::Key,methods => {
             to_unicode i=>i.map(|c|c as i32));
     Getter!(methods,is_upper,is_lower);
 });
+AddMethods!(gtk::gdk::EventButton,methods => {
+    Getter!(methods,
+            time,
+            button,
+            root,
+            position);
+    Getter!(methods, state i => i.bits() as u32);
 
+});
