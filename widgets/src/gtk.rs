@@ -251,6 +251,10 @@ AddMethods!(Window,methods => {
     GtkWidgetExt!(methods);
     GtkContainer!(methods);
 });
+AddMethods!(gtk::ScrolledWindow,methods => {
+    GtkWidgetExt!(methods);
+    GtkContainer!(methods);
+});
 AddMethods!(gtk::Button,methods =>{
     GtkWidgetExt!(gtk::Button,methods);
     Setter!(methods, set_label String: s => s.as_str());
