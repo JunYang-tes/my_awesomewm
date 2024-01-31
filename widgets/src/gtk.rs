@@ -97,9 +97,22 @@ macro_rules! GtkContainer {
         });
     };
 }
+macro_rules! GtkCast {
+    ($widget:ident,
+      $sub:ident => $todo:block,
+      $($widget_type:ty,)+ $(,)? ) => {
+        $(if $widget.is::<$widget_type>(){
+            let $sub:LuaWrapper<&'static $widget_type> = LuaWrapper(unsafe {
+                std::mem::transmute($widget.downcast_ref::<$widget_type>().unwrap())
+            });
+            $todo
+        })*
+
+    }
+}
 macro_rules! GtkWidgetExt {
     ($method:ident) => {
-        ParamlessCall!($method, show);
+        ParamlessCall!($method, show,grab_focus);
         Getter!($method, width_request, height_request,
                 //style_context,
                 margin);
@@ -164,6 +177,24 @@ macro_rules! GtkWidgetExt {
                     connect_key_release_event gtk::gdk::EventKey,
                     connect_button_release_event gtk::gdk::EventButton,
                     connect_button_press_event gtk::gdk::EventButton);
+        GtkConnect!($methods,$widget,
+                    connect_parent_set:((w,p),f)=>{
+                        if let Some(p) = p {
+                            GtkCast!(p,
+                                     p=>{
+                                        let w = LuaWrapper(w);
+                                        f.call::<(LuaWrapper<&'static $widget>,_),()>(unsafe {
+                                            (std::mem::transmute(w),p)
+                                        }).unwrap();
+                                     },gtk::Box,gtk::FlowBox,gtk::Window,
+                                     );
+                        } else {
+                                f.call::<LuaWrapper<&$widget>,()>(unsafe {
+                                    std::mem::transmute(w)
+                                }).unwrap();
+
+                        }
+                    });
     };
 }
 macro_rules! GtkConnect {
@@ -221,7 +252,7 @@ AddMethods!(Window,methods => {
     GtkContainer!(methods);
 });
 AddMethods!(gtk::Button,methods =>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::Button,methods);
     Setter!(methods, set_label String: s => s.as_str());
     GtkConnect!(methods,gtk::Button,connect_clicked);
 });
@@ -487,7 +518,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     );
     let exports = exports.unwrap();
     exports.set("STYLE_PROVIDER_PRIORITY_USER", 800)?;
-    exports.set("StyleContext", crate::gtk_style::styleContext(lua)?)?;
+    exports.set("StyleContext", crate::gtk_style::style_context(lua)?)?;
 
     Ok(exports)
 }

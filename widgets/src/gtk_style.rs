@@ -43,9 +43,9 @@ AddMethods!(gtk::CssProvider,methods => {
           i => if i.is_ok() { Ok(String::from(""))} else {Ok(String::from(i.unwrap_err().to_string()))}
           );
 });
-pub fn styleContext(lua: &Lua) -> LuaResult<LuaTable> {
-    let styleContext = lua.create_table()?;
-    styleContext.set(
+pub fn style_context(lua: &Lua) -> LuaResult<LuaTable> {
+    let style_context = lua.create_table()?;
+    style_context.set(
         "add_provider_for_screen",
         lua.create_function(
             |_, (screen, provider, priority): (LuaValue, LuaValue, u32)| {
@@ -72,7 +72,7 @@ pub fn styleContext(lua: &Lua) -> LuaResult<LuaTable> {
             },
         )?,
     )?;
-    styleContext.set(
+    style_context.set(
         "remove_provider_for_screen",
         lua.create_function(|_, (screen, provider): (LuaValue, LuaValue)| {
             //gtk::StyleContext::add_provider_for_screen
@@ -92,5 +92,5 @@ pub fn styleContext(lua: &Lua) -> LuaResult<LuaTable> {
             Ok(())
         })?,
     )?;
-    Ok(styleContext)
+    Ok(style_context)
 }
