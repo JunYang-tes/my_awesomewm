@@ -264,6 +264,13 @@ macro_rules! GtkButtonExt {
         GtkConnect!($methods,$widget,connect_clicked);
     }
 }
+macro_rules! GtkToggleButtonExt {
+    ($widget:ty,$methods:ident)=>{
+        Getter!($methods,is_active);
+        Setter!($methods, set_active bool);
+        GtkConnect!($methods,$widget,connect_toggled);
+    }
+}
 
 AddMethods!(Window,methods => {
     ParamlessCall!(methods,present,maximize,close);
@@ -459,6 +466,7 @@ AddMethods!(gtk::FlowBox,methods=>{
 AddMethods!(gtk::CheckButton,methods=>{
   GtkWidgetExt!(gtk::CheckButton,methods);
   GtkButtonExt!(gtk::CheckButton,methods);
+  GtkToggleButtonExt!(gtk::CheckButton,methods);
 });
 AddMethods!(gtk::Stack, methods=>{
   GtkWidgetExt!(methods);
