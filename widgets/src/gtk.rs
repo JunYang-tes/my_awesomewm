@@ -46,6 +46,9 @@ macro_rules! MatchWidget {
                               let $item = &$item.0;
                               $exp;
                           },
+                          LuaWrapper<gtk::MenuButton>,
+                          LuaWrapper<gtk::Image>,
+                          LuaWrapper<gtk::ScrolledWindow>,
                           LuaWrapper<gtk::EventBox>,
                           LuaWrapper<gtk::CheckButton>,
                           LuaWrapper<gtk::Grid>,
@@ -61,6 +64,9 @@ macro_rules! MatchWidget {
                               let $item = $item.0;
                               $exp;
                           },
+                          LuaWrapper<&gtk::MenuButton>,
+                          LuaWrapper<&gtk::Image>,
+                          LuaWrapper<&gtk::ScrolledWindow>,
                           LuaWrapper<&gtk::EventBox>,
                           LuaWrapper<&gtk::CheckButton>,
                           LuaWrapper<&gtk::Grid>,
@@ -485,6 +491,12 @@ AddMethods!(gtk::EventBox,methods => {
     GtkWidgetExt!(gtk::EventBox,methods);
     GtkContainer!(methods);
 });
+AddMethods!(gtk::Image,methods => {
+    GtkWidgetExt!(gtk::Image,methods);
+});
+AddMethods!(gtk::MenuButton,methods => {
+    GtkWidgetExt!(gtk::MenuButton,methods);
+});
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     let exports: LuaResult<LuaTable> = exports!(
@@ -519,6 +531,12 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         LuaWrapper(gtk::EventBox::new()),
         "css_provider",
         LuaWrapper(gtk::CssProvider::new()),
+        "scrolled_win",
+        LuaWrapper(gtk::ScrolledWindow::default()),
+        "image",
+        LuaWrapper(gtk::Image::default()),
+        "menu_button",
+        LuaWrapper(gtk::MenuButton::default()),
     );
     let exports = exports.unwrap();
     exports.set("STYLE_PROVIDER_PRIORITY_USER", 800)?;
