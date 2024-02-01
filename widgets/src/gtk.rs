@@ -256,6 +256,10 @@ AddMethods!(Window,methods => {
     ParamlessCall!(methods,present,maximize,close);
     GtkWidgetExt!(methods);
     GtkContainer!(methods);
+    methods.add_method("set_default_size",|_,w,i:(i32,i32)|{
+        w.set_default_size(i.0,i.1);
+        Ok(())
+    });
 });
 AddMethods!(gtk::ScrolledWindow,methods => {
     GtkWidgetExt!(methods);
