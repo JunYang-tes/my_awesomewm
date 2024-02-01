@@ -127,10 +127,12 @@ macro_rules! GtkWidgetExt {
         ParamlessCall!($method, show,grab_focus);
         Getter!($method, width_request, height_request,
                 //style_context,
+                get_visible,
                 margin);
         Getter!($method,
                 style_context ctx=>LuaWrapper(ctx));
         Setter!($method, set_expand bool,
+                set_visible bool,
                 set_has_default bool,
                 set_has_focus bool,
                 set_height_request i32,
@@ -348,6 +350,24 @@ AddMethods!(gtk::Box,methods=>{
     GtkWidgetExt!(methods);
     GtkContainer!(methods);
     GtkOrientableExt!(methods);
+    Getter!(methods, is_homogeneous);
+    Setter!(methods, set_homogeneous bool);
+
+    methods.add_method("set_child_packing",|_,b,(child, expand, fill, padding,pack_type): 
+                       (LuaValue, bool, bool, u32,u32)|{
+            match child {
+                LuaValue::UserData(data) => {
+                    MatchWidget!(data,
+                    child => {
+                        b.set_child_packing(child,expand,fill,padding,
+                                            if pack_type == 0 { gtk::PackType::Start} 
+                                            else { gtk::PackType::End} );
+                    });
+                }
+                _ => {}
+            }
+        Ok(())
+    });
     methods.add_method_mut(
         "pack_start",
         |_, b, (child, expand, fill, padding): (LuaValue, bool, bool, u32)| {
