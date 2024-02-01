@@ -101,6 +101,12 @@ macro_rules! GtkContainer {
             }
             Ok(())
         });
+        $methods.add_method_mut("remove_all_children",|_,container,()|{
+            container.foreach(|w|{
+                container.remove(w);
+            });
+            Ok(())
+        });
     };
 }
 macro_rules! GtkCast {
@@ -251,6 +257,13 @@ macro_rules! GtkConnectPropgatableEvent {
         });)*
     }
 }
+macro_rules! GtkButtonExt {
+    ($widget:ty,$methods:ident)=>{
+        Getter!($methods,clicked);
+        Setter!($methods, set_label String: s => s.as_str());
+        GtkConnect!($methods,$widget,connect_clicked);
+    }
+}
 
 AddMethods!(Window,methods => {
     ParamlessCall!(methods,present,maximize,close);
@@ -267,8 +280,8 @@ AddMethods!(gtk::ScrolledWindow,methods => {
 });
 AddMethods!(gtk::Button,methods =>{
     GtkWidgetExt!(gtk::Button,methods);
-    Setter!(methods, set_label String: s => s.as_str());
     GtkConnect!(methods,gtk::Button,connect_clicked);
+    GtkButtonExt!(gtk::Button,methods);
 });
 AddMethods!(gtk::Label,methods =>{
     GtkWidgetExt!(methods);
@@ -444,7 +457,8 @@ AddMethods!(gtk::FlowBox,methods=>{
 
 });
 AddMethods!(gtk::CheckButton,methods=>{
-  GtkWidgetExt!(methods);
+  GtkWidgetExt!(gtk::CheckButton,methods);
+  GtkButtonExt!(gtk::CheckButton,methods);
 });
 AddMethods!(gtk::Stack, methods=>{
   GtkWidgetExt!(methods);
