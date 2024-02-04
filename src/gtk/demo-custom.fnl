@@ -32,6 +32,7 @@
 (defn app
   (unmount
     (print :app-unmounted))
+  (local win nil)
   (let [show (value true)
         text (value :world)
         win (window

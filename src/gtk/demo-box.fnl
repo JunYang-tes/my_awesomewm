@@ -46,7 +46,7 @@
                 :active dialog
                 :on_toggled #(dialog (. $1.active))}))
            (box
-             {: homogeneous}
+             ;{: homogeneous}
              (button {:label :button1
                       :-expand btn1-expand
                       :-fill btn1-fill})
