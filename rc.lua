@@ -6,7 +6,8 @@ local function boot()
   package.cpath = os.getenv("AWESOME_CONFIG") .. "/lua/?.so;" .. package.cpath
   require("main")
 end
-local ok, err = pcall(boot)
+local ok, err = xpcall(boot,debug.traceback)
+print(err)
 if not ok then
   local naughty = require("naughty")
   naughty.notify({ preset = naughty.config.presets.critical,
