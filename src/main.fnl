@@ -1,3 +1,6 @@
+(local widgets (require :widgets))
+(local app (widgets.gtk.app))
+;(_G.awesome.connect_signal :refresh #(app:iteration))
 (local gears (require :gears))
 (local theme (require :theme.theme))
 (local beautiful (require :beautiful))
@@ -18,21 +21,11 @@
 (require :rules)
 (require :components.function-bar)
 (require :autorun)
-(local widgets (require :widgets))
-(local app (widgets.fltk.app))
-(local win (widgets.fltk.win))
-(win:show)
-(_G.awesome.connect_signal :refresh #(app:wait))
 
 (fn setup-global-keys []
   (local ks (require :key-bindings))
   (root.keys ks))
 
-(print
-  (pcall #(do
-            (let [m (require :widgets)]
-              (print
-                (m.hello :hello))))))
 
 ;; TODO
 ;; move focus
