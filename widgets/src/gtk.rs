@@ -126,12 +126,16 @@ macro_rules! GtkWidgetExt {
     ($method:ident) => {
         ParamlessCall!($method, show,grab_focus);
         Getter!($method, width_request, height_request,
-                //style_context,
                 get_visible,
                 margin);
         Getter!($method,
+                halign i => align::to_num(i),
+                valign i => align::to_num(i),
                 style_context ctx=>LuaWrapper(ctx));
-        Setter!($method, set_expand bool,
+        Setter!($method,
+                set_expand bool,
+                set_hexpand bool,
+                set_vexpand bool,
                 set_visible bool,
                 set_has_default bool,
                 set_has_focus bool,
@@ -139,6 +143,14 @@ macro_rules! GtkWidgetExt {
                 set_width_request i32,
                 set_is_focus bool,
                 set_margin i32);
+        Setter!($method, 
+                set_halign i32:i=>align::from_num(i),
+                set_valign i32:i=>align::from_num(i)
+                );
+        // Setter!($mathod,
+        //     set_halign i32: i => align::from_num(i),
+        //     set_valign i32: i => align::from_num(i),
+        // );
     };
     ($widget:ty,$methods:ident) => {
         GtkWidgetExt!($methods);
@@ -353,14 +365,14 @@ AddMethods!(gtk::Box,methods=>{
     Getter!(methods, is_homogeneous);
     Setter!(methods, set_homogeneous bool);
 
-    methods.add_method("set_child_packing",|_,b,(child, expand, fill, padding,pack_type): 
+    methods.add_method("set_child_packing",|_,b,(child, expand, fill, padding,pack_type):
                        (LuaValue, bool, bool, u32,u32)|{
             match child {
                 LuaValue::UserData(data) => {
                     MatchWidget!(data,
                     child => {
                         b.set_child_packing(child,expand,fill,padding,
-                                            if pack_type == 0 { gtk::PackType::Start} 
+                                            if pack_type == 0 { gtk::PackType::Start}
                                             else { gtk::PackType::End} );
                     });
                 }
@@ -539,6 +551,12 @@ AddMethods!(gtk::EventBox,methods => {
 });
 AddMethods!(gtk::Image,methods => {
     GtkWidgetExt!(gtk::Image,methods);
+    Getter!(methods, pixel_size);
+    Setter!(methods, set_pixel_size i32);
+    methods.add_method("set_icon_name",|_,w,name:String|{
+        w.0.set_from_icon_name(Some(name.as_str()),gtk::IconSize::Button);
+      Ok(())
+    });
 });
 AddMethods!(gtk::MenuButton,methods => {
     GtkWidgetExt!(gtk::MenuButton,methods);

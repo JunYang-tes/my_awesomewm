@@ -95,3 +95,27 @@ pub mod orientation {
         }
     }
 }
+pub mod align {
+    use gtk::Align;
+    pub fn from_num(i:i32) -> Align {
+        match i {
+            0 => Align::Fill,
+            1 => Align::Start,
+            2 => Align::End,
+            3 => Align::Center,
+            4 => Align::Baseline,
+            i => Align::__Unknown(i)
+        }
+    }
+    pub fn to_num(i:Align) -> i32 {
+        match i {
+            Align::Fill => 0,
+            Align::Start => 1,
+            Align::End => 2,
+            Align::Center => 3,
+            Align::Baseline => 4,
+            Align::__Unknown(i) => i,
+            _ => panic!("Unknown Align")
+        }
+    }
+}

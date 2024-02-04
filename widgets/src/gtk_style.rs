@@ -1,4 +1,5 @@
 use crate::lua_module::*;
+use gtk::prelude::ButtonExt as _;
 use gtk::prelude::CssProviderExt;
 use gtk::prelude::StyleContextExt;
 use mlua::prelude::*;
