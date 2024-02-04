@@ -212,7 +212,7 @@ macro_rules! GtkWidgetExt {
                                         f.call::<(LuaWrapper<&'static $widget>,_),()>(unsafe {
                                             (std::mem::transmute(w),p)
                                         }).unwrap();
-                                     },gtk::Box,gtk::FlowBox,gtk::Window,
+                                     },gtk::Box,gtk::FlowBox,gtk::Window,gtk::ListBox,gtk::ScrolledWindow,
                                      );
                         } else {
                                 f.call::<LuaWrapper<&$widget>,()>(unsafe {
