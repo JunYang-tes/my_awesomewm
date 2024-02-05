@@ -30,6 +30,7 @@
 (local signal (require :utils.signal))
 (local {: win-switcher} (require :theme.components))
 (local inspect (require :inspect))
+(local windows (require :command-palette.windows))
 
 
 (fn run-lua []
@@ -166,7 +167,7 @@
                       (cmd-palette.run (applications.exec)))
        { :description "Run"
          :group "launcher"})
-  (key [modkey] "w" #(awful.util.spawn (.. "rofi -show window -dpi " (math.ceil (. (awful.screen.focused) :dpi))))
+  (key [modkey] "w" #(cmd-palette.run (windows.window.exec))
        { :description "Run"
          :group "launcher"})
   (key [modkey] "t" (fn []

@@ -22,3 +22,4 @@
 (load volumn-cmds)
 (load apps)
 (load (require :command-palette.bookmark))
+(load (require :command-palette.windows))
