@@ -53,6 +53,7 @@
 (local keybing (require :utils.key-binding))
 (local signal (require :utils.signal))
 (local timer (require :utils.timer))
+(local list (require :utils.list))
 
 
 (local container
@@ -136,8 +137,12 @@
   (let [tag (props.tag)
         clients (value (tag:clients))]
     (fn update-clients []
-      (print :update-clients)
-      (clients (tag:clients)))
+      (-> (tag:clients)
+          (list.filter #(and (not $1.skip_taskbar)
+                             (or (= $1.type :normal)
+                                 (= $1.type :dialog)
+                                 (= $1.type :splashscreen))))
+          clients.set))
     (awesome-global.client.connect_signal
       :manage update-clients)
     (awesome-global.client.connect_signal

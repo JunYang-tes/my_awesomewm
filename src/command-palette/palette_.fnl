@@ -201,6 +201,7 @@
           {
            : visible
            :class win-css
+           :skip_taskbar_hint true
            :role :cmd-palette
            :connect_focus_out_event close}
           (box
