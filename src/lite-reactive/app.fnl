@@ -104,7 +104,6 @@
           (set-diposeable! node disposeable)
           w))
 
-              
      :run-container-node 
      (fn [node]
         (let [
@@ -178,19 +177,21 @@
           (set-diposeable! node disposeable)
           w))
     :run
-    ;(memoed)
-    (fn [node]
-      (ctx.node-stack.push node)
-      (let [result
-            ((if
-              (is-container-node node) fns.run-container-node 
-              (is-custom-node node) fns.run-custom-node
-              (is-atom-node node) fns.run-atom-node
-              (fn []
-                (error (.. "unknow node: " (tostring node)))))
-             node ctx)]
-        (ctx.node-stack.pop)
-        result))})
+    (memoed
+     (fn [node]
+       (ctx.node-stack.push node)
+       (let [result
+             ((if
+               (is-container-node node) fns.run-container-node 
+               (is-custom-node node) fns.run-custom-node
+               (is-atom-node node) fns.run-atom-node
+               (fn []
+                 (error (.. "unknow node: " (tostring node)))))
+              node ctx)]
+         (if node.on-built
+           (node.on-built))
+         (ctx.node-stack.pop)
+         result)))})
   fns.run)
 (fn build-ctx [root]
   (local node-stack 
@@ -213,7 +214,7 @@
         def))
   (fn get-xprop [key name def]
     (or
-      (.? xprops-cache key name)
+      (?. xprops-cache key name)
       def))
   (fn get-root [] root)
   { : add-xprops
@@ -245,6 +246,15 @@
     (let [ctx (CURRENT_CTX.get)
           root (ctx.get-root)]
       root)))
+(fn use-built []
+  (catch
+    "use-built must be called inside a node"
+    nil
+    (let [ctx (CURRENT_CTX.get)
+          node (ctx.node-stack.current)
+          ret (observable.value false)]
+      (tset node :on-built #(ret true))
+      ret)))
 (fn use-destroy []
   (let [root (use-root)]
     (fn []
@@ -262,9 +272,10 @@
     ;;   (fn [items])
     ;;   #(list.map $1 memoed-render))))
 
-{: run  
+{: run
  : unmount
  : foreach
  : use-destroy
+ : use-built
  : use-run
  :_tests { : difference}}

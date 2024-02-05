@@ -70,8 +70,26 @@
                     :--compile " " file
                     ">"
                     tgt))))
+(fn compile-rust [project name]
+  (let [debug (not= (os.getenv :AWESOMEWM_DEBUG)
+                    nil)
+        lib-dir (.. project "/"
+                    :target "/"
+                    (if debug :debug :release))
+        lib-file (.. lib-dir "/" name)
+        dist (.. "./lua/" (stringx.replace name "lib" ""))]
+    (if (not-exits lib-file)
+      (each [_ line (ipairs
+                     (read-popen
+                       (.. "sh -c '"
+                           "cd ./widgets/ && cargo build " (if (not debug) " --release " "")
+                           "'")))]
+        (print "Cargo::" line)))
+    (if (not-exits dist)
+      (os.execute (.. "ln -sf " lib-file " " dist)))))
 
 (fn run []
+  (compile-rust :widgets :libwidgets.so)
   (copy-asserts "png")
   (copy-asserts "jpg")
   (let [files (get-src-list)

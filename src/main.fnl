@@ -1,3 +1,6 @@
+(local widgets (require :widgets))
+(local app (widgets.gtk.app))
+;(_G.awesome.connect_signal :refresh #(app:iteration))
 (local gears (require :gears))
 (local theme (require :theme.theme))
 (local beautiful (require :beautiful))
@@ -22,6 +25,7 @@
 (fn setup-global-keys []
   (local ks (require :key-bindings))
   (root.keys ks))
+
 
 ;; TODO
 ;; move focus

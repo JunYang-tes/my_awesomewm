@@ -2,13 +2,13 @@
                 : unmount } :lite-reactive)
 (import-macros {: catch} :utils)
 (local {: inspect-node } (require :lite-reactive.node))
-(local {: Gtk} (require :lgi))
+(local {: gtk} (require :widgets))
 (local {: box
         : label
         : entry
         : button
         : check-button
-        : window} (require :gtk.node))
+        : window} (require :gtk_.node))
 (local {: run}
        (require :lite-reactive.app))
 (local {: value : map : get } (require :lite-reactive.observable))
@@ -29,6 +29,9 @@
         {:spacing 10}
         (label {:text :hello})
         (label {:text props.text})))
+(defn show_
+  (map props.show
+       #(if $1 (props.child) nil)))
 (defn app
   (unmount
     (print :app-unmounted))
@@ -41,24 +44,25 @@
                ;;  (fn []
                ;;    (print :delete)
                ;;    true)}
-              
-              (box 
-                { :orientation Gtk.Orientation.VERTICAL}
+              (box
+                { :orientation 1}
                 (entry {:text text
-                        :on_key_release_event #(text $1.text)})
+                        :connect_key_release_event #(text (: $1 :text))})
                 (button
                   {:label :Close
-                   :on_clicked (fn [] 
-                                 (print :will-close (win))
-                                 (let [w (win)]
-                                  (w:close)))})
+                   :connect_clicked (fn []
+                                      (print :will-close (win))
+                                      (let [w (win)]
+                                       (w:close)))})
                 (button
                   {:label (map show #(if $1 "Hide " "Show "))
-                   :on_clicked #(show (not (show)))})
-                (map show
-                  #(if $1
-                       (my-component {:text text})
-                      false))
+                   :connect_clicked #(show (not (show)))})
+                (show_ {: show
+                        :child (my-component {:text text})})
+                ; (map show
+                ;   #(if $1
+                ;        (my-component {:text text})
+                ;       false))
                 (label {:label "END"})))]
     win))
         
