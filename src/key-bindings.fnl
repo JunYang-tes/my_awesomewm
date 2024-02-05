@@ -15,7 +15,7 @@
 (local client (require :client))
 (local naughty (require :naughty))
 (local {: tag-untaged} (require :client))
-(local cmd-palette (require :command-palette.palette))
+(local cmd-palette (require :command-palette.palette_))
 (local mouse (let [(ok? data) (pcall #(require :mouse.main))]
                (if ok?
                  data
