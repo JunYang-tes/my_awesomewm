@@ -1,5 +1,7 @@
 use mlua::prelude::*;
 use crate::lua_module::*;
+AddMethods!(gtk::gdk::Event,methods =>{});
+AddMethods!(gtk::gdk::EventFocus,methods => {});
 AddMethods!(gtk::gdk::EventKey,methods=>{
     Getter!(methods,time,is_modifier);
     Getter!(methods, keyval i => LuaWrapper(i));

@@ -199,6 +199,9 @@ macro_rules! GtkWidgetExt {
                     connect_window_notify,
                     connect_hide);
         GtkConnectPropgatableEvent!($methods,$widget,
+                    connect_delete_event gtk::gdk::Event,
+                    connect_focus_in_event gtk::gdk::EventFocus,
+                    connect_focus_out_event gtk::gdk::EventFocus,
                     connect_key_press_event gtk::gdk::EventKey,
                     connect_key_release_event gtk::gdk::EventKey,
                     connect_button_release_event gtk::gdk::EventButton,
@@ -288,15 +291,16 @@ macro_rules! GtkToggleButtonExt {
 
 AddMethods!(Window,methods => {
     ParamlessCall!(methods,present,maximize,close);
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(Window,methods);
     GtkContainer!(methods);
+    Setter!(methods,set_role String:i=>i.as_str());
     methods.add_method("set_default_size",|_,w,i:(i32,i32)|{
         w.set_default_size(i.0,i.1);
         Ok(())
     });
 });
 AddMethods!(gtk::ScrolledWindow,methods => {
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::ScrolledWindow,methods);
     GtkContainer!(methods);
 });
 AddMethods!(gtk::Button,methods =>{
@@ -305,7 +309,7 @@ AddMethods!(gtk::Button,methods =>{
     GtkButtonExt!(gtk::Button,methods);
 });
 AddMethods!(gtk::Label,methods =>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::Label,methods);
     use pango::EllipsizeMode;
     Getter!(methods, angle, cursor_position, selection_bound, wraps);
     Getter!(methods,
@@ -334,7 +338,7 @@ AddMethods!(gtk::Label,methods =>{
             set_lines i32,
             set_wrap bool);
     Setter!(methods,
-            set_label String: i=>i.as_str(),
+            set_label Option<String>: i=> i.unwrap_or(String::from("")).as_str(),
             set_text String: i=>i.as_str(),
             set_text_with_mnemonic String: i=>i.as_str(),
             set_markup String: i=>i.as_str(),
@@ -359,7 +363,7 @@ AddMethods!(gtk::Entry,methods =>{
 });
 
 AddMethods!(gtk::Box,methods=>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::Box,methods);
     GtkContainer!(methods);
     GtkOrientableExt!(methods);
     Getter!(methods, is_homogeneous);
@@ -412,15 +416,37 @@ AddMethods!(gtk::Box,methods=>{
     );
 });
 AddMethods!(gtk::ListBox,methods=>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::ListBox,methods);
     GtkContainer!(methods);
+    Call!(methods,
+          row_at_index,
+          idx:i32 => idx,
+          row => Ok(LuaWrapper(row.unwrap()))
+          );
+    methods.add_method("select_row",|_,list,row:LuaValue|{
+          match row {
+              LuaValue::UserData(data)=>{
+                  if data.is::<LuaWrapper<gtk::ListBoxRow>>() {
+                      let row = data.borrow::<LuaWrapper<gtk::ListBoxRow>>().unwrap();
+                      list.select_row(Some(&row.0))
+                  } else {
+                      let row = data.borrow::<LuaWrapper<&gtk::ListBoxRow>>().unwrap();
+                      list.select_row(Some(row.0))
+                  }
+
+              },
+              _ => {panic!("expect list row")}
+
+          }
+        Ok(())
+    })
 });
 AddMethods!(gtk::ListBoxRow,methods=>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::ListBoxRow,methods);
     GtkContainer!(methods);
 });
 AddMethods!(gtk::Grid,methods=>{
-    GtkWidgetExt!(methods);
+    GtkWidgetExt!(gtk::Grid,methods);
     GtkContainer!(methods);
     methods.add_method_mut(
         "attach",
@@ -455,7 +481,7 @@ AddMethods!(gtk::Grid,methods=>{
     );
 });
 AddMethods!(gtk::FlowBox,methods=>{
-         GtkWidgetExt!(methods);
+         GtkWidgetExt!(gtk::FlowBox,methods);
          GtkContainer!(methods);
          ParamlessCall!(
              methods,
@@ -501,7 +527,7 @@ AddMethods!(gtk::CheckButton,methods=>{
   GtkToggleButtonExt!(gtk::CheckButton,methods);
 });
 AddMethods!(gtk::Stack, methods=>{
-  GtkWidgetExt!(methods);
+  GtkWidgetExt!(gtk::Stack,methods);
   GtkContainer!(methods);
   methods.add_method_mut(
       "add_titled",
@@ -533,7 +559,7 @@ AddMethods!(gtk::Stack, methods=>{
   );
 });
 AddMethods!(gtk::StackSwitcher,methods=>{
-        GtkWidgetExt!(methods);
+        GtkWidgetExt!(gtk::StackSwitcher,methods);
         methods.add_method_mut("set_stack", |_, switcher, stack: LuaValue| {
             match stack {
                 LuaValue::UserData(data) => {
