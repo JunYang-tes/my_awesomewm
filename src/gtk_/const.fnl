@@ -21,4 +21,21 @@
          :Start 1
          :End 2
          :Center 3
-         :Baseline 4}}
+         :Baseline 4}
+ :Modifier {:No 0
+            :Shift 1
+            :Lock 2
+            :Control 4
+            :Alt 8
+            :Btn1 256
+            :Btn2 512
+            :Btn3 1024
+            :Btn4 2048
+            :Btn5 4096
+            :Supper 67108864
+            :Hyper 134217728
+            :Meta 268435456}
+ :Keys {:enter 13
+        :esc 27
+        :j 106
+        :k 107}}

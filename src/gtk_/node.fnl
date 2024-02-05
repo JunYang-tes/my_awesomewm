@@ -17,14 +17,14 @@
 (local observable (require :lite-reactive.observable))
 (fn clear-child [widget]
   (widget:remove_all_children))
-(local box 
-       (container-node 
+(local box
+       (container-node
          widgets.box
           (fn [children container ctx]
             (clear-child container)
             (each [_ child (ipairs children)]
                (let [def {:expand false :fill false :spacing 0}
-                     layout-props (assign 
+                     layout-props (assign
                                     def
                                     (ctx.get-xprops child def))]
                  (container:pack_start
@@ -34,7 +34,7 @@
                    layout-props.spacing))))
           (fn [container w ctx]
             (let [def {:expand false :fill false :spacing 0}
-                  layout-props (assign 
+                  layout-props (assign
                                  def
                                  (ctx.get-xprops w def))]
               (container:set_child_packing
@@ -58,7 +58,6 @@
         (let [def {:left 0 :top 0 :width 1 :height 1}
               layout (assign def (ctx.get-xprops child def))]
           (grid:attach child layout.left layout.top layout.width layout.height))))
-      
     #$))
 (local window_
        (container-node
@@ -76,13 +75,13 @@
             (container:add (. children 1))))
          #$))
 (local window
- (custom-node 
+ (custom-node
    (fn [props]
     (let [{: keep-alive : children & rest} props
           destroy (use-destroy)
-          win (window_ 
+          win (window_
                 (assign
-                  {:on_delete_event
+                  {:connect_delete_event
                    (if (observable.get keep-alive)
                     (fn [] true)
                     (fn []
@@ -98,7 +97,7 @@
 ;           (clear-child notebook)
 ;           (each [_ child (ipairs children)]
 ;             (let [{: title} (ctx.get-xprops child)]
-;               (notebook:append_page child (if title 
+;               (notebook:append_page child (if title
 ;                                               (ctx.run title))))))
 ;         #$))
 (local event-box
@@ -119,7 +118,7 @@
 ;         (tset popover :child child)))
 ;     #$))
 ; (defn popover
-;   (let [{: visible : relative_to : children & rest } props 
+;   (let [{: visible : relative_to : children & rest } props
 ;         run-it (use-run)]
 ;     (var p nil)
 ;     (effect
@@ -147,9 +146,9 @@
 (local list-row
   (container-node
     widgets.list-row
-    (fn [child row]
+    (fn [children row]
       (clear-child row)
-      (row:add child))))
+      (row:add (. children 1)))))
 { :button (atom-node widgets.button :Button)
   :menu-button (atom-node widgets.menu-button :MenuButton)
   :check-button (atom-node widgets.check-button :CheckButton)
@@ -166,5 +165,5 @@
   ; : notebook
   ; : popover
   : event-box}
- 
+
 

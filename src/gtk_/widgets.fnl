@@ -16,7 +16,7 @@
   (local props-setter (or props-setter {}))
   (tset props-setter :class 
         (fn [w cls old]
-          (let [ctx (w:get_style_context)
+          (let [ctx (w:style_context)
                 old-cls (list.filter
                           (list.flatten [old])
                           #$1)
