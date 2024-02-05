@@ -201,7 +201,7 @@
           {
            : visible
            :class win-css
-           :role :prompt
+           :role :cmd-palette
            :connect_focus_out_event close}
           (box
             {:orientation consts.Orientation.VERTICAL}

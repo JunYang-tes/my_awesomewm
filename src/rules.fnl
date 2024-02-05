@@ -34,10 +34,11 @@
                    :placement (+ awful.placement.no_overlap awful.placement.no_offscreen)}
       :callback awful.client.setslave}
 
-    { :rule_any { :role [:prompt :popup]}
+    { :rule_any { :role [:cmd-palette :popup]}
       :properties {
                     :raise true
                     :floating true
+                    :borderless true
                     :width 900
                     ;;:height 48
                     :ontop true

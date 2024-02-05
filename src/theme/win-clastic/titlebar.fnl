@@ -69,61 +69,62 @@
 
 ;#d4d0c8
 (fn [client]
-  (tset client :border_color :#d4d0c8)
-  (tset client :border_width (dpi 2))
-  (let [buttons (gears.table.join
-                  (awful.button [] 1 (fn []
-                                       (focus client)
-                                       (client:raise)
-                                       (awful.mouse.client.move client)))
-                  (awful.button [] 3 (fn []
-                                       (focus client)
-                                       (client:raise)
-                                       (awful.mouse.client.resize client))))
-        bar (awful.titlebar client
-                            {:bg_normal :#d4d0c8
-                             :height (dpi 100)
-                             :bg_focus :#d4d0c8})]
+  (when (not client.borderless)
+    (tset client :border_color :#d4d0c8)
+    (tset client :border_width (dpi 2))
+    (let [buttons (gears.table.join
+                    (awful.button [] 1 (fn []
+                                         (focus client)
+                                         (client:raise)
+                                         (awful.mouse.client.move client)))
+                    (awful.button [] 3 (fn []
+                                         (focus client)
+                                         (client:raise)
+                                         (awful.mouse.client.resize client))))
+          bar (awful.titlebar client
+                              {:bg_normal :#d4d0c8
+                               :height (dpi 100)
+                               :bg_focus :#d4d0c8})]
 
-    (bar:setup
-      (hybrid
-        [
-          (hybrid
-            [(hybrid
-               [(awful.titlebar.widget.iconwidget client)
-                (hybrid [{:halign :center
-                          :widget (awful.titlebar.widget.titlewidget client)}]
-                        {: buttons :layout layout.fixed.horizontal})
-                (hybrid 
-                  [
-                    (let [size (dpi 16)]
-                      (hybrid [
-                               ;(awful.titlebar.widget.closebutton client)
-                               {:widget minmize
-                                :forced_width size
-                                :on-release-left #(tset client
-                                                        :minimized true)
-                                :forced_height size}
-                               {:widget maximize
-                                :forced_width size
-                                :on-release-left #(tset client
-                                                       :maximized (not client.maximized))
-                                :forced_height size}
-                               {:widget close
-                                :on-release-left (fn []
-                                                   (client:kill))
-                                :forced_width size
-                                :forced_height size}]
-                              {:layout layout.fixed.horizontal
-                               :spacing (dpi 2)
-                               :valign :center}))]
-                  {:layout wibox.container.place
-                   :valign :center})]
-               {:layout layout.align.horizontal})]
-            {:layout (titlebar client)})]
-        {:layout wibox.container.margin
-         :left (dpi 1)
-         :right (dpi 1)
-         :top (dpi 1)
-         :bottom (dpi 1)}))
-    bar))
+      (bar:setup
+        (hybrid
+          [
+            (hybrid
+              [(hybrid
+                 [(awful.titlebar.widget.iconwidget client)
+                  (hybrid [{:halign :center
+                            :widget (awful.titlebar.widget.titlewidget client)}]
+                          {: buttons :layout layout.fixed.horizontal})
+                  (hybrid 
+                    [
+                      (let [size (dpi 16)]
+                        (hybrid [
+                                 ;(awful.titlebar.widget.closebutton client)
+                                 {:widget minmize
+                                  :forced_width size
+                                  :on-release-left #(tset client
+                                                          :minimized true)
+                                  :forced_height size}
+                                 {:widget maximize
+                                  :forced_width size
+                                  :on-release-left #(tset client
+                                                         :maximized (not client.maximized))
+                                  :forced_height size}
+                                 {:widget close
+                                  :on-release-left (fn []
+                                                     (client:kill))
+                                  :forced_width size
+                                  :forced_height size}]
+                                {:layout layout.fixed.horizontal
+                                 :spacing (dpi 2)
+                                 :valign :center}))]
+                    {:layout wibox.container.place
+                     :valign :center})]
+                 {:layout layout.align.horizontal})]
+              {:layout (titlebar client)})]
+          {:layout wibox.container.margin
+           :left (dpi 1)
+           :right (dpi 1)
+           :top (dpi 1)
+           :bottom (dpi 1)}))
+      bar)))
