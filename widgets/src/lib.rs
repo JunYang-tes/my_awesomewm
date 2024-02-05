@@ -4,6 +4,7 @@ mod gtk_enums;
 mod gtk_events;
 mod gtk_style;
 mod fltk;
+mod cairo;
 mod lua_module;
 
 use mlua::prelude::*;
@@ -14,5 +15,6 @@ fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("fltk", fltk::exports(lua)?)?;
     exports.set("gtk", gtk::exports(lua)?)?;
     exports.set("gdk",gdk::gdk(lua)?)?;
+    exports.set("cairo",cairo::exports(lua)?)?;
     Ok(exports)
 }
