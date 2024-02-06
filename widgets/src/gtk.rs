@@ -585,6 +585,23 @@ AddMethods!(gtk::Image,methods => {
         w.0.set_from_icon_name(Some(name.as_str()),gtk::IconSize::Button);
       Ok(())
     });
+    methods.add_method("set_image",|_,w,img:LuaValue| {
+        match img {
+            LuaValue::UserData(data)=>{
+                if let Ok(surface) = data.borrow::<LuaWrapper<&cairo::ImageSurface>>() {
+                    w.set_from_surface(Some(surface.0));
+                } else if let Ok(surface) = data.borrow::<LuaWrapper<cairo::ImageSurface>>() {
+                    w.set_from_surface(Some(&surface.0))
+                } else {
+                    panic!("Unsupported")
+                }
+                Ok(())
+            },
+            _ => {
+                panic!("expect img")
+            }
+        }
+    });
 });
 AddMethods!(gtk::MenuButton,methods => {
     GtkWidgetExt!(gtk::MenuButton,methods);
