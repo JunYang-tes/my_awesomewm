@@ -143,10 +143,15 @@ macro_rules! GtkWidgetExt {
                 set_width_request i32,
                 set_is_focus bool,
                 set_margin i32);
-        Setter!($method, 
+        Setter!($method,
                 set_halign i32:i=>align::from_num(i),
                 set_valign i32:i=>align::from_num(i)
                 );
+
+        $method.add_method("set_size_request",|_,w,i:(i32,i32)|{
+            w.set_size_request(i.0,i.1);
+            Ok(())
+        });
         // Setter!($mathod,
         //     set_halign i32: i => align::from_num(i),
         //     set_valign i32: i => align::from_num(i),
@@ -584,6 +589,17 @@ AddMethods!(gtk::Image,methods => {
     methods.add_method("set_icon_name",|_,w,name:String|{
         w.0.set_from_icon_name(Some(name.as_str()),gtk::IconSize::Button);
       Ok(())
+    });
+    methods.add_method("set_size",|_,img,(w,h):(i32,i32)|{
+        if let Some(surface) = img.surface() {
+            let (ow,oh) = crate::cairo_utils::get_surface_size(&surface);
+            if let Some(pixbuf) = gtk::gdk::pixbuf_get_from_surface(&surface,0,0,ow,oh) {
+                let pixbuf = pixbuf.scale_simple(w,h,gtk::gdk::gdk_pixbuf::InterpType::Nearest).unwrap_or(pixbuf);
+                img.set_from_pixbuf(Some(&pixbuf));
+                println!("!!!!---")
+            }
+        }
+        Ok(())
     });
     methods.add_method("set_image",|_,w,img:LuaValue| {
         match img {

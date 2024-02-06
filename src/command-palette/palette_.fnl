@@ -10,6 +10,7 @@
         : box
         : label
         : list-box
+        : image
         : list-row
         : scrolled-window
         : entry} (require :gtk_.node))
@@ -32,6 +33,7 @@
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
 ;;  description?: string
+;;  image? ImageSurface
 ;;  exec: (input:string) => Command[] | "keep-open" | any
 ;; }
 ;;
@@ -172,28 +174,32 @@
                                                    (let [input-widget (cmd_input)]
                                                      (input-widget:grab_focus)))}
                         (box
-                          {:orientation consts.Orientation.VERTICAL}
-                          (label
-                            {:markup cmd.label
-                             :class "cmd-label"
-                             :xalign 0})
-                          (let [desc (map input
-                                          (fn [input]
-                                            (let [[_ args] (split-input input)]
-                                              (if cmd.real-time
-                                                (catch "" ""
-                                                       (cmd.real-time args))
-                                                (or cmd.description "")))))]
+                          (if cmd.image
+                            (image {:image cmd.image
+                                    :size  [48 48]}) false)
+                          (box
+                            {:orientation consts.Orientation.VERTICAL}
                             (label
-                              {:label desc
-                               :class "cmd-desc"
-                               :visible (map desc (fn [desc]
-                                                    (if (and desc
-                                                             (> (length desc) 0))
-                                                       true
-                                                       false)))
-                               :wrap true
-                               :xalign 0}))))))
+                              {:markup cmd.label
+                               :class "cmd-label"
+                               :xalign 0})
+                            (let [desc (map input
+                                            (fn [input]
+                                              (let [[_ args] (split-input input)]
+                                                (if cmd.real-time
+                                                  (catch "" ""
+                                                         (cmd.real-time args))
+                                                  (or cmd.description "")))))]
+                              (label
+                                {:label desc
+                                 :class "cmd-desc"
+                                 :visible (map desc (fn [desc]
+                                                      (if (and desc
+                                                               (> (length desc) 0))
+                                                         true
+                                                         false)))
+                                 :wrap true
+                                 :xalign 0})))))))
         list (list-box cmd-items)
         on-built (use-built)
         win

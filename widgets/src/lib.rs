@@ -5,6 +5,7 @@ mod gtk_events;
 mod gtk_style;
 mod fltk;
 mod cairo;
+mod cairo_utils;
 mod lua_module;
 
 use mlua::prelude::*;

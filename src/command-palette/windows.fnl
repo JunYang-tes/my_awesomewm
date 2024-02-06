@@ -1,6 +1,16 @@
 (local list (require :utils.list))
 (local {: focus } (require :utils.wm))
+(local {: cairo } (require :widgets))
 (local tag (require :tag))
+(fn get-icon [client]
+  (let [icon (client:get_icon 1)]
+    (when icon
+      (-> icon
+          tostring
+          (string.match "0x%x+")
+          (string.sub 3)
+          (tonumber 16)
+          cairo.from_ptr))))
 {:window {:label :Window
           :exec (fn []
                   (-> (_G.client.get)
@@ -10,6 +20,7 @@
                                              (= $1.type :splashscreen))))
                       (list.map #(do
                                    {:label $1.name
+                                    :image (get-icon $1)
                                     :exec (fn []
                                             ($1:raise)
                                             (focus $1)

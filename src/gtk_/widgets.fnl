@@ -10,8 +10,7 @@
 
 (fn is-widget [obj]
   (let [str (tostring obj)]
-    (and (strings.starts-with str :LuaWrapper)
-         (strings.includes str :Gtk))))
+    (and (strings.starts-with str :LuaWrapper))))
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
   (tset props-setter :class 
@@ -52,6 +51,10 @@
   (fn [widget value]
       (let [f (. widget (.. :set_ prop))]
         (f widget value))))
+(fn vargs [prop]
+  (fn [widget value]
+    (let [f (. widget (.. :set_ prop))]
+      (f widget (table.unpack value)))))
 
 {
  : is-widget
@@ -59,7 +62,7 @@
                                   :markup (make-setter :markup)})
  :button (make-builder gtk.button)
  :menu-button (make-builder gtk.menu_button)
- :image (make-builder gtk.image)
+ :image (make-builder gtk.image {:size (vargs :size)})
  :entry (make-builder gtk.text_box {:auto-focus (fn [w auto-focus]
                                                   (if auto-focus
                                                     (w:grab_focus)))})
