@@ -56,7 +56,7 @@
                                  (. :first_tag)
                                  (: :clients)))
                 (if (and (= client.type :normal)
-                         (not= client.role :prompt))
+                         (not= client.role :cmd-palette))
                   (each [_ v (ipairs clients)]
                     (when (not= v client)
                       (normalize-client v)))))}]
