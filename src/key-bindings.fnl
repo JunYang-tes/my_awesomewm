@@ -109,6 +109,11 @@
                                  (set client.fullscreen (not client.fullscreen)))))
        { :description "Focus window"
          :group "client"})
+  (key [modkey "Shift"] "m"
+       (fn []
+         (let [client awesome-global.client.focus]
+           (when client
+             (set client.maximized_vertical (not client.maximized_vertical))))))
   (key [modkey] "s" swap-win)
   (key [modkey "Control"] "u" awful.client.urgent.jmpto
        { :description "jump to urgent client"
