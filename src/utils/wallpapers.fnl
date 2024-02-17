@@ -1,5 +1,5 @@
 (local awful (require :awful))
-(local lfs (require :lfs))
+(local {: fs } (require :widgets))
 (local beautiful (require :beautiful))
 (local inspect (require :inspect))
 (local { : random } (require :utils.math))
@@ -9,7 +9,7 @@
 
 (fn get-wallpapers []
   (fn do-get []
-    (icollect [v (lfs.dir beautiful.wallpapers_path)]
+    (icollect [v (fs.dir beautiful.wallpapers_path)]
        (if (and (not= v ".")
                 (not= v "..")
                 (not= v "images"))

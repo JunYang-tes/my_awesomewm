@@ -7,6 +7,7 @@ mod fltk;
 mod cairo;
 mod cairo_utils;
 mod lua_module;
+mod fs;
 
 use mlua::prelude::*;
 
@@ -17,5 +18,6 @@ fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("gtk", gtk::exports(lua)?)?;
     exports.set("gdk",gdk::gdk(lua)?)?;
     exports.set("cairo",cairo::exports(lua)?)?;
+    exports.set("fs",fs::exports(lua)?)?;
     Ok(exports)
 }
