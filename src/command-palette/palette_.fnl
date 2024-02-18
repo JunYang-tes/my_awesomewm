@@ -145,21 +145,27 @@
                        (let [keyval (-> e
                                         (: :keyval)
                                         (: :to_unicode))
+                             keyname (-> e
+                                         (: :keyval)
+                                         (: :name))
                              keys consts.Keys
                              control (= (-> e
                                            (: :state)
                                            (band consts.Modifier.Control)) 
                                         consts.Modifier.Control)]
-                         (if control
-                           (match keyval
-                             keys.j (inc-selected-index)
-                             keys.k (dec-selected-index))
-                           (catch-ignore
-                             ""
-                             (match keyval
-                               keys.enter (run (: w :text))
-                               keys.esc (handle-esc)
-                               _ (input (: w :text)))))))
+                         (match keyname
+                           :Down (inc-selected-index)
+                           :Up (dec-selected-index)
+                           _ (if control
+                               (match keyval
+                                 keys.j (inc-selected-index)
+                                 keys.k (dec-selected-index))
+                               (catch-ignore
+                                 ""
+                                 (match keyval
+                                   keys.enter (run (: w :text))
+                                   keys.esc (handle-esc)
+                                   _ (input (: w :text))))))))
                      :text input})
         cmd-items (map-list
                     top-cmds
