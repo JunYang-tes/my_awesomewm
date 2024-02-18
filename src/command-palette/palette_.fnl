@@ -64,6 +64,8 @@
                      :border "2px solid #111828"
                      :border-bottom "1px solid #CCC"
                      :padding   (px 10)])
+                 (& " .cmd-item"
+                    [:min-height (px 48)])
                  (& " .cmd-label"
                     [:font-size (px 16)
                      :margin-bottom (px 4)])
@@ -180,32 +182,34 @@
                                                    (let [input-widget (cmd_input)]
                                                      (input-widget:grab_focus)))}
                         (box
+                          {:spacing 10
+                           :class "cmd-item"}
                           (if cmd.image
                             (image {:image cmd.image
-                                    :size  [48 48]}) false)
+                                    :size  [(dpi 24) (dpi 24)]}) false)
                           (box
                             {:orientation consts.Orientation.VERTICAL}
                             (label
                               {:markup cmd.label
                                :class "cmd-label"
+                               :-expand true
+                               :-fill true
                                :xalign 0})
-                            (let [desc (map input
-                                            (fn [input]
-                                              (let [[_ args] (split-input input)]
-                                                (if cmd.real-time
-                                                  (catch "" ""
-                                                         (cmd.real-time args))
-                                                  (or cmd.description "")))))]
-                              (label
-                                {:label desc
-                                 :class "cmd-desc"
-                                 :visible (map desc (fn [desc]
-                                                      (if (and desc
-                                                               (> (length desc) 0))
-                                                         true
-                                                         false)))
-                                 :wrap true
-                                 :xalign 0})))))))
+                            (if (or cmd.real-time
+                                    cmd.description)
+                              (let [desc (map input
+                                              (fn [input]
+                                                (let [[_ args] (split-input input)]
+                                                  (if cmd.real-time
+                                                    (catch "" ""
+                                                           (cmd.real-time args))
+                                                    (or cmd.description "")))))]
+                                (label
+                                  {:label desc
+                                   :class "cmd-desc"
+                                   :wrap true
+                                   :xalign 0}))
+                              false))))))
         list (list-box cmd-items)
         on-built (use-built)
         win
