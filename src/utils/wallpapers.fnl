@@ -6,14 +6,13 @@
 (local gears (require :gears))
 (local screen-utils (require :utils.screen))
 (local surface (require :gears.surface))
+(local stringx (require :utils.string))
 
 (fn get-wallpapers []
   (fn do-get []
-    (icollect [v (fs.dir beautiful.wallpapers_path)]
-       (if (and (not= v ".")
-                (not= v "..")
-                (not= v "images"))
-           (.. beautiful.wallpapers_path "/" v))))
+    (icollect [_ v (ipairs (fs.dir beautiful.wallpapers_path))]
+       (if (not (stringx.ends-with v :images)) 
+           v)))
   (let [ (ok ret) (pcall do-get)]
     (if ok
         ret
