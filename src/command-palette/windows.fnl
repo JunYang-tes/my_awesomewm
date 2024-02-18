@@ -3,9 +3,9 @@
 (local {: cairo } (require :widgets))
 (local tag (require :tag))
 (fn get-icon [client]
-  (when (> (length client.icon_sizes) 1)
-    (let [icon (client:get_icon 1)]
-      (when icon
+  (when (> (length client.icon_sizes) 0)
+    (let [(ok icon) (pcall #(client:get_icon 1))]
+      (when (and ok icon)
         (-> icon
             tostring
             (string.match "0x%x+")
