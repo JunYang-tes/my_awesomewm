@@ -139,7 +139,7 @@
         cmd_input (entry
                    {
                     :connect_map (fn [entry]
-                                   (: entry :grab_focus))
+                                   (entry:grab_focus))
                     :connect_key_release_event
                      (fn [w e]
                        (let [keyval (-> e
@@ -163,9 +163,9 @@
                                (catch-ignore
                                  ""
                                  (match keyval
-                                   keys.enter (run (: w :text))
+                                   keys.enter (run (w:text))
                                    keys.esc (handle-esc)
-                                   _ (input (: w :text))))))))
+                                   _ (input (w:text))))))))
                      :text input})
         cmd-items (map-list
                     top-cmds
