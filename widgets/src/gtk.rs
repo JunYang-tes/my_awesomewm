@@ -374,7 +374,8 @@ AddMethods!(gtk::Box,methods=>{
     GtkContainer!(methods);
     GtkOrientableExt!(methods);
     Getter!(methods, is_homogeneous);
-    Setter!(methods, set_homogeneous bool);
+    Setter!(methods, set_homogeneous bool,
+            set_spacing i32);
 
     methods.add_method("set_child_packing",|_,b,(child, expand, fill, padding,pack_type):
                        (LuaValue, bool, bool, u32,u32)|{
