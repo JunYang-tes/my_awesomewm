@@ -301,6 +301,7 @@ AddMethods!(Window,methods => {
     Setter!(methods,set_role String:i=>i.as_str());
     Setter!(methods,set_skip_taskbar_hint bool,
                     set_skip_pager_hint bool);
+    Setter!(methods,set_type_hint i32: i => window_type_hint::from_num(i));
     methods.add_method("set_default_size",|_,w,i:(i32,i32)|{
         w.set_default_size(i.0,i.1);
         Ok(())

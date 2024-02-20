@@ -97,17 +97,17 @@ pub mod orientation {
 }
 pub mod align {
     use gtk::Align;
-    pub fn from_num(i:i32) -> Align {
+    pub fn from_num(i: i32) -> Align {
         match i {
             0 => Align::Fill,
             1 => Align::Start,
             2 => Align::End,
             3 => Align::Center,
             4 => Align::Baseline,
-            i => Align::__Unknown(i)
+            i => Align::__Unknown(i),
         }
     }
-    pub fn to_num(i:Align) -> i32 {
+    pub fn to_num(i: Align) -> i32 {
         match i {
             Align::Fill => 0,
             Align::Start => 1,
@@ -115,7 +115,49 @@ pub mod align {
             Align::Center => 3,
             Align::Baseline => 4,
             Align::__Unknown(i) => i,
-            _ => panic!("Unknown Align")
+            _ => panic!("Unknown Align"),
+        }
+    }
+}
+pub mod window_type_hint {
+    use gtk::gdk::WindowTypeHint;
+    pub fn from_num(i: i32) -> WindowTypeHint {
+        match i {
+            0 => WindowTypeHint::Normal,
+            1 => WindowTypeHint::Dialog,
+            2 => WindowTypeHint::Menu,
+            3 => WindowTypeHint::Toolbar,
+            4 => WindowTypeHint::Splashscreen,
+            5 => WindowTypeHint::Utility,
+            6 => WindowTypeHint::Dock,
+            7 => WindowTypeHint::Desktop,
+            8 => WindowTypeHint::DropdownMenu,
+            9 => WindowTypeHint::PopupMenu,
+            10 => WindowTypeHint::Tooltip,
+            11 => WindowTypeHint::Notification,
+            12 => WindowTypeHint::Combo,
+            13 => WindowTypeHint::Dnd,
+            i => WindowTypeHint::__Unknown(i),
+        }
+    }
+    pub fn to_num(i: WindowTypeHint) -> i32 {
+        match i {
+            WindowTypeHint::Normal => 0,
+            WindowTypeHint::Dialog => 1,
+            WindowTypeHint::Menu => 2,
+            WindowTypeHint::Toolbar => 3,
+            WindowTypeHint::Splashscreen => 4,
+            WindowTypeHint::Utility => 5,
+            WindowTypeHint::Dock => 6,
+            WindowTypeHint::Desktop => 7,
+            WindowTypeHint::DropdownMenu => 8,
+            WindowTypeHint::PopupMenu => 9,
+            WindowTypeHint::Tooltip => 10,
+            WindowTypeHint::Notification => 11,
+            WindowTypeHint::Combo => 12,
+            WindowTypeHint::Dnd => 13,
+            WindowTypeHint::__Unknown(i) => i,
+            _ => panic!("Unknown window type hint"),
         }
     }
 }

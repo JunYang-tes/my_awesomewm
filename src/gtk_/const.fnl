@@ -35,6 +35,20 @@
             :Supper 67108864
             :Hyper 134217728
             :Meta 268435456}
+ :WindowTypeHint {:Normal 0
+                  :Dialog 1
+                  :Menu 2
+                  :Toolbar 3
+                  :Splashscreen 4
+                  :Utility 5
+                  :Dock 6
+                  :Desktop 7
+                  :DropdownMenu 8
+                  :PopupMenu 9
+                  :Tooltip 10
+                  :Notification 11
+                  :Combo 12
+                  :Dnd 13}
  :Keys {:enter 13
         :esc 27
         :j 106
