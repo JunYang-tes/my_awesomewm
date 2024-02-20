@@ -28,12 +28,7 @@
 (signal.connect-signal
   :client::fullscreen
   (fn [client]
-    (print :fullscreen)
-    (print :fullscreen)
-    (print :fullscreen)
-    (print :fullscreen)
     (let [tag client.first_tag]
-      (print :============ tag.layout.name)
       (when (= tag.layout.name
                :floating)
         (taskbar.hide tag)))))
