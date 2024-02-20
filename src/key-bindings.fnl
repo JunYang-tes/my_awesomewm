@@ -31,7 +31,8 @@
 (local {: win-switcher} (require :theme.components))
 (local inspect (require :inspect))
 (local windows (require :command-palette.windows))
-
+(local list (require :utils.list))
+(local screen-utils (require :utils.screen))
 
 (fn run-lua []
   (prompt {
@@ -69,17 +70,17 @@
 
 (local toggle-desktop
   (do
-    (var show-desktop false)
-    (var last-tag nil)
+    (var desktop-shown false)
+    (var selected-tags [])
     (fn []
-      (if last-tag
-          (do
-            (last-tag:view_only)
-            (set last-tag nil))
-          (do
-            (set last-tag (-> (awful.screen.focused)
-                              (. :selected_tag)))
-            (awful.tag.viewnone))))))
+      (if desktop-shown
+        (list.foreach selected-tags #($1:view_only))
+        (let [tags (-> (_G.root.tags)
+                       (list.filter #(. $1 :selected)))]
+          (-> (screen-utils.get-screen-list)
+              (list.foreach #(awful.tag.viewnone $1)))
+          (set selected-tags tags)))
+      (set desktop-shown (not desktop-shown)))))
 
 (join-keys
   (icollect [i _ (ipairs (range 1 10 1))]
