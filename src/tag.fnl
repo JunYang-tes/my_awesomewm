@@ -69,7 +69,7 @@
         (tset c :titlebar false)))))
 
 (fn create [tag-info]
-  (local tag-info (or tag-info {:name "(Anonymous)"
+  (local tag-info (or tag-info {:name "Anonymous"
                                 :screen ":focused"
                                 :selected true}))
   (local t (tag.add tag-info.name

@@ -72,9 +72,23 @@
         :real-time #(.. "Rename " (tag-name (wm.get-current-tag) ) " to: " $1)
         :exec (fn [input]
                 (tset (wm.get-current-tag) :name input))})
+(local delete-unnamed-tag
+  {:label "delete-unnamed-tag"
+   :exec (fn []
+           (-> (_G.root.tags)
+               (list.filter #(and (or
+                                    (= $1.name nil)
+                                    (= $1.name :Default)
+                                    (= $1.name :Anonymous))
+                                  (= (length ($1:clients)) 0)))
+               (list.foreach #(do
+                                (print :delete-tag $1.name)
+                                ($1:delete))))
+           (tag.save-tags))})
 {: create
  : view-tag
+ : delete-unnamed-tag
  : move-to-tag
  : move-tag-to-screem
  : swap-tag
- : rename-tag }
+ : rename-tag}

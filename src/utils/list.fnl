@@ -41,6 +41,9 @@
   (icollect [_ v (ipairs list)]
     (if (should-remain? v)
         v)))
+(fn foreach [list f]
+  (map list f)
+  nil)
 
 (fn find-index [list entry]
   (-> list
@@ -158,6 +161,7 @@
 
 {
   : filter
+  : foreach
   : slice
   : map
   : some
