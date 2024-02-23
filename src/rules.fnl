@@ -53,6 +53,11 @@
                    (do
                      (let [y (+ c.y 40)]
                        (tset c :y y)))))}
+    {:rule_any {:type [:dock
+                       :tooltip
+                       :menu]}
+     :properties {:raise true
+                  :floating true}}
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
