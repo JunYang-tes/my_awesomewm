@@ -212,6 +212,8 @@ macro_rules! GtkWidgetExt {
                     connect_button_release_event gtk::gdk::EventButton,
                     connect_button_press_event gtk::gdk::EventButton);
         GtkConnect!($methods,$widget,
+                    connect_size_allocate &gtk::Rectangle);
+        GtkConnect!($methods,$widget,
                     connect_parent_set:((w,p),f)=>{
                         if let Some(p) = p {
                             GtkCast!(p,
@@ -258,7 +260,18 @@ macro_rules! GtkConnect {
                 eprintln!("Event callback err: {:?}",r);
             }
         });)*
-    }
+    };
+    ($methods:ident,$widget:ty,$($name:ident $event:ty),+ $(,)?)=>{
+        $(GtkConnect!($methods,$widget,$name:((w,e),f)=>{
+            let b = LuaWrapper(w);
+            let r = f.call::<(LuaWrapper<&$widget>,LuaWrapper<$event>),()>(unsafe {
+                (std::mem::transmute(b),std::mem::transmute(e))
+            });
+            if r.is_err() {
+                eprintln!("Event callback err: {:?}",r);
+            }
+        });)*
+    };
 }
 macro_rules! GtkConnectPropgatableEvent {
     ($methods:ident,$widget:ty,$($name:ident $event:ty),+ $(,)?)=>{
@@ -303,6 +316,10 @@ AddMethods!(Window,methods => {
                     set_decorated bool,
                     set_skip_pager_hint bool);
     Setter!(methods,set_type_hint i32: i => window_type_hint::from_num(i));
+    methods.add_method("set_pos",|_,w,i:(i32,i32)|{
+        w.move_(i.0,i.1);
+        Ok(())
+    });
     methods.add_method("set_default_size",|_,w,i:(i32,i32)|{
         w.set_default_size(i.0,i.1);
         Ok(())
@@ -589,6 +606,10 @@ AddMethods!(gtk::Image,methods => {
     GtkWidgetExt!(gtk::Image,methods);
     Getter!(methods, pixel_size);
     Setter!(methods, set_pixel_size i32);
+    methods.add_method("set_from_file",|_,w,file:String|{
+        w.0.set_from_file(Some(file));
+        Ok(())
+    });
     methods.add_method("set_icon_name",|_,w,name:String|{
         w.0.set_from_icon_name(Some(name.as_str()),gtk::IconSize::Button);
       Ok(())

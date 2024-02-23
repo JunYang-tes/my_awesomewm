@@ -22,3 +22,7 @@ AddMethods!(gtk::gdk::EventButton,methods => {
     Getter!(methods, state i => i.bits() as u32);
 
 });
+AddMethods!(gtk::Rectangle,methods => {
+    Getter!(methods,x,y,width,height);
+    Setter!(methods, width i32);
+});
