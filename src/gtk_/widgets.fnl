@@ -72,7 +72,11 @@
  :list-row (make-builder gtk.list_box_row)
  :flow-box (make-builder gtk.flow_box)
  :window (make-builder gtk.win {:default_size (fn [w [width height]]
-                                                (w:set_default_size width height))})
+                                                (w:set_default_size width height))
+                                :pos (fn [w [x y]]
+                                       (w:set_pos x y))
+                                :size_request (fn [w [width height]]
+                                                (w:set_size_request width height))})
  :scrolled-window (make-builder gtk.scrolled_win)
  :grid (make-builder gtk.grid)
  ;:notebook (make-builder gtk.note_book)
