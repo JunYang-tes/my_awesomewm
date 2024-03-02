@@ -8,7 +8,31 @@
 (local activate #($1:emit_signal "request::activate" "mouse_click" { :raise true}))
 (local mouse-buttons
   (gears.table.join
-    (awful.button [] mouse-button.left activate)
+    (awful.button [] mouse-button.left 
+                  (fn [client]
+                    (print :left)
+                    (activate client)
+                    (let [ geometry (client:geometry)
+                          cx geometry.x
+                          cy geometry.y
+                          cw geometry.width
+                          ch geometry.height
+                          delta 6
+                          mouse-coords (_G.mouse.coords)
+                          mx mouse-coords.x
+                          my mouse-coords.y
+                          close-to-border (or (< (math.abs (- cx mx))
+                                                 delta)
+                                              (< (math.abs (- cy my))
+                                                 delta)
+                                              (< (math.abs (- (+ cx cw) mx))
+                                                 delta)
+                                              (< (math.abs (- (+ cy ch) my))
+                                                 delta))]
+                      (print close-to-border)
+                      (when close-to-border
+                        (awful.mouse.client.resize client)))))
+
     (awful.button [modkey] mouse-button.left
       (fn [c]
         (activate c)
