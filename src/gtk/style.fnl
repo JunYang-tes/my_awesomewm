@@ -1,4 +1,4 @@
-(local {: Gtk : Gdk } (require :lgi))
+(local {: Gtk } (require :lgi))
 
 (fn apply [ctx]
   (let [css-provider (Gtk.CssProvider)]

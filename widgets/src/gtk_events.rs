@@ -24,5 +24,4 @@ AddMethods!(gtk::gdk::EventButton,methods => {
 });
 AddMethods!(gtk::Rectangle,methods => {
     Getter!(methods,x,y,width,height);
-    Setter!(methods, width i32);
 });

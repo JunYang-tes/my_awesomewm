@@ -2,63 +2,38 @@
 ;;(import-macros {: css-gen } :css)
 (fn css [...]
   (let [cls (string.gsub
-              :xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+              :cls_xxxxxxxx_xxxx_4xxx_yxxx_xxxxxxxxxxxx
               "[xy]"
               (fn [c]
                 (let [v (if (= c :x)
                             (math.random 0 0xf)
                             (math.random 9 0xb))]
                   (string.format :%x v))))
-              
         args [...]]
    `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))
-          {:Gtk Gtk# :Gdk Gdk#} (require :lgi)
-          provider# (Gtk#.CssProvider)]
-                   
-      (provider#:load_from_data content#)
-      (Gtk#.StyleContext.add_provider_for_screen
-        (Gdk#.Screen.get_default)
-        provider#
-        Gtk#.STYLE_PROVIDER_PRIORITY_USER)
-      (unmount
-        (Gtk#.StyleContext.remove_provider_for_screen
-          (Gdk#.Screen.get_default)
-          provider#))
-      ,cls)))
+          gtk4_css# (. (require :widgets) :gtk4_css)
+          provider# (gtk4_css#.load_css content#)]
+      (values ,cls provider#))))
 (fn global-css [...]
   (let [cls (string.gsub
-              :xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+              :cls_xxxxxxxx_xxxx_4xxx_yxxx_xxxxxxxxxxxx
               "[xy]"
               (fn [c]
                 (let [v (if (= c :x)
                             (math.random 0 0xf)
                             (math.random 9 0xb))]
                   (string.format :%x v))))
-              
         args [...]]
    `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))
-          {:Gtk Gtk# :Gdk Gdk#} (require :lgi)
-          provider# (Gtk#.CssProvider)]
-                   
-      (print :load-css
-        (provider#:load_from_data content#))
-      (Gtk#.StyleContext.add_provider_for_screen
-        (Gdk#.Screen.get_default)
-        provider#
-        Gtk#.STYLE_PROVIDER_PRIORITY_USER)
-      ,cls)))
+          gtk4_css# (. (require :widgets) :gtk4_css)
+          provider# (gtk4_css#.load_css content#)]
+      (values ,cls provider#))))
 (fn global-id-css [id ...]
   (let [args [...]]
     `(let [content# (css-gen ,(.. "#" id) ,(table.unpack args))
-            {:Gtk Gtk# :Gdk Gdk#} (require :lgi)
-            provider# (Gtk#.CssProvider)]
-      (print :load-css
-        (provider#:load_from_data content#))
-      (Gtk#.StyleContext.add_provider_for_screen
-        (Gdk#.Screen.get_default)
-        provider#
-        Gtk#.STYLE_PROVIDER_PRIORITY_USER)
-      ,id)))
+           gtk4_css# (. (require :widgets) :gtk4_css)
+           provider# (gtk4_css#.load_css content#)]
+      (values ,id provider#))))
 {
  : css
  : global-id-css

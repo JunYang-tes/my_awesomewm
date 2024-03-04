@@ -16,13 +16,21 @@ macro_rules! Call {
      $lua_args:ident:$lua_args_type:ty=> $value:expr,
      // return type
      $ret:ident=> $ret_value:expr
-    )=>{
-        $method.add_method_mut(stringify!($name),|_,obj,$lua_args:$lua_args_type|{
+    ) => {
+        $method.add_method_mut(stringify!($name), |_, obj, $lua_args: $lua_args_type| {
             let args = $value;
             let $ret = obj.$name(args);
             $ret_value
         });
-    }
+    };
+}
+macro_rules! ReturnlessCall {
+    ($methods:ident,$($name:ident $input:ident:$lua_type:ty => $out:expr),*) => {
+        $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
+            w.$name($out);
+            Ok(())
+        });)*
+    };
 }
 macro_rules! Setter {
     ($methods:ident,$($name:ident,$type:ty),*) => {
@@ -37,7 +45,7 @@ macro_rules! Setter {
             Ok(())
         });)*
     };
-    ($methods:ident,$($name:ident $lua_type:ty : $input:ident => $out:expr),*) => {
+    ($methods:ident,$($name:ident $input:ident:$lua_type:ty => $out:expr),*) => {
         $($methods.add_method_mut(stringify!($name),|_,w,$input:$lua_type|{
             w.$name($out);
             Ok(())
@@ -81,6 +89,16 @@ impl<T> Deref for LuaWrapper<T> {
         &self.0
     }
 }
+// impl<T> DerefMut for LuaWrapper<T> {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         &mut self.0
+//     }
+// }
+impl<T> DerefMut for LuaWrapper<&T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        todo!()
+    }
+}
 macro_rules! AddMethods {
     ($type:ty, $methods:ident => $block:block) => {
         impl LuaUserData for LuaWrapper<$type> {
@@ -95,11 +113,41 @@ macro_rules! AddMethods {
         }
     };
 }
-use std::ops::Deref;
+
+macro_rules! MatchLuaUserData {
+    ($data:ident,
+     $item: ident => $exp : block,
+     $($type:ty),+ $(,)?) => {
+        $(
+        if $data.is::<$type>() {
+            let $item = $data.borrow::<$type>().unwrap();
+            $exp;
+        }
+         )*
+    };
+}
+macro_rules! Table {
+    ($lua:ident,$($key:ident=>$val:expr,)*) => {
+        {
+        let table = $lua.create_table();
+        if let Ok(table) = table {
+            $(let _=table.set(stringify!($key),$val);)*
+            Ok(table)
+        } else {
+            table
+        }
+        }
+    };
+}
+
+use std::ops::{Deref, DerefMut};
 
 pub(crate) use exports;
-pub(crate) use Getter;
 pub(crate) use AddMethods;
-pub(crate) use ParamlessCall;
-pub(crate) use Setter;
 pub(crate) use Call;
+pub(crate) use Getter;
+pub(crate) use MatchLuaUserData;
+pub(crate) use ParamlessCall;
+pub(crate) use ReturnlessCall;
+pub(crate) use Setter;
+pub(crate) use Table;
