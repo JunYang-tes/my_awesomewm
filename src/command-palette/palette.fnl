@@ -209,13 +209,13 @@
               ; (box
               ;   {:orientation Gtk.Orientation.VERTICAL}
               ;   cmd-items))))]
-    (effect [selected-index]
-      (let [index (- (selected-index) 1)
-            list (list)
-            row (list:get_row_at_index index)]
-        (list:select_row row)
-        (row:grab_focus) ;;let it scroll to this row
-        (: (cmd_input) :grab_focus)))
+    ; (effect [selected-index]
+    ;   (let [index (- (selected-index) 1)
+    ;         list (list)
+    ;         row (list:get_row_at_index index)]
+    ;     (list:select_row row)
+    ;     (row:grab_focus) ;;let it scroll to this row
+    ;     (: (cmd_input) :grab_focus)))
     (effect [visible]
       (refresh-cmds))
     win))

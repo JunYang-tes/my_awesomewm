@@ -63,6 +63,7 @@
                     :raise true
                     :floating true
                     :borderless true
+                    :sticky true
                     :width 900
                     ;;:height 48
                     :ontop true
@@ -79,13 +80,15 @@
                        (tset c :y y)))))}
     {:rule_any {:type [:dock
                        :tooltip
-                       :menu]}
+                       :menu]
+                :class [:tilda :Tilda]}
      :properties {:raise true
                   :floating true}}
     ;; Floating
     { :rule_any {
                  :instance [ "DTA" "copyq" "pinentry"]
                  :class ["Arandr" "Blueman-manager"
+                         "feh"
                          "Gpick" "Kruler"
                          "MessageWin" "Sxiv" "Wpa_gui" "veromix"
                          "xtightvncviewer"]

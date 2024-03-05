@@ -10,11 +10,11 @@
         : box
         : label
         : list-box
-        : image
+        : picture
         : list-row
         : scrolled-window
-        : entry} (require :gtk_.node))
-(local consts (require :gtk_.const))
+        : entry} (require :gtk4.node))
+(local consts (require :gtk4.const))
 (local list (require :utils.list))
 (local stringx (require :utils.string))
 (local {: value
@@ -118,7 +118,6 @@
         ;         (input "")
         ;         (visible false))
         handle-esc (fn []
-                     (print :ESC close)
                      (if (not (command-mgr.is-cmdstack-empty))
                          (do
                            (command-mgr.pop)
@@ -142,33 +141,17 @@
                    {
                     :connect_map (fn [entry]
                                    (entry:grab_focus))
-                    :connect_key_release_event
-                     (fn [w e]
-                       (let [keyval (-> e
-                                        (: :keyval)
-                                        (: :to_unicode))
-                             keyname (-> e
-                                         (: :keyval)
-                                         (: :name))
-                             keys consts.Keys
-                             control (= (-> e
-                                           (: :state)
-                                           (band consts.Modifier.Control)) 
-                                        consts.Modifier.Control)]
-                         (match keyname
-                           :Down (inc-selected-index)
-                           :Up (dec-selected-index)
-                           _ (if control
-                               (match keyval
-                                 keys.j (inc-selected-index)
-                                 keys.k (dec-selected-index))
-                               (catch-ignore
-                                 ""
-                                 (match keyval
-                                   keys.enter (run (w:text))
-                                   keys.esc (handle-esc)
-                                   _ (input (w:text))))))))
-                     :text input})
+                    :connect_text_notify (fn [new-text]
+                                           (input new-text))
+                    :connect_activate (fn []
+                                        (run (input)))
+                    :connect_key_press_event (fn [entry code]
+                                               (match code
+                                                 consts.KeyCode.esc (handle-esc)
+                                                 consts.KeyCode.down (do (inc-selected-index)
+                                                                       true)
+                                                 consts.KeyCode.up (do (dec-selected-index)
+                                                                     true)))})
         cmd-items (map-list
                     top-cmds
                     (fn [cmd]
@@ -177,23 +160,22 @@
                                      (fn [item]
                                        (if (= cmd item)
                                          "selected"
-                                         "")))
-                         :connect_focus_in_event (fn []
-                                                   (let [input-widget (cmd_input)]
-                                                     (input-widget:grab_focus)))}
+                                         "")))}
+                         ; :connect_focus_in_event (fn []
+                         ;                           (let [input-widget (cmd_input)]
+                         ;                             (input-widget:grab_focus)))}
                         (box
                           {:spacing 10
                            :class "cmd-item"}
                           (if cmd.image
-                            (image {:image cmd.image
-                                    :size  [(dpi 24) (dpi 24)]}) false)
+                            (picture {:cairo_img_surface cmd.image})
+                            false)
                           (box
                             {:orientation consts.Orientation.VERTICAL}
                             (label
                               {:markup cmd.label
                                :class "cmd-label"
-                               :-expand true
-                               :-fill true
+                               :hexpand true
                                :xalign 0})
                             (if (or cmd.real-time
                                     cmd.description)
@@ -205,7 +187,7 @@
                                                            (cmd.real-time args))
                                                     (or cmd.description "")))))]
                                 (label
-                                  {:label desc
+                                  {:label (or desc "(No desc)")
                                    :class "cmd-desc"
                                    :wrap true
                                    :xalign 0}))
@@ -218,25 +200,21 @@
            : visible
            :class win-css
            :skip_taskbar_hint true
-           :role :cmd-palette
-           :connect_focus_out_event close}
+           :role :cmd-palette}
+           ;:connect_focus_out_event close}
           (box
             {:orientation consts.Orientation.VERTICAL}
             cmd_input
             (scrolled-window
-              {:-expand true
-               :class (css [:min-height :400px])
-               :-fill true}
+              {:vexpand true
+               :class (css [:min-height :400px])}
               list)
             (box
               {:class :tips}
-              (label {:-fill true :-expand true})
+              (label {:hexpand true})
               (label {:label "󰜷 Ctrl+K "})
               (label {:label "󰜮 Ctrl+J "})
               (label {:label (map cmds #(.. "󰘳 " (length $1)))}))))]
-              ; (box
-              ;   {:orientation Gtk.Orientation.VERTICAL}
-              ;   cmd-items))))]
     (effect [selected-index]
       (when (on-built)
         (let [index (- (selected-index) 1)
