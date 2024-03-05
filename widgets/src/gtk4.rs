@@ -427,33 +427,13 @@ AddMethods!(gtk4::Picture,methods => {
     Setter!(methods,
             set_content_fit i:u32 => fit::from_num(i),
             set_filename str:String=>Some(str));
-    methods.add_method("set_cairo_img_surface",|_,pic,img:LuaValue|{
+    methods.add_method("set_texture",|_,pic,img:LuaValue|{
         match img {
             LuaValue::UserData(data)=>{
-                if data.is::<LuaWrapper<cairo::ImageSurface>>() {
-                    let mut surface = data.take::<LuaWrapper<cairo::ImageSurface>>().unwrap();
-                    let fmt = match surface.format() {
-                        cairo::Format::ARgb32 => gtk4::gdk::MemoryFormat::A8r8g8b8,
-                        cairo::Format::Rgb24 => gtk4::gdk::MemoryFormat::R8g8b8,
-                        cairo::Format::A8 => gtk4::gdk::MemoryFormat::A8,
-                        _ => {
-                            panic!("Unsupported")
-                        }
-                    };
-                    let width = surface.width();
-                    let height = surface.height();
-                    let stride = surface.stride() as usize;
-                    let data = surface.0.data().unwrap();
-                    let data:&[u8] = data.as_ref();
-                    let data  = gtk4::glib::Bytes::from(data);
-                    let texture = gtk4::gdk::MemoryTexture::new(
-                        width,
-                        height,
-                        fmt,
-                        &data,
-                        stride as usize
-                    );
-                    pic.set_paintable(Some(&texture));
+                if let Ok(texture) = data.borrow::<LuaWrapper<gtk4::gdk::MemoryTexture>>() {
+                    pic.set_paintable(Some(&texture.0));
+                } else {
+                    println!("Unsupported")
                 }
 
             },

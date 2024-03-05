@@ -79,6 +79,7 @@
   : list-row
   : list-box
   :label (atom-node widgets.label :Label)
+  :picture (atom-node widgets.picture :Picture)
   : window
   : scrolled-window}
 

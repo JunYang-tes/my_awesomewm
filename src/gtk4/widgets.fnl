@@ -56,6 +56,7 @@
  :button (make-builder gtk.button)
  ;:menu-button (make-builder gtk.menu_button)
  ;:image (make-builder gtk.image {:size (vargs :size)})
+ :picture (make-builder gtk.picture)
  :entry (make-builder gtk.text_box {:auto-focus (fn [w auto-focus]
                                                   (if auto-focus
                                                     (w:grab_focus)))})

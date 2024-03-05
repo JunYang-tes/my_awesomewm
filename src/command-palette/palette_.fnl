@@ -10,7 +10,7 @@
         : box
         : label
         : list-box
-        : image
+        : picture
         : list-row
         : scrolled-window
         : entry} (require :gtk4.node))
@@ -167,9 +167,9 @@
                         (box
                           {:spacing 10
                            :class "cmd-item"}
-                          ; (if cmd.image
-                          ;   (image {:image cmd.image
-                          ;           :size  [(dpi 24) (dpi 24)]}) false)
+                          (if cmd.image
+                            (picture {:cairo_img_surface cmd.image})
+                            false)
                           (box
                             {:orientation consts.Orientation.VERTICAL}
                             (label
