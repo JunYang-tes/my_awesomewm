@@ -52,7 +52,6 @@
                                               (table.insert state.commands cmd))
                                  ;; return :close | :keep-open | :has-sub
                                  :run (fn [cmd input]
-                                        (print :RUN cmd.label input)
                                         (assert-is-a-cmd cmd)
                                         (if cmd.input-required
                                           (assert (not= nil input) :input-is-required))

@@ -1,5 +1,5 @@
+;; got gtk4 not actully initialized if without this
 (pcall #(let [lgi (require :lgi)]
-          (print :------load-lgi)
           (print lgi.Gtk)))
 (local widgets (require :widgets))
 (local app (widgets.gtk4.app))

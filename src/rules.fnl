@@ -10,7 +10,6 @@
   (gears.table.join
     (awful.button [] mouse-button.left 
                   (fn [client]
-                    (print :left)
                     (activate client)
                     (let [ geometry (client:geometry)
                           cx geometry.x
@@ -29,7 +28,6 @@
                                                  delta)
                                               (< (math.abs (- (+ cy ch) my))
                                                  delta))]
-                      (print close-to-border)
                       (when close-to-border
                         (awful.mouse.client.resize client)))))
 

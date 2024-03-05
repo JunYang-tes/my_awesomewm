@@ -190,8 +190,7 @@
     (each [k screen (pairs (screen-utils.get-screens))]
       (if (= (length screen.tags)
              0)
-        (do 
-          (print :create-tag-for k screen)
+        (do
          (create {:name "Default"
                   :screen (.. "interface:" k)}))))))
 

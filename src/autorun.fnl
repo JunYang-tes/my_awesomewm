@@ -9,5 +9,4 @@
                           (icollect [i v (in:lines)] i)))]
   (when ok
     (each [_ cmd (ipairs cmds)]
-      (print cmd)
       (spawn cmd))))

@@ -222,7 +222,6 @@
                       (menu-item {:image :shutdown.png
                                   :on-click #(awful.spawn ["sh" "-c" "pkexec systemctl suspend -i"])
                                   :text :Shutdown...}))))))))]
-    (print :props.on-click props.on-close)
     (effect [props.visible]
             (if (props.visible)
               (click-away popover
