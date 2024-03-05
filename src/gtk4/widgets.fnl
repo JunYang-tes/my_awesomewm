@@ -35,10 +35,11 @@
           ;               (or props {}))
           widget (Ctor)
           disposeable (icollect [k v (pairs props)]
-                        (apply-property
-                          v
-                          (utils.catch (fn [value old]
-                                        ((find-setter k) widget value old)))))]
+                        (when (not= v nil)
+                          (apply-property
+                            v
+                            (utils.catch (fn [value old]
+                                          ((find-setter k) widget value old))))))]
       widget)))
 (fn make-setter [prop def]
   (fn [widget value]
@@ -52,6 +53,7 @@
 {
  : is-widget
  :label (make-builder gtk.label { :text (make-setter :label "")
+                                  :label (make-setter :label "")
                                   :markup (make-setter :markup "")})
  :button (make-builder gtk.button)
  ;:menu-button (make-builder gtk.menu_button)

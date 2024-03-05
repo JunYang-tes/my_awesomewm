@@ -84,8 +84,7 @@
     r))
 ;; (O<Array<T>>, T=>U) => O<Array<U>>
 (fn map-list [o f]
-  (time-it :MAP_LIST
-    (map o #(list.map $1 #(f $1 $2))))) 
+  (map o #(list.map $1 #(f $1 $2)))) 
 
 ;; Observable<Observable<T>> => Observable<T>
 (fn flat [obj]

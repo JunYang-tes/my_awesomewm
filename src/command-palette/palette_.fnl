@@ -187,7 +187,7 @@
                                                            (cmd.real-time args))
                                                     (or cmd.description "")))))]
                                 (label
-                                  {:label (or desc "(No desc)")
+                                  {:label desc
                                    :class "cmd-desc"
                                    :wrap true
                                    :xalign 0}))
