@@ -82,7 +82,6 @@
                                     (= $1.name :Anonymous))
                                   (= (length ($1:clients)) 0)))
                (list.foreach #(do
-                                (print :delete-tag $1.name)
                                 ($1:delete))))
            (tag.save-tags))})
 {: create

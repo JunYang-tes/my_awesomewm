@@ -39,7 +39,6 @@
                   (list.map (fn [app]
                               {:label (. app :name)
                                :exec (fn []
-                                       (print :gtk-launch app.basename)
                                        (awful.spawn
                                          (.. "gtk-launch " app.basename)))}))))]
 

@@ -113,7 +113,6 @@
         ;         (input "")
         ;         (visible false))
         handle-esc (fn []
-                     (print :ESC close)
                      (if (not (command-mgr.is-cmdstack-empty))
                          (do
                            (command-mgr.pop)

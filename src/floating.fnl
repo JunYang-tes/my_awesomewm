@@ -35,7 +35,6 @@
 (signal.connect-signal
   :client::unfullscreen
   (fn [client]
-    (print :unfullscreen)
     (let [tag client.first_tag]
       (when (= tag.layout.name
                :floating)
