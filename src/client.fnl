@@ -95,10 +95,7 @@
            (let [screen client.screen]
              (create { :name "(Anonymous)"
                        :screen screen
-                       :selected true}))))
-    (let [tag client.first_tag]
-      (when (not= tag.layout.name :floating)
-        (normalize-client)))))
+                       :selected true}))))))
 
 (fn focus-by-direction [dir]
   (let [client awesome-global.client.focus
