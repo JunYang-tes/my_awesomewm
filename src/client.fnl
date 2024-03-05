@@ -90,6 +90,8 @@
                               (if client.fullscreen
                                 (signal.emit :client::fullscreen client)
                                 (signal.emit :client::unfullscreen client))))
+    (when (= (?. client :first_tag :layout) awful.layout.suit.floating)
+      (awful.placement.no_offscreen client))
     (if (= nil client.first_tag)
       (set client.first_tag
            (let [screen client.screen]
