@@ -65,7 +65,9 @@
                      :border-bottom "1px solid #CCC"
                      :padding   (px 10)])
                  (& " .cmd-item"
-                    [:min-height (px 48)])
+                    [:min-height (px 48)]
+                    (>> " picture"
+                      [:min-height (px 48)]))
                  (& " .cmd-label"
                     [:font-size (px 16)
                      :margin-bottom (px 4)])
