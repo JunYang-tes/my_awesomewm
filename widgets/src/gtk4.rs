@@ -427,12 +427,21 @@ AddMethods!(gtk4::Picture,methods => {
     Setter!(methods,
             set_content_fit i:u32 => fit::from_num(i),
             set_filename str:String=>Some(str));
+    methods.add_method("set_filename",|_,pic,img:String| {
+        if !img.is_empty() {
+            pic.set_filename(Some(&std::path::Path::new(img.as_str())));
+        }
+        Ok(())
+    });
     methods.add_method("set_texture",|_,pic,img:LuaValue|{
         match img {
             LuaValue::UserData(data)=>{
                 if let Ok(texture) = data.borrow::<LuaWrapper<gtk4::gdk::MemoryTexture>>() {
                     pic.set_paintable(Some(&texture.0));
-                } else {
+                }else if let Ok(texture) = data.borrow::<LuaWrapper<gtk4::gdk::Texture>>(){
+                    pic.set_paintable(Some(&texture.0));
+                }
+                else {
                     println!("Unsupported")
                 }
 
@@ -442,7 +451,6 @@ AddMethods!(gtk4::Picture,methods => {
         Ok(())
     })
 });
-
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(

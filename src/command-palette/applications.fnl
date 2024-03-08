@@ -1,3 +1,4 @@
+(local {: xdgkit : gdk4} (require :widgets))
 (local {: read-popen} (require :utils.process))
 (local list (require :utils.list))
 (local str-fns (require :utils.string))
@@ -5,44 +6,41 @@
   [:/usr/share/applications/])
 (local inspect (require :inspect))
 (local awful (require :awful))
-
-
-(fn parse-desktop [path]
-  (let [content (-> (read-popen (.. "cat " path)))
-        name (list.find content #(str-fns.starts-with $1 "Name="))
-        comment_ (list.find content #(str-fns.starts-with $1 "Comment="))]
-    (if name
-      {:name (. (str-fns.split name "=") 2)
-       :comment (if comment_
-                  (. (str-fns.split name "=") 2)
-                  "")
-       :basename (. (read-popen (.. "basename " path)) 1)
-       :file path}
-      nil)))
-
-(fn load-applications [path]
-  (fn load [path]
-    (->
-      (read-popen (.. "ls -1 " path))
-      (list.filter #(str-fns.ends-with $1 ".desktop"))
-      (list.map #(.. path $1))))
-  (-> path
-     (list.map load)
-     list.flatten))
+(local {: every-idle } (require :utils.wm))
+(local {: timer} (require :gears))
+(local {: get-codebase-dir} (require :utils.utils))
 
 (local apps
-  (let [load (fn []
+  (let [def-icon (gdk4.texture_from_file (.. (get-codebase-dir) "/icons/executable.svg"))
+        load (fn []
               (-> search-path
-                  load-applications
-                  (list.map parse-desktop)
-                  (list.filter #(not= nil $1))
+                  xdgkit.load_desktop_entries
                   (list.map (fn [app]
-                              {:label (. app :name)
+                              {:label (.. app.name "/"
+                                         app.generic_name "/"
+                                         (table.concat app.keywords " "))
+                               :_icon app.icon_name
                                :exec (fn []
                                        (awful.spawn
-                                         (.. "gtk-launch " app.basename)))}))))]
+                                         (.. "gtk-launch " app.filename)))}))))]
 
     (var cache (load))
+    (var index 1)
+    (fn set_icon []
+      (let [item (. cache index)
+            icon (if (str-fns.starts-with item._icon "/")
+                   item._icon
+                   (xdgkit.find_icon item._icon))]
+        (if (not= icon "")
+          (tset item :image (gdk4.texture_from_file icon))
+          (tset item :image def-icon)))
+      (set index (+ index 1))
+      (when (< index (length cache))
+        (timer.delayed_call
+          set_icon)))
+    (timer.delayed_call
+      set_icon)
+
     {:get (fn [] cache)
      :reload (fn []
                (set cache (load)))}))

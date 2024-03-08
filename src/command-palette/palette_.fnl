@@ -33,7 +33,7 @@
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
 ;;  description?: string
-;;  image? ImageSurface
+;;  image? ImageSurface | string
 ;;  exec: (input:string) => Command[] | "keep-open" | any
 ;; }
 ;;
@@ -168,7 +168,9 @@
                           {:spacing 10
                            :class "cmd-item"}
                           (if cmd.image
-                            (picture {:cairo_img_surface cmd.image})
+                            (match (type cmd.image)
+                              :string (picture {:filename cmd.image})
+                              _ (picture {:texture cmd.image}))
                             false)
                           (box
                             {:orientation consts.Orientation.VERTICAL}
@@ -176,6 +178,7 @@
                               {:markup cmd.label
                                :class "cmd-label"
                                :hexpand true
+                               :wrap true
                                :xalign 0})
                             (if (or cmd.real-time
                                     cmd.description)

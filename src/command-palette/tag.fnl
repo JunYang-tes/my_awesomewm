@@ -29,6 +29,12 @@
                 (tag-cmd #(.. "View " (tag-name $1) "(" (screen-utils.get-name $1.screen)  ")")
                          (fn [t]
                            (fn [] (tag.switch-tag t)))))})
+(local delete-tag
+  {:label "Delete-tag"
+   :exec (fn []
+           (tag-cmd #(.. "Delete " (tag-name $1) "(" (screen-utils.get-name $1.screen) ")")
+                    (fn [t]
+                      (fn [] (t:delete)))))})
 (local move-to-tag
   {:label "move-to-tag"
    :exec (fn []
@@ -86,6 +92,7 @@
            (tag.save-tags))})
 {: create
  : view-tag
+ : delete-tag
  : delete-unnamed-tag
  : move-to-tag
  : move-tag-to-screem

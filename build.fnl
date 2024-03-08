@@ -92,6 +92,7 @@
   (compile-rust :widgets :libwidgets.so)
   (copy-asserts "png")
   (copy-asserts "jpg")
+  (copy-asserts "svg")
   (let [files (get-src-list)
         need-compile (icollect [_ v (ipairs files)]
                        (if (test-should-be-compile v) v))]
