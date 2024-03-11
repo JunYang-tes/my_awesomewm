@@ -8,6 +8,7 @@ mod lua_module;
 mod fs;
 mod gtk4_css;
 mod xdgkit;
+mod launch;
 
 use mlua::prelude::*;
 
@@ -21,5 +22,6 @@ fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("cairo",cairo::exports(lua)?)?;
     exports.set("fs",fs::exports(lua)?)?;
     exports.set("xdgkit",xdgkit::exports(lua)?)?;
+    exports.set("launcher",launch::exports(lua)?)?;
     Ok(exports)
 }
