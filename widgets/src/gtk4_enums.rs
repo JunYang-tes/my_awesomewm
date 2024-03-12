@@ -35,3 +35,28 @@ pub mod fit {
         }
     }
 }
+pub mod align {
+    use gtk4::Align;
+    pub fn from_num(i: i32) -> Align {
+        match i {
+            0 => Align::Fill,
+            1 => Align::Start,
+            2 => Align::End,
+            3 => Align::Center,
+            4 => Align::Baseline,
+            5 => Align::BaselineFill,
+            6 => Align::BaselineCenter,
+            _ => Align::__Unknown(i),
+        }
+    }
+}
+pub mod wrap_mode {
+    use gtk4::pango::WrapMode;
+    pub fn from_num(i: u32) -> WrapMode {
+        match i {
+            0 => WrapMode::Char,
+            1 => WrapMode::Word,
+            _ => WrapMode::WordChar,
+        }
+    }
+}

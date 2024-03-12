@@ -34,6 +34,16 @@ macro_rules! GtkOrientableExt {
 macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         ParamlessCall!($methods,grab_focus);
+        $methods.add_method("set_size_request",|_,widget,(w,h):(i32,i32)|{
+            widget.set_size_request(w,h);
+            Ok(())
+        });
+        $methods.add_method("set_size",|_,widget,(w,h):(i32,i32)| {
+        widget.allocate(
+            w,h,widget.baseline(),None
+            );
+            Ok(())
+        });
         Setter!($methods,
                 set_visible bool,
                 set_hexpand bool,
@@ -41,6 +51,9 @@ macro_rules! GtkWidgetExt {
                 set_can_focus bool,
                 set_can_target bool
                 );
+    Setter!($methods,
+            set_valign i:i32 => align::from_num(i),
+            set_halign i:i32 => align::from_num(i));
         Getter!($methods,
                 css_classes classes=>classes
                                          .iter()
@@ -81,16 +94,11 @@ macro_rules! GtkWidgetExt {
         $methods.add_method("connect_key_press_event",|lua,w,f:LuaValue|{
             match f {
                 LuaValue::Function(f)=>{
-                    println!("connect_key_press_event");
                     let g = unsafe {std::mem::transmute::<_,mlua::Function<'static>>(f)};
                     let lua = unsafe {std::mem::transmute::<_,&'static Lua>(lua)};
                     let key_event = gtk4::EventControllerKey::new();
                     let widget = w.downgrade();
-                    key_event.connect_im_update(|w|{
-                        println!("im update {:?}",w);
-                    });
                     key_event.connect_key_pressed(move |_key_event,key,code,modifier|{
-                        println!("pressed");
                         if let Some(w) = widget.upgrade() {
                             let mask_bits = modifier.bits();
                             let modifier = Table!(lua,
@@ -352,6 +360,7 @@ AddMethods!(gtk4::Label,methods=>{
             set_xalign f32,
             set_wrap bool);
     Setter!(methods,
+            set_wrap_mode m:u32 => wrap_mode::from_num(m),
             set_label i:String => i.as_str(),
             set_text i:String => i.as_str(),
             set_markup i:String => i.as_str()
