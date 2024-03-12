@@ -49,6 +49,20 @@
                   :Notification 11
                   :Combo 12
                   :Dnd 13}
+ :ContentFit {:Fill 0
+              :Contain 1
+              :Cover 2
+              :ScaleDown 3}
+ :Align {:Fill 0
+         :Start 1
+         :End 2
+         :Center 3
+         :Baseline 4
+         :BaselineFill 5
+         :BaselineCenter 6}
+ :WrapMode {:Char 0
+            :Word 1
+            :WordChar 2}
  :KeyCode {:down 116
            :up 111
            :esc 9

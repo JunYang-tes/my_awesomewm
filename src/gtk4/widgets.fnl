@@ -18,6 +18,9 @@
           (w:add_css_class cls)
           (if old
             (w:remove_css_class old))))
+  (tset props-setter :size_request
+        (fn [w size]
+          (w:set_size_request (table.unpack size))))
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
@@ -58,7 +61,8 @@
  :button (make-builder gtk.button)
  ;:menu-button (make-builder gtk.menu_button)
  ;:image (make-builder gtk.image {:size (vargs :size)})
- :picture (make-builder gtk.picture)
+ :picture (make-builder gtk.picture {:size (vargs :size)
+                                     :size_request (vargs :size_request)})
  :entry (make-builder gtk.text_box {:auto-focus (fn [w auto-focus]
                                                   (if auto-focus
                                                     (w:grab_focus)))})
