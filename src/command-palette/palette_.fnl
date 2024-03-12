@@ -65,9 +65,7 @@
                      :border-bottom "1px solid #CCC"
                      :padding   (px 10)])
                  (& " .cmd-item"
-                    [:min-height (px 48)]
-                    (>> " picture"
-                      [:min-height (px 48)]))
+                    [:min-height (px 48)])
                  (& " .cmd-label"
                     [:font-size (px 16)
                      :margin-bottom (px 4)])
@@ -163,16 +161,20 @@
                                        (if (= cmd item)
                                          "selected"
                                          "")))}
-                         ; :connect_focus_in_event (fn []
-                         ;                           (let [input-widget (cmd_input)]
-                         ;                             (input-widget:grab_focus)))}
                         (box
                           {:spacing 10
                            :class "cmd-item"}
                           (if cmd.image
-                            (match (type cmd.image)
-                              :string (picture {:filename cmd.image})
-                              _ (picture {:texture cmd.image}))
+                            (box {
+                                  :class "picture"
+                                  :size_request [(dpi 48) (dpi 48)]
+                                  :vexpand false
+                                  :hexpand false
+                                  :halign consts.Align.Start
+                                  :valign consts.Align.Center}
+                                 (picture {:texture cmd.image
+                                           :content_fit consts.ContentFit.Contain}))
+                                      ;:can_shrink true}))
                             false)
                           (box
                             {:orientation consts.Orientation.VERTICAL}
@@ -195,6 +197,7 @@
                                   {:label desc
                                    :class "cmd-desc"
                                    :wrap true
+                                   :wrap_mode consts.WrapMode.Char
                                    :xalign 0}))
                               false))))))
         list (list-box cmd-items)
