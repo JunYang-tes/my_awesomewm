@@ -24,6 +24,7 @@ fn load_desktop_entries(pathes: Vec<String>) -> Vec<(String, xdgkit::desktop_ent
                         .file_type()
                         .map(|t| t.is_file() || t.is_symlink())
                         .unwrap_or(false)
+                        && entry.file_name().to_string_lossy().ends_with(".desktop")
                     {
                         let filename = entry.file_name();
                         r.push((
@@ -47,7 +48,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|lua, pathes: Vec<String>| {
             let entries = load_desktop_entries(pathes)
                 .iter()
-                .map(|(filename,entry)| {
+                .map(|(filename, entry)| {
                     let value = lua
                         .to_value(&serde_json::json!({
                             "filename":filename,
