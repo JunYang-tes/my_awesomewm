@@ -16,9 +16,9 @@
               (-> search-path
                   xdgkit.load_desktop_entries
                   (list.map (fn [app]
-                              {:label (.. app.name "/"
-                                         app.generic_name "/"
-                                         (table.concat app.keywords " "))
+                              {:label (-> [app.name app.generic_name (table.concat app.keywords " ")]
+                                        (list.filter #(not= $1 ""))
+                                        (table.concat "/"))
                                :_icon app.icon_name
                                :exec (fn []
                                        (awful.spawn
