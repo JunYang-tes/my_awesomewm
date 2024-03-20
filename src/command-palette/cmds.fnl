@@ -1,6 +1,11 @@
 (local list (require :utils.list))
 (local fzy (require :fzy))
+(local fuzzy-matcher ((. (require :widgets) :matcher :matcher)))
 (local {: assign } (require :utils.table))
+(local inspect (require :inspect))
+
+(fn fuzzy [pattern list]
+  (fuzzy-matcher:sort list pattern))
 
 (fn split-input [input]
   (let [(index) (or (string.find input " ") (values 0))]
@@ -74,11 +79,17 @@
                                  :match (fn [input]
                                           (let [[ input ] (split-input (string.lower input))
                                                 cmds (current-commands)]
-                                            (-> input
-                                                (fzy.filter (list.map cmds (fn [cmd] cmd.label)))
-                                                (list.map (fn [item] (let [cmd (. cmds (. item 1))]
-                                                                       (assign cmd
-                                                                               {:label (markup cmd.label (. item 2))})))))))}))}))
+                                            (if input
+                                              (-> input
+                                                  (fuzzy (list.map cmds (fn [cmd] cmd.label)))
+                                                  (list.map (fn [item] (let [label (. item 1)
+                                                                             indexes (. item 2)
+                                                                             index (. item 3)
+
+                                                                             cmd (. cmds index)]
+                                                                         (assign cmd
+                                                                                 {:label (markup cmd.label indexes)})))))
+                                              cmds)))}))}))
 
 
 {: commands

@@ -9,6 +9,7 @@ mod fs;
 mod gtk4_css;
 mod xdgkit;
 mod launch;
+mod fuzzy;
 
 use mlua::prelude::*;
 
@@ -23,5 +24,6 @@ fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("fs",fs::exports(lua)?)?;
     exports.set("xdgkit",xdgkit::exports(lua)?)?;
     exports.set("launcher",launch::exports(lua)?)?;
+    exports.set("matcher",fuzzy::exports(lua)?)?;
     Ok(exports)
 }
