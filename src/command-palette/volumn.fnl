@@ -43,13 +43,13 @@
     {:check (fn []
               (if has-amixer?
                   true
-                  (do (set has-amixer? (check-has-amixer ))
+                  (do (set has-amixer? (check-has-amixer))
                     has-amixer)))}))
 
 (local set-volumn
-       {:label :set-volumn
+       {:label "Set volumn"
         :real-time (fn []
-                     (if (amixer-checker.check )
+                     (if (amixer-checker.check)
                          "Set volumn"
                          "Please install alsa-utils"))
         :exec (fn []

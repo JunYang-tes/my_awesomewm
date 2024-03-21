@@ -47,5 +47,5 @@
 
 {:applications {:label :Applications
                 :exec apps.get}
- :reload-apps {:label "ReloadApplication"
+ :reload-apps {:label "Reload application"
                :exec apps.reload}}

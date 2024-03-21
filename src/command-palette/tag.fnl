@@ -5,7 +5,7 @@
 (local screen-utils (require :utils.screen))
 (local tag (require :tag))
 (local create
-       {:label "create-tag"
+       {:label "Create tag"
         :input-required true
         :input-prompt "Please input tag name"
         :exec #(tag.create 
@@ -24,19 +24,19 @@
       "Anonymous"))
 
 (local view-tag
-       {:label "view-tag"
+       {:label "View tag"
         :exec (fn []
                 (tag-cmd #(.. "View " (tag-name $1) "(" (screen-utils.get-name $1.screen)  ")")
                          (fn [t]
                            (fn [] (tag.switch-tag t)))))})
 (local delete-tag
-  {:label "Delete-tag"
+  {:label "Delete tag"
    :exec (fn []
            (tag-cmd #(.. "Delete " (tag-name $1) "(" (screen-utils.get-name $1.screen) ")")
                     (fn [t]
                       (fn [] (t:delete)))))})
 (local move-to-tag
-  {:label "move-to-tag"
+  {:label "Move to tag"
    :exec (fn []
            (tag-cmd #(.. "Move windown to " (tag-name $1) "(" (screen-utils.get-name $1.screen) ")")
                     (fn [t]
@@ -49,7 +49,7 @@
                           (each [_ c (ipairs (t:clients))]
                             (normalize-client c)))))))})
 (local swap-tag
-       {:label "swap-tag"
+       {:label "Swap tag"
         :exec (fn []
                 (local current (-> (awful.screen.focused)
                                    (. :selected_tag))) 
@@ -58,7 +58,7 @@
                   (fn []
                     (current:swap t))))})
 (local move-tag-to-screem
-       {:label "move-tag-to-screem"
+       {:label "Move tag to screem"
         :exec (fn []
                 (local screens 
                        (icollect [ k v (pairs (screen-utils.get-screens))]
@@ -74,12 +74,12 @@
                                          (let [current (wm.get-current-tag)]
                                            (set current.screen screen)))}))))})
 (local rename-tag
-       {:label "rename-tag"
+       {:label "Rename tag"
         :real-time #(.. "Rename " (tag-name (wm.get-current-tag) ) " to: " $1)
         :exec (fn [input]
                 (tset (wm.get-current-tag) :name input))})
 (local delete-unnamed-tag
-  {:label "delete-unnamed-tag"
+  {:label "Delete unnamed tag"
    :exec (fn []
            (-> (_G.root.tags)
                (list.filter #(and (or
