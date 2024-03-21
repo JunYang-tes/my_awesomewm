@@ -223,6 +223,13 @@
               (label {:label "󰜷 Ctrl+K "})
               (label {:label "󰜮 Ctrl+J "})
               (label {:label (map cmds #(.. "󰘳 " (length $1)))}))))]
+    ; sync input to textbox
+    (effect [input]
+            (when (on-built)
+              (let [entry (cmd_input)
+                    text (entry:text)]
+                (when (not= text (input))
+                  (entry:set_text (input))))))
     (effect [selected-index]
       (when (on-built)
         (let [index (- (selected-index) 1)
