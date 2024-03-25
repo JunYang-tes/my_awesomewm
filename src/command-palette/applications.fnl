@@ -3,7 +3,8 @@
 (local list (require :utils.list))
 (local str-fns (require :utils.string))
 (local search-path
-  [:/usr/share/applications/])
+  [:/usr/share/applications/
+   (.. (os.getenv :HOME) :/.local/share/applications)])
 (local inspect (require :inspect))
 (local awful (require :awful))
 (local {: every-idle } (require :utils.wm))
