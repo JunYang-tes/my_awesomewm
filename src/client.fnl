@@ -72,8 +72,10 @@
 (awesome-global.client.connect_signal
   "property::urgent"
   (fn [c]
-    (tset c :minimized false)
-    (c:jump_to)))
+    ; 微信有新消息会将client设为urgent
+    (when (not= c.name "微信")
+      (tset c :minimized false)
+      (c:jump_to))))
 
 (awesome-global.client.connect_signal
   "property::titlebar"
