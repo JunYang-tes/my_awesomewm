@@ -1,6 +1,7 @@
 (local awful (require :awful))
 (local awesome-global (require :awesome-global))
 (local wm (require :utils.wm))
+(local timer (require :utils.timer))
 (local inspect (require :inspect))
 (local list (require :utils.list))
 (local {: select-tag} (require :tag))
@@ -46,12 +47,6 @@
          :tile (fn [client]
                 (move-chrome-devtools client)
                 (local tag client.first_tag)
-                 ;; When a client exited,select a client in the same tag focus to it
-                (client:connect_signal :unmanage
-                                       (fn [client] 
-                                         (if (or (= client awesome-global.client.focus)
-                                                 (= awesome-global.client.focus nil))
-                                           (wm.focus (wm.get-focusable-client tag)))))
                 (local clients (-> client
                                  (. :first_tag)
                                  (: :clients)))
@@ -68,6 +63,25 @@
             handler (. handlers-for-layout layout)]
         (if handler
           (handler client))))))
+(fn focus-previous [client]
+  (when (= awesome-global.client.focus nil)
+    (print :focus-previous)
+    (print :-------vvv----)
+    (each [_ v (ipairs awful.client.focus.history.list)]
+      (print v))
+    (print :------^^^-----)
+    (let [screen client.screen
+          previous (or (awful.client.focus.history.get screen 0)
+                       (wm.get-focusable-client client.first_tag))]
+      (print :previous previous)
+      (when previous
+        (previous:emit_signal
+          :request::activate
+          :client.focus.history.previous 
+          {:raise false})))))
+(awesome-global.client.connect_signal
+  :unmanage
+  focus-previous)
 
 (awesome-global.client.connect_signal
   "property::urgent"
