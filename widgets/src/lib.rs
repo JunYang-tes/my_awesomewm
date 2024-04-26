@@ -10,6 +10,7 @@ mod gtk4_css;
 mod xdgkit;
 mod launch;
 mod fuzzy;
+mod web_socket;
 
 use mlua::prelude::*;
 
@@ -25,5 +26,6 @@ fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("xdgkit",xdgkit::exports(lua)?)?;
     exports.set("launcher",launch::exports(lua)?)?;
     exports.set("matcher",fuzzy::exports(lua)?)?;
+    exports.set("web_socket",web_socket::exports(lua)?)?;
     Ok(exports)
 }

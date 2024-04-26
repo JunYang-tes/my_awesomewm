@@ -1,0 +1,25 @@
+{
+  "name": "Cmd4Chrome",
+  "description": "Commands for chrome",
+  "version": "1.0",
+  "permissions": [
+    "tabs",
+    "bookmarks",
+    "alarms",
+    "activeTab",
+    "history",
+    "notifications",
+    "webNavigation",
+    "webRequest",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Click here!"
+  },
+  "background": {
+    "service_worker":"main.mjs",
+    "type":"module"
+  },
+  "manifest_version": 3
+}
