@@ -19,6 +19,7 @@
 (local {: select-item } (require :ui.select))
 (local list (require :utils.list))
 (local titlebar (require :title-bars.init))
+(local mouse (require :utils.mouse))
 
 (fn save-tags []
   (fn save []
@@ -129,8 +130,13 @@
                 on-selected)))}))
 
 (fn switch-tag [tag]
-  (tset tag :selected true)
-  (tag:view_only))
+  (let [current (wm.get-current-tag)
+        current_screen current.screen
+        tgt-screen tag.screen]
+    (when (not= tgt-screen current_screen)
+      (mouse.move-to-screen tgt-screen))
+    (tset tag :selected true)
+    (tag:view_only)))
 
 (fn switch-by-index [index]
   (local tag (. (root.tags) index))

@@ -10,6 +10,14 @@
 (fn move-to [x y]
   (mouse.coords {: x : y}))
 
+(fn move-to-screen [screen]
+  (let [workarea screen.workarea
+        x (+ workarea.x
+             (/ workarea.width 2))
+        y (+ workarea.y
+             (/ workarea.height 2))]
+    (move-to x y)))
+
 (fn center-to-client [client]
   (let [m (wrap-mouse-fns {: move-to} #(. client :screen))
         x (. client :x)
@@ -37,6 +45,7 @@
 
 { : move-to
   : center-to-client
+  : move-to-screen
   :left-click (click LEFT-BUTTON)
   :right-click (click RIGHT-BUTTON)
   :press-left (press LEFT-BUTTON)
