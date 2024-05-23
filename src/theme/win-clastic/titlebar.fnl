@@ -81,6 +81,7 @@
                                          (focus client)
                                          (client:raise)
                                          (awful.mouse.client.resize client))))
+          maximize-btn (maximize client)
           bar (awful.titlebar client
                               {:bg_normal :#d4d0c8
                                :height (dpi 100)
@@ -105,7 +106,7 @@
                                   :on-release-left #(tset client
                                                           :minimized true)
                                   :forced_height size}
-                                 {:widget maximize
+                                 {:widget maximize-btn
                                   :forced_width size
                                   :on-release-left #(tset client
                                                          :maximized (not client.maximized))

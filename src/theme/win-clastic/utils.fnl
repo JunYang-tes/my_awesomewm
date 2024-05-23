@@ -161,27 +161,51 @@
                    (cr:move_to ex sy)
                    (cr:line_to sx ey)
                    (cr:stroke)))))
-(local maximize (make-button-widget
-                  (fn [ctx cr w h]
-                    (let [x (* w 0.3)
-                          y (* h 0.2)
-                          w1 (* w 0.4)
-                          h1 (* h 0.4)]
-                      (cr:set_line_width 1)
-                      (cr:set_source colors.black)
-                      (cr:rectangle x y w1 h1)
-                      (cr:stroke)
-                      (cr:rectangle x y w1
-                                        (* h1 0.2))
-                      (cr:fill)
-                      (let [x (* w 0.2)
-                            y (* h 0.35)]
-                        (cr:rectangle x y w1 h1)
-                        (cr:set_source colors.primary)
-                        (cr:fill)
-                        (cr:rectangle x y w1 h1)
-                        (cr:set_source colors.black)
-                        (cr:stroke))))))
+(local maximize 
+  (fn [client]
+    (let [draw_normal (fn [ctx cr w h]
+                        (let [x (* w 0.3)
+                              y (* h 0.2)
+                              w1 (* w 0.4)
+                              h1 (* h 0.4)]
+                          (cr:set_line_width 1)
+                          (cr:set_source colors.black)
+                          (cr:rectangle x y w1 h1)
+                          (cr:stroke)
+                          (cr:rectangle x y w1
+                                            (* h1 0.2))
+                          (cr:fill)
+                          (let [x (* w 0.2)
+                                y (* h 0.35)]
+                            (cr:rectangle x y w1 h1)
+                            (cr:set_source colors.primary)
+                            (cr:fill)
+                            (cr:rectangle x y w1 h1)
+                            (cr:set_source colors.black)
+                            (cr:stroke))))
+          draw_maxmized (fn [ctx cr w h]
+                         (let [x (* w 0.2)
+                               y (* h 0.2)
+                               w1 (* w 0.5)
+                               h1 (* h 0.5)]
+                           (cr:set_line_width 1)
+                           (cr:set_source colors.black)
+                           (cr:rectangle x y w1 h1)
+                           (cr:stroke)
+                           (cr:rectangle x y w1
+                                             (* h1 0.2))
+                           (cr:fill)))
+          widget
+          (make-button-widget
+            (fn [ctx cr w h]
+              (if client.maximized
+                (draw_maxmized ctx cr w h)
+                (draw_normal ctx cr w h))))]
+      (client:connect_signal
+        "property::maximized"
+        (fn []
+          (widget:emit_signal :widget::redraw_needed)))
+      widget)))
 (local minmize (make-button-widget
                  (fn [ctx cr w h]
                    (let [x-factor 0.3
