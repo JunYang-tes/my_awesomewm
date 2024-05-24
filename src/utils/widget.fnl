@@ -13,17 +13,17 @@
                     (drawable:disconnect_signal
                       :mouse::move handler))]
         
-    (widget:weak_connect_signal
+    (widget:connect_signal
       :button::press
       (fn [_ x y btn mod {: drawable}]
         (when (= btn trigger_btn)
-          (drawable:weak_connect_signal
+          (drawable:connect_signal
             :mouse::move handler))))
-    (widget:weak_connect_signal
+    (widget:connect_signal
       :mouse::leave
       (fn [_ {: drawable}]
         (stop-drag drawable)))
-    (widget:weak_connect_signal
+    (widget:connect_signal
       :button::release
       (fn [_ x y btn mod {: drawable}]
         (stop-drag drawable)))))

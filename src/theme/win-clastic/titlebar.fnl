@@ -79,13 +79,6 @@
                                   : height})
                                (awful.mouse.client.move client)))
                 :on-dragging (fn [])})
-      (widget:connect_signal
-        :button::press (fn [_ x y btn mod]
-                         (when (and (not client.maximized)
-                                    (= btn 1))
-                           (focus client)
-                           (client:raise)
-                           (awful.mouse.client.move client))))
       (client:connect_signal :focus
                              (fn []
                                (widget:emit_signal :widget::redraw_needed)))
@@ -98,7 +91,15 @@
   (when (not client.borderless)
     (tset client :border_color :#d4d0c8)
     (tset client :border_width (dpi 2))
-    (let [
+    (let [buttons (gears.table.join
+                    (awful.button [] 1 (fn []
+                                         (focus client)
+                                         (client:raise)
+                                         (awful.mouse.client.move client)))
+                    (awful.button [] 3 (fn []
+                                         (focus client)
+                                         (client:raise)
+                                         (awful.mouse.client.resize client))))
           maximize-btn (maximize client)
           bar (awful.titlebar client
                               {:bg_normal :#d4d0c8
@@ -113,7 +114,7 @@
                  [(awful.titlebar.widget.iconwidget client)
                   (hybrid [{:halign :center
                             :widget (awful.titlebar.widget.titlewidget client)}]
-                          { :layout layout.fixed.horizontal})
+                          { : buttons :layout layout.fixed.horizontal})
                   (hybrid 
                     [
                       (let [size (dpi 16)]
