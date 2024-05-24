@@ -77,6 +77,8 @@
                                   : y
                                   : width
                                   : height})
+                               ;why border_width change to 0 ?
+                               (tset client :border_width (dpi 2))
                                (awful.mouse.client.move client)))
                 :on-dragging (fn [])})
       (client:connect_signal :focus
