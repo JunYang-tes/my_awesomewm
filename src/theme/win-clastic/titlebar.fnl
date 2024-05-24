@@ -15,6 +15,7 @@
         : minmize
         : maximize} (require :theme.win-clastic.utils))
 (local { : dpi } (require :utils.wm))
+(local {: on-drag } (require :utils.widget))
 
 (fn titlebar-color [width focus]
   (gears.color.create_linear_pattern
@@ -60,6 +61,31 @@
                 (cr:set_source (titlebar-color width focused)))
               (cr:rectangle 0 0 width height)
               (cr:fill)))
+      (on-drag widget
+               {:on-start #(when client.maximized
+                             (tset client :maximized false)
+                             (let [workarea client.screen.workarea
+                                   geometry (client:geometry)
+                                   width (/ workarea.width 2)
+                                   height (/ workarea.height 2)
+                                   x (/ (- workarea.width width)
+                                        2)
+                                   y 0]
+                                   
+                               (client:geometry
+                                 {: x
+                                  : y
+                                  : width
+                                  : height})
+                               (awful.mouse.client.move client)))
+                :on-dragging (fn [])})
+      (widget:connect_signal
+        :button::press (fn [_ x y btn mod]
+                         (when (and (not client.maximized)
+                                    (= btn 1))
+                           (focus client)
+                           (client:raise)
+                           (awful.mouse.client.move client))))
       (client:connect_signal :focus
                              (fn []
                                (widget:emit_signal :widget::redraw_needed)))
@@ -72,15 +98,7 @@
   (when (not client.borderless)
     (tset client :border_color :#d4d0c8)
     (tset client :border_width (dpi 2))
-    (let [buttons (gears.table.join
-                    (awful.button [] 1 (fn []
-                                         (focus client)
-                                         (client:raise)
-                                         (awful.mouse.client.move client)))
-                    (awful.button [] 3 (fn []
-                                         (focus client)
-                                         (client:raise)
-                                         (awful.mouse.client.resize client))))
+    (let [
           maximize-btn (maximize client)
           bar (awful.titlebar client
                               {:bg_normal :#d4d0c8
@@ -95,7 +113,7 @@
                  [(awful.titlebar.widget.iconwidget client)
                   (hybrid [{:halign :center
                             :widget (awful.titlebar.widget.titlewidget client)}]
-                          {: buttons :layout layout.fixed.horizontal})
+                          { :layout layout.fixed.horizontal})
                   (hybrid 
                     [
                       (let [size (dpi 16)]

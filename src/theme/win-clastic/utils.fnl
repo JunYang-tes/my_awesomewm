@@ -196,11 +196,11 @@
                                              (* h1 0.2))
                            (cr:fill)))
           widget
-          (make-button-widget
+          ((make-button-widget
             (fn [ctx cr w h]
               (if client.maximized
                 (draw_maxmized ctx cr w h)
-                (draw_normal ctx cr w h))))]
+                (draw_normal ctx cr w h)))))]
       (client:connect_signal
         "property::maximized"
         (fn []
