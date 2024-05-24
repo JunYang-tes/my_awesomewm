@@ -253,8 +253,7 @@
                    ;:forced_width (dpi 50)
                    :pressed start-menu-visible
                    :onButtonPress (fn []
-                                    (start-menu-visible (not (start-menu-visible)))
-                                    (print :press))}
+                                    (start-menu-visible (not (start-menu-visible))))}
                   (h-fixed
                     (margin
                       {:left (dpi 4)}

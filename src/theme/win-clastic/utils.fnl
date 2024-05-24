@@ -322,7 +322,6 @@
     {:layout (fn [widget _ w h]
                (let [child (widget:get_child)
                      padding (widget:get_padding)]
-                 (print :menu-item-child child)
                  (if child
                    [(base.place_widget_at
                       child
