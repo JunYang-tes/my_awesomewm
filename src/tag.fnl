@@ -87,6 +87,7 @@
     (fn [tag]
       (if tag.selected
         (do
+          (wp.set-wallpaper-for-tag tag)
           (signal.emit "tag::selected" tag)
           (save-tags)
           (awful.screen.focus tag.screen))
