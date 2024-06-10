@@ -2,8 +2,9 @@
 (pcall #(let [lgi (require :lgi)]
           (print lgi.Gtk)))
 (local widgets (require :widgets))
-(local app (widgets.gtk4.app))
-;(_G.awesome.connect_signal :refresh #(app:iteration))
+(local gtkapp (widgets.gtk4.app))
+(local app (widgets.fltk.app))
+(_G.awesome.connect_signal :refresh #(app:wait))
 (local gears (require :gears))
 (local theme (require :theme.theme))
 (local beautiful (require :beautiful))

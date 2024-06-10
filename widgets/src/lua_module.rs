@@ -89,16 +89,16 @@ impl<T> Deref for LuaWrapper<T> {
         &self.0
     }
 }
-// impl<T> DerefMut for LuaWrapper<T> {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.0
-//     }
-// }
-impl<T> DerefMut for LuaWrapper<&T> {
+impl<T> DerefMut for LuaWrapper<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        todo!()
+        &mut self.0
     }
 }
+// impl<T> DerefMut for LuaWrapper<&T> {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         todo!()
+//     }
+// }
 macro_rules! AddMethods {
     ($type:ty, $methods:ident => $block:block) => {
         impl LuaUserData for LuaWrapper<$type> {
@@ -107,6 +107,20 @@ macro_rules! AddMethods {
             }
         }
         impl LuaUserData for LuaWrapper<&$type> {
+            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
+                $block;
+            }
+        }
+    };
+}
+macro_rules! AddMutMethods {
+    ($type:ty, $methods:ident => $block:block) => {
+        impl LuaUserData for LuaWrapper<$type> {
+            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
+                $block;
+            }
+        }
+        impl LuaUserData for LuaWrapper<&mut $type> {
             fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
                 $block;
             }
@@ -151,3 +165,4 @@ pub(crate) use ParamlessCall;
 pub(crate) use ReturnlessCall;
 pub(crate) use Setter;
 pub(crate) use Table;
+pub(crate) use AddMutMethods;

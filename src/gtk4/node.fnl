@@ -64,9 +64,10 @@
   (container-node
     widgets.list-box
     (fn [children list]
-      (clear-child list)
-      (each [i child (ipairs children)]
-        (list:append child)))
+      (time-it "Recreate list"
+        (clear-child list)
+        (each [i child (ipairs children)]
+          (list:append child))))
     #$))
 (local list-row
   (container-node
