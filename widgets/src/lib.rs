@@ -11,6 +11,7 @@ mod xdgkit;
 mod launch;
 mod fuzzy;
 mod web_socket;
+mod qt;
 
 use mlua::prelude::*;
 
@@ -27,5 +28,6 @@ fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set("launcher",launch::exports(lua)?)?;
     exports.set("matcher",fuzzy::exports(lua)?)?;
     exports.set("web_socket",web_socket::exports(lua)?)?;
+    exports.set("qt",qt::exports(lua)?)?;
     Ok(exports)
 }
