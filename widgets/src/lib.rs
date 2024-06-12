@@ -11,7 +11,7 @@ mod xdgkit;
 mod launch;
 mod fuzzy;
 mod web_socket;
-mod qt;
+pub mod qt;
 
 use mlua::prelude::*;
 

@@ -2203,6 +2203,7 @@ name = "widgets"
 version = "0.1.0"
 dependencies = [
  "cairo-rs 0.18.3",
+ "cpp_core",
  "fltk",
  "fltk-sys",
  "freedesktop-icons",
