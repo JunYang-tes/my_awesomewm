@@ -5,8 +5,7 @@ use cpp_core::{CppBox, Ptr, StaticUpcast};
 use mlua::prelude::*;
 use qt_core::{qs, QBox, QCoreApplication, QCoreApplicationArgs, QObject, SlotNoArgs};
 use qt_widgets::{
-    q_list_view::LayoutMode, QApplication, QLayout, QLineEdit, QListWidget, QListWidgetItem,
-    QPushButton, QVBoxLayout, QWidget,
+    q_list_view::LayoutMode, QApplication, QHBoxLayout, QLabel, QLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout, QWidget
 };
 
 struct App {
@@ -70,7 +69,17 @@ macro_rules! Events {
         );
     };
 }
-
+macro_rules! Layout {
+    ($methods:ident)=>{
+        $methods.add_method("add_widget",|_,this,ptr:usize| unsafe {
+            let child = QBox::from_raw(ptr as *const QWidget);
+            this.add_widget(&child);
+            // child not own by us, dont drop it
+            std::mem::forget(child);
+            Ok(())
+        });
+    }
+}
 AddMethods!(QBox<QWidget>,methods=>{
     unsafe{
       ParamlessCall!(methods,show)
@@ -131,7 +140,7 @@ AddMethods!(Rc<QWidgetsWrapper<QBox<QListWidget>>>,methods=>{
     methods.add_method("add_item",|_,this,widget:usize| unsafe {
         let item = QListWidgetItem::new();
         let widget = QBox::from_raw(widget as * const QWidget);
-        item.set_size_hint(widget.minimum_size_hint().as_ref());
+        //item.set_size_hint(widget.minimum_size_hint().as_ref());
         this.add_item_q_list_widget_item(&item);
         this.set_item_widget(&item,&widget);
         forget(widget);
@@ -149,13 +158,23 @@ AddMethods!(CppBox<QListWidgetItem>,methods=>{
 
 AddMethods!(QBox<QVBoxLayout>,methods=>{
     WidgetBaseMethods!(methods);
-    methods.add_method("add_widget",|_,this,ptr:usize| unsafe {
-        let child = QBox::from_raw(ptr as *const QWidget);
-        this.add_widget(&child);
-        // child not own by us, dont drop it
-        std::mem::forget(child);
-        Ok(())
-    });
+    Layout!(methods);
+});
+
+AddMethods!(QBox<QLabel>,methods=>{
+    WidgetBaseMethods!(methods);
+    unsafe {
+        ParamlessCall!(methods,clear);
+        Setter!(methods,
+                set_text txt:String=>&qs(txt),
+                set_word_wrap b:bool=>b
+        );
+    }
+});
+
+AddMethods!(QBox<QHBoxLayout>,methods=>{
+    WidgetBaseMethods!(methods);
+    Layout!(methods);
 });
 
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
@@ -178,6 +197,9 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
             let vbox = QVBoxLayout::new_0a();
             LuaWrapper(vbox)
         },
+        "hbox", unsafe {
+            LuaWrapper(QHBoxLayout::new_0a())
+        },
         "line_edit",
         unsafe {
             let line_edit = QLineEdit::new();
@@ -196,5 +218,7 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         },
         "list_item",
         unsafe { LuaWrapper(QListWidgetItem::new()) },
+        "label",
+        unsafe { LuaWrapper(QLabel::new()) },
     )
 }

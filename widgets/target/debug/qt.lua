@@ -28,6 +28,23 @@ btn:on_clicked(function(b)
   collectgarbage()
 end)
 vbox:add_widget(btn:as_ptr())
+
+local label = qt.label()
+label:set_text("Hello <b>label</b>")
+vbox:add_widget(label:as_ptr())
+
+local h_container = qt.win()
+vbox:add_widget(h_container:as_ptr())
+local h_box = qt.hbox()
+h_container:set_layout(h_box:as_ptr())
+local b1 = qt.button();
+b1:set_text("b1")
+h_box:add_widget(b1:as_ptr())
+local b2 = qt.button();
+b2:set_text("b2")
+h_box:add_widget(b2:as_ptr())
+
+
 --
 local list = qt.list();
 vbox:add_widget(list:as_ptr());
@@ -40,8 +57,9 @@ function relist(data)
   refs = {}
 
   for i,line in ipairs(data) do
-      local btn = qt.button();
+      local btn = qt.label();
       btn:set_text(line)
+    btn:set_word_wrap(true)
       list:add_item( btn:as_ptr());
       table.insert(refs,btn)
   end
