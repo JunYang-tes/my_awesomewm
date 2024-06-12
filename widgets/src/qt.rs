@@ -5,7 +5,8 @@ use cpp_core::{CppBox, Ptr, StaticUpcast};
 use mlua::prelude::*;
 use qt_core::{qs, QBox, QCoreApplication, QCoreApplicationArgs, QObject, SlotNoArgs};
 use qt_widgets::{
-    q_list_view::LayoutMode, QApplication, QLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout, QWidget
+    q_list_view::LayoutMode, QApplication, QLayout, QLineEdit, QListWidget, QListWidgetItem,
+    QPushButton, QVBoxLayout, QWidget,
 };
 
 struct App {
@@ -127,13 +128,14 @@ AddMethods!(Rc<QWidgetsWrapper<QBox<QListWidget>>>,methods=>{
     unsafe {
         ParamlessCall!(methods,clear)
     }
-    methods.add_method("add_item",|_,this,(item,widget):(usize,usize)| unsafe {
-        let item = CppBox::from_raw(item as *const QListWidgetItem).unwrap();
+    methods.add_method("add_item",|_,this,widget:usize| unsafe {
+        let item = QListWidgetItem::new();
         let widget = QBox::from_raw(widget as * const QWidget);
         item.set_size_hint(widget.minimum_size_hint().as_ref());
         this.add_item_q_list_widget_item(&item);
         this.set_item_widget(&item,&widget);
         forget(widget);
+        // it seams item will be deted by list
         forget(item);
         Ok(())
     });
@@ -187,10 +189,11 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
             LuaWrapper(Rc::new(QWidgetsWrapper::new(btn)))
         },
         "list",
-        unsafe { 
+        unsafe {
             let list = Rc::new(QWidgetsWrapper::new(QListWidget::new_0a()));
             list.set_layout_mode(LayoutMode::Batched);
-            LuaWrapper(list) },
+            LuaWrapper(list)
+        },
         "list_item",
         unsafe { LuaWrapper(QListWidgetItem::new()) },
     )
