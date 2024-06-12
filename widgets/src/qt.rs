@@ -78,6 +78,12 @@ macro_rules! Layout {
             std::mem::forget(child);
             Ok(())
         });
+        $methods.add_method("add_layout",|_,this,ptr:usize| unsafe {
+            let layout = QBox::from_raw(ptr as *const QLayout);
+            this.add_layout_1a(&layout);
+            std::mem::forget(layout);
+            Ok(())
+        })
     }
 }
 AddMethods!(QBox<QWidget>,methods=>{
