@@ -65,15 +65,9 @@
           (handler client))))))
 (fn focus-previous [client]
   (when (= awesome-global.client.focus nil)
-    (print :focus-previous)
-    (print :-------vvv----)
-    (each [_ v (ipairs awful.client.focus.history.list)]
-      (print v))
-    (print :------^^^-----)
     (let [screen client.screen
           previous (or (awful.client.focus.history.get screen 0)
                        (wm.get-focusable-client client.first_tag))]
-      (print :previous previous)
       (when previous
         (previous:emit_signal
           :request::activate
