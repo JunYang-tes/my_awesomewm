@@ -53,14 +53,17 @@ function relist(data)
   local a = os.clock()
   list:clear()
   refs = {}
+  local ptrs = {}
 
   for i,line in ipairs(data) do
       local btn = qt.label();
       btn:set_text(line)
-    btn:set_word_wrap(true)
-      list:add_item( btn:as_ptr());
+      btn:set_word_wrap(true)
+      -- list:add_item( btn:as_ptr());
       table.insert(refs,btn)
+    table.insert(ptrs,btn:as_ptr())
   end
+  list:add_items(ptrs)
   local b = os.clock()
   print((b-a) * 1000)
 end

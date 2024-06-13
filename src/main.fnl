@@ -1,10 +1,12 @@
 ;; got gtk4 not actully initialized if without this
 (pcall #(let [lgi (require :lgi)]
-          (print lgi.Gtk)))
+         (print :lgi.Gtk lgi.Gtk)))
 (local widgets (require :widgets))
 (local gtkapp (widgets.gtk4.app))
-(local app (widgets.fltk.app))
-(_G.awesome.connect_signal :refresh #(app:wait))
+(local qt_app (widgets.qt.app))
+(tset _G :qt_app qt_app)
+;; why don't need this ?
+; (_G.awesome.connect_signal :refresh #(qt_app:process_events))
 (local gears (require :gears))
 (local theme (require :theme.theme))
 (local beautiful (require :beautiful))

@@ -5,7 +5,8 @@ use cpp_core::{CppBox, Ptr, StaticUpcast};
 use mlua::prelude::*;
 use qt_core::{qs, QBox, QCoreApplication, QCoreApplicationArgs, QObject, SlotNoArgs};
 use qt_widgets::{
-    q_list_view::LayoutMode, QApplication, QHBoxLayout, QLabel, QLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout, QWidget
+    q_list_view::LayoutMode, QApplication, QHBoxLayout, QLabel, QLayout, QLineEdit, QListWidget,
+    QListWidgetItem, QPushButton, QVBoxLayout, QWidget,
 };
 
 struct App {
@@ -70,21 +71,21 @@ macro_rules! Events {
     };
 }
 macro_rules! Layout {
-    ($methods:ident)=>{
-        $methods.add_method("add_widget",|_,this,ptr:usize| unsafe {
+    ($methods:ident) => {
+        $methods.add_method("add_widget", |_, this, ptr: usize| unsafe {
             let child = QBox::from_raw(ptr as *const QWidget);
             this.add_widget(&child);
             // child not own by us, dont drop it
             std::mem::forget(child);
             Ok(())
         });
-        $methods.add_method("add_layout",|_,this,ptr:usize| unsafe {
+        $methods.add_method("add_layout", |_, this, ptr: usize| unsafe {
             let layout = QBox::from_raw(ptr as *const QLayout);
             this.add_layout_1a(&layout);
             std::mem::forget(layout);
             Ok(())
         })
-    }
+    };
 }
 AddMethods!(QBox<QWidget>,methods=>{
     unsafe{
@@ -134,6 +135,9 @@ AddMethods!(Rc<QWidgetsWrapper<QBox<QPushButton>>>,methods=>{
 
 AddMethods!(Rc<QWidgetsWrapper<QBox<QLineEdit>>>,methods=>{
     WidgetBaseMethods!(methods);
+    unsafe {
+        Getter!(methods, text s=>s.to_std_string());
+    }
     Events!(methods,text_edited);
 
 });
@@ -152,6 +156,21 @@ AddMethods!(Rc<QWidgetsWrapper<QBox<QListWidget>>>,methods=>{
         forget(widget);
         // it seams item will be deted by list
         forget(item);
+        Ok(())
+    });
+    methods.add_method("add_items",|_,this,children:Vec<usize>| unsafe {
+        this.set_updates_enabled(false);
+        for child in children {
+            let widget = QBox::from_raw(child as * const QWidget);
+            let item = QListWidgetItem::new();
+            //item.set_size_hint(widget.minimum_size_hint().as_ref());
+            this.add_item_q_list_widget_item(&item);
+            this.set_item_widget(&item,&widget);
+            forget(widget);
+            // it seams item will be deted by list
+            forget(item);
+        }
+        this.set_updates_enabled(true);
         Ok(())
     });
 
@@ -188,9 +207,14 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         lua,
         "app",
         unsafe {
+            println!("create qt app");
+            println!("-----------");
             let mut args = QCoreApplicationArgs::new();
+            println!("Args created");
             let (argc, argv) = args.get();
+            println!("Args got");
             let app = QApplication::new_2a(argc, argv);
+            println!("app created");
             App { qapp: app, args }
         },
         "win",
@@ -203,9 +227,8 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
             let vbox = QVBoxLayout::new_0a();
             LuaWrapper(vbox)
         },
-        "hbox", unsafe {
-            LuaWrapper(QHBoxLayout::new_0a())
-        },
+        "hbox",
+        unsafe { LuaWrapper(QHBoxLayout::new_0a()) },
         "line_edit",
         unsafe {
             let line_edit = QLineEdit::new();
