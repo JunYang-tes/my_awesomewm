@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use crate::gtk4_enums::*;
 use crate::lua_module::*;
+use gtk4::glib::gobject_ffi::GObject;
 use gtk4::prelude::*;
 use mlua::prelude::*;
 
@@ -10,10 +11,9 @@ struct App {
 }
 impl App {
     fn new() -> App {
-        gtk4::init().unwrap();
-        App {
-            ctx: gtk4::glib::MainContext::default(),
-        }
+        let ctx = gtk4::glib::MainContext::default();
+        let _ = gtk4::init();
+        App { ctx }
     }
     fn iteration(&self, block: bool) -> bool {
         self.ctx.iteration(block)
@@ -23,6 +23,15 @@ impl LuaUserData for App {
     fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
         Setter!(methods, iteration, bool);
     }
+}
+macro_rules! AddMethods {
+    ($type:ty, $methods:ident => $block:block) => {
+        impl LuaUserData for LuaWrapper<$type> {
+            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
+                $block;
+            }
+        }
+    };
 }
 
 macro_rules! GtkOrientableExt {
@@ -34,6 +43,10 @@ macro_rules! GtkOrientableExt {
 macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         ParamlessCall!($methods,grab_focus);
+        $methods.add_method("as_ptr",|_,this,()|unsafe {
+            let p: *const gtk4::Widget = std::mem::transmute(&this.0);
+            Ok(p as usize)
+        });
         $methods.add_method("set_size_request",|_,widget,(w,h):(i32,i32)|{
             widget.set_size_request(w,h);
             Ok(())
@@ -130,45 +143,6 @@ macro_rules! GtkWidgetExt {
                         );
     }
 }
-macro_rules! MatchWidget {
-    ($data:ident,
-     $item:ident => $exp:block) => {
-        MatchLuaUserData!($data,$item => {let $item = &$item.0;$exp},
-                          LuaWrapper<gtk4::Button>,
-                          LuaWrapper<gtk4::Label>,
-                          LuaWrapper<gtk4::Entry>,
-                          LuaWrapper<gtk4::ListBox>,
-                          LuaWrapper<gtk4::ListBoxRow>,
-                          LuaWrapper<gtk4::ScrolledWindow>,
-                          LuaWrapper<gtk4::Picture>,
-                          LuaWrapper<gtk4::Box>
-                          );
-        MatchLuaUserData!($data,$item => {let $item = $item.0;$exp},
-                          LuaWrapper<&gtk4::Button>,
-                          LuaWrapper<&gtk4::Label>,
-                          LuaWrapper<&gtk4::Entry>,
-                          LuaWrapper<&gtk4::ListBox>,
-                          LuaWrapper<&gtk4::ListBoxRow>,
-                          LuaWrapper<&gtk4::ScrolledWindow>,
-                          LuaWrapper<&gtk4::Picture>,
-                          LuaWrapper<&gtk4::Box>
-                          );
-    }
-}
-macro_rules! MethodWidthLuaUserData {
-    ($methods:ident,$($name:ident $item:ident,$user_data:ident=>$block:block)*)=>{
-        $($methods.add_method(stringify!($name),|_lua,$item,val:LuaValue|{
-            match val {
-                LuaValue::UserData($user_data)=>{
-                    $block
-                },
-                _ => {
-                    panic!("Expect LuaValue::UserData")
-                }
-            }
-        });)*
-    }
-}
 macro_rules! MethodWidthLuaCallback {
     ($methods:ident,$($name:ident ($lua:ident,$item:ident,$user_data:ident)=>$block:block)*)=>{
         $($methods.add_method(stringify!($name),|$lua,$item,val:LuaValue|{
@@ -248,29 +222,21 @@ AddMethods!(gtk4::Window,methods => {
         }
         Ok(())
     });
-    methods.add_method("set_child",|_,w,child:LuaValue|{
-        match child {
-            LuaValue::UserData(d)=>{
-                MatchWidget!(d,item=>{
-                    w.set_child(Some(item));
-                });
-            },
-            _ => {}
-        }
+    methods.add_method("set_child",|_,w,child:usize|{
+        let child = unsafe {
+            &*(child as *const gtk4::Widget)
+        };
+        w.set_child(Some(child));
         Ok(())
     });
 });
 AddMethods!(gtk4::ScrolledWindow,methods=>{
     GtkWidgetExt!(gtk::Window,methods);
-    methods.add_method("set_child",|_,w,child:LuaValue|{
-        match child {
-            LuaValue::UserData(d)=>{
-                MatchWidget!(d,item=>{
-                    w.set_child(Some(item));
-                });
-            },
-            _ => {}
-        }
+    methods.add_method("set_child",|_,w,child:usize|{
+        let child = unsafe {
+            &*(child as *const gtk4::Widget)
+        };
+        w.set_child(Some(child));
         Ok(())
     });
 });
@@ -285,25 +251,15 @@ AddMethods!(gtk4::Box,methods => {
         }
         Ok(())
     });
-    MethodWidthLuaUserData!(methods,
-        append box_,child=>{
-            MatchWidget!(child,child=>{
-                box_.append(child);
-            });
-            Ok(())}
-        prepend box_,child => {
-            MatchWidget!(child,child=>{
-                box_.prepend(child);
-            });
-            Ok(())
-        }
-        remove box_,child => {
-            MatchWidget!(child,child=>{
-                box_.remove(child);
-            });
-            Ok(())
-        }
-    );
+    Setter!(methods,append child:usize=>unsafe {
+       &*(child as *const gtk4::Widget)
+    });
+    Setter!(methods,prepend child:usize=>unsafe {
+       &*(child as *const gtk4::Widget)
+    });
+    Setter!(methods,remove child:usize=>unsafe {
+       &*(child as *const gtk4::Widget)
+    });
 });
 AddMethods!(gtk4::Button,methods => {
     use gtk4::prelude::ButtonExt;
@@ -366,17 +322,14 @@ AddMethods!(gtk4::Label,methods=>{
             set_markup i:String => i.as_str()
             );
 });
+
 AddMethods!(gtk4::ListBoxRow,methods=>{
     GtkWidgetExt!(gtk4::ListBox,methods);
-    methods.add_method("set_child",|_,w,child:LuaValue|{
-        match child {
-            LuaValue::UserData(d)=>{
-                MatchWidget!(d,item=>{
-                    w.set_child(Some(item));
-                });
-            },
-            _ => {}
-        }
+    methods.add_method("set_child",|_,w,child:usize|{
+        let child = unsafe {
+            &*(child as *const gtk4::Widget)
+        };
+        w.set_child(Some(child));
         Ok(())
     });
 });
@@ -408,25 +361,9 @@ AddMethods!(gtk4::ListBox,methods=>{
         }
         Ok(())
     });
-    // Call!(methods,
-    //       select_row,
-    //       input:LuaValue => match input {
-    //           LuaValue::UserData(d)=>{
-    //               let r = d.borrow::<LuaWrapper<gtk4::ListBoxRow>>().unwrap();
-    //               Some(&r.0)
-    //           },
-    //           _ => {
-    //               panic!("Expect list row")
-    //           }
-    //       },
-    //       ret=>Ok(())
-    //       );
-    MethodWidthLuaUserData!(methods,
-        append box_,child=>{
-            MatchWidget!(child,child=>{
-                box_.append(child);
-            });
-            Ok(())});
+    Setter!(methods,append child:usize=>unsafe {
+            &*(child as *const gtk4::Widget)
+    });
 });
 AddMethods!(gtk4::Picture,methods => {
     GtkWidgetExt!(gtk4::Picture,methods);
