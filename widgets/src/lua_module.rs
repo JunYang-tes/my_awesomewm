@@ -81,6 +81,7 @@ macro_rules! Getter {
         });)*
     }
 }
+#[derive(Debug)]
 pub struct LuaWrapper<T>(pub(crate) T);
 impl<T> Deref for LuaWrapper<T> {
     type Target = T;
@@ -108,6 +109,20 @@ macro_rules! AddMethods {
         }
         impl LuaUserData for LuaWrapper<&$type> {
             fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
+                $block;
+            }
+        }
+    };
+    ($type:ty, $is_ref:ident, $methods:ident => $block:block) => {
+        impl LuaUserData for LuaWrapper<$type> {
+            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
+                let $is_ref = false;
+                $block;
+            }
+        }
+        impl LuaUserData for LuaWrapper<&$type> {
+            fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>($methods: &mut M) {
+                let $is_ref = true;
                 $block;
             }
         }

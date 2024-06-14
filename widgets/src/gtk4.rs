@@ -1,9 +1,14 @@
+use std::cell::RefCell;
 use std::ops::Deref;
+use std::rc::Rc;
 
 use crate::gtk4_enums::*;
 use crate::lua_module::*;
+use gtk4::ffi::GtkWidget;
 use gtk4::glib::gobject_ffi::GObject;
+use gtk4::glib::translate::from_glib_none;
 use gtk4::prelude::*;
+use gtk4::StringObject;
 use mlua::prelude::*;
 
 struct App {
@@ -43,6 +48,9 @@ macro_rules! GtkOrientableExt {
 macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         ParamlessCall!($methods,grab_focus);
+        $methods.add_method("as_ptr1",|_,this,()|unsafe {
+            Ok(this.as_ptr() as usize)
+        });
         $methods.add_method("as_ptr",|_,this,()|unsafe {
             let p: *const gtk4::Widget = std::mem::transmute(&this.0);
             Ok(p as usize)
@@ -167,6 +175,7 @@ macro_rules! MethodWidthLuaCallbackTransmuteStatic {
         })*);
     }
 }
+AddMethods!(gtk4::Widget,methods=>{});
 AddMethods!(gtk4::glib::signal::SignalHandlerId,methods=>{});
 AddMethods!(gtk4::Window,methods => {
     ParamlessCall!(methods,present,close);
@@ -398,6 +407,90 @@ AddMethods!(gtk4::Picture,methods => {
     })
 });
 
+struct ListView {
+    list: gtk4::ListView,
+    factory: std::rc::Rc<RefCell<Option<mlua::Function<'static>>>>,
+    update: std::rc::Rc<RefCell<Option<mlua::Function<'static>>>>,
+}
+impl ListView {
+    fn new() -> Self {
+        let model: gtk4::StringList = (0..1000).map(|i| i.to_string()).collect();
+        let lua_fn = std::rc::Rc::new(RefCell::new(None::<mlua::Function<'static>>));
+
+        let f = std::rc::Rc::clone(&lua_fn);
+        let factory = gtk4::SignalListItemFactory::new();
+        factory.connect_setup(move |_, list_item| {
+            println!("setup");
+            let item = list_item
+                .downcast_ref::<gtk4::ListItem>()
+                .expect("ListItem");
+            if let Some(ref f) = f.borrow().as_ref() {
+                let child = f.call::<(), usize>(()).unwrap();
+                
+                let child = unsafe {
+                    gtk4::Widget::from_glib_ptr_borrow(child as *const *const GtkWidget)
+                        .downcast_ref::<gtk4::Widget>()
+                        .unwrap()
+                };
+                item.set_child(Some(child));
+            }
+        });
+        let update = std::rc::Rc::new(RefCell::new(None::<mlua::Function<'static>>));
+        let f = Rc::clone(&update);
+        factory.connect_bind(move |_, list_item| {
+            let item = list_item
+                .downcast_ref::<gtk4::ListItem>()
+                .expect("ListItem");
+            let data_item = item
+                .item()
+                .and_downcast::<StringObject>()
+                .expect("String Object");
+            let child = item
+                .child()
+                .and_downcast::<gtk4::Button>()
+                .unwrap()
+                .as_ptr();
+            if let Some(ref f) = f.borrow().as_ref() {
+                f.call::<(i32, usize), ()>((
+                    data_item.string().parse::<i32>().unwrap(),
+                    child as usize,
+                ))
+                .unwrap();
+            }
+        });
+        let list = gtk4::ListView::new(Some(gtk4::NoSelection::new(Some(model))), Some(factory));
+        Self {
+            list,
+            update,
+            factory: lua_fn,
+        }
+    }
+}
+impl Deref for ListView {
+    type Target = gtk4::ListView;
+    fn deref(&self) -> &Self::Target {
+        &self.list
+    }
+}
+
+AddMethods!(ListView,methods=>{
+    methods.add_method("as_ptr",|_,this,()|{
+        Ok(&this.0.list as *const gtk4::ListView as usize)
+    });
+    methods.add_method_mut("set_item_factory",|_,this,f:mlua::Function|{
+        println!("set factory{:?}",f);
+        let f = unsafe {std::mem::transmute::<_,mlua::Function<'static>>(f)};
+        this.0.factory.borrow_mut().insert(f);
+        Ok(())
+    });
+    methods.add_method_mut("set_item_updater",|_,this,f:mlua::Function|{
+        println!("set factory{:?}",f);
+        let f = unsafe {std::mem::transmute::<_,mlua::Function<'static>>(f)};
+        this.0.update.borrow_mut().insert(f);
+        Ok(())
+    });
+});
+
 pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
     exports!(
         lua,
@@ -417,6 +510,8 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
         LuaWrapper(gtk4::ListBox::new()),
         "list_box_row",
         LuaWrapper(gtk4::ListBoxRow::new()),
+        "list_view",
+        LuaWrapper(ListView::new()),
         "box",
         LuaWrapper(gtk4::Box::new(gtk4::Orientation::Horizontal, 0)),
         "picture",
