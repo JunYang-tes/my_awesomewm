@@ -8,7 +8,7 @@ fn load_css(css: &str) -> gtk4::CssProvider {
     gtk4::style_context_add_provider_for_display(
         &gtk4::gdk::Display::default().expect("Could not connect to a display"),
         &provider,
-        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+        gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
     provider.connect_parsing_error(|_,css_section,err|{
         println!("Css parsing error: {:?} {:?}",css_section,err);
