@@ -1,6 +1,6 @@
 ;; got gtk4 not actully initialized if without this
-(pcall #(let [lgi (require :lgi)]
-          (print lgi.Gtk)))
+; (pcall #(let [lgi (require :lgi)]
+;           (print lgi.Gtk)))
 (local widgets (require :widgets))
 (local gtkapp (widgets.gtk4.app))
 (local app (widgets.fltk.app))

@@ -9,9 +9,10 @@
 (local {: window
         : box
         : label
-        : list-box
+        ;: list-box
+        : list-view
         : picture
-        : list-row
+        ;: list-row
         : scrolled-window
         : entry} (require :gtk4.node))
 (local consts (require :gtk4.const))
@@ -152,55 +153,34 @@
                                                                        true)
                                                  consts.KeyCode.up (do (dec-selected-index)
                                                                      true)))})
-        cmd-items (map-list
-                    top-cmds
-                    (fn [cmd]
-                      (list-row
-                        {:class (map selected-cmd
-                                     (fn [item]
-                                       (if (= cmd item)
-                                         "selected"
-                                         "")))}
-                        (box
-                          {:spacing 10
-                           :class "cmd-item"}
-                          (if cmd.image
-                            (box {
-                                  :class "picture"
-                                  :size_request [(dpi 48) (dpi 48)]
-                                  :vexpand false
-                                  :hexpand false
-                                  :halign consts.Align.Start
-                                  :valign consts.Align.Center}
-                                 (picture {:texture cmd.image
-                                           :content_fit consts.ContentFit.Contain}))
-                                      ;:can_shrink true}))
-                            false)
-                          (box
-                            {:orientation consts.Orientation.VERTICAL}
-                            (label
-                              {:markup cmd.label
-                               :class "cmd-label"
-                               :hexpand true
-                               :wrap true
-                               :xalign 0})
-                            (if (or cmd.real-time
-                                    cmd.description)
-                              (let [desc (map input
-                                              (fn [input]
-                                                (let [[_ args] (split-input input)]
-                                                  (if cmd.real-time
+        list (list-view
+               {:data cmds
+                :render (fn [cmd]
+                          (box 
+                            {:spacing 10
+                             :class "cmd-item"}
+                            (box 
+                              {:orientation consts.Orientation.VERTICAL}
+                              (label
+                                {:markup (map cmd #$1.label)
+                                 :class :cmd-label
+                                 :hexpand true
+                                 :wrap true
+                                 :xalign 0})
+                              (let [desc (mapn [cmd input]
+                                               (fn [[cmd input]]
+                                                 (if cmd.real-time
+                                                   (let [[_ args] (split-input input)]
                                                     (catch "" ""
-                                                           (cmd.real-time args))
-                                                    (or cmd.description "")))))]
+                                                           (cmd.real-time args)))
+                                                   (or cmd.description ""))))]
                                 (label
                                   {:label desc
                                    :class "cmd-desc"
                                    :wrap true
                                    :wrap_mode consts.WrapMode.Char
-                                   :xalign 0}))
-                              false))))))
-        list (list-box cmd-items)
+                                   :xalign 0})))))})
+                                    
         on-built (use-built)
         win
         (window
@@ -230,14 +210,14 @@
                     text (entry:text)]
                 (when (not= text (input))
                   (entry:set_text (input))))))
-    (effect [selected-index]
-      (when (on-built)
-        (let [index (- (selected-index) 1)
-              list (list)
-              row (list:row_at_index index)]
-          (list:select_row row)
-          (row:grab_focus) ;;let it scroll to this row
-          (: (cmd_input) :grab_focus))))
+    ; (effect [selected-index]
+    ;   (when (on-built)
+    ;     (let [index (- (selected-index) 1)
+    ;           list (list)
+    ;           row (list:row_at_index index)]
+    ;       (list:select_row row)
+    ;       (row:grab_focus) ;;let it scroll to this row
+    ;       (: (cmd_input) :grab_focus))))
     (effect [visible]
       (refresh-cmds))
     win))

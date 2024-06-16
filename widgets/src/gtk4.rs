@@ -4,11 +4,14 @@ use std::rc::Rc;
 
 use crate::gtk4_enums::*;
 use crate::lua_module::*;
+use gdk4_x11::glib::translate::FromGlibPtrNone;
+use gdk4_x11::glib::translate::ToGlibPtr;
 use gtk4::ffi::GtkWidget;
 use gtk4::glib::gobject_ffi::GObject;
 use gtk4::glib::translate::from_glib_none;
 use gtk4::prelude::*;
 use gtk4::StringObject;
+use gtk4::Widget;
 use mlua::prelude::*;
 
 struct App {
@@ -48,12 +51,10 @@ macro_rules! GtkOrientableExt {
 macro_rules! GtkWidgetExt {
     ($widget:ty,$methods:ident) => {
         ParamlessCall!($methods,grab_focus);
-        $methods.add_method("as_ptr1",|_,this,()|unsafe {
+        $methods.add_method("as_ptr",|_,this,()| {
+            // let p: *const gtk4::Widget = std::mem::transmute(&this.0);
+            // Ok(p as usize)
             Ok(this.as_ptr() as usize)
-        });
-        $methods.add_method("as_ptr",|_,this,()|unsafe {
-            let p: *const gtk4::Widget = std::mem::transmute(&this.0);
-            Ok(p as usize)
         });
         $methods.add_method("set_size_request",|_,widget,(w,h):(i32,i32)|{
             widget.set_size_request(w,h);
@@ -82,7 +83,7 @@ macro_rules! GtkWidgetExt {
                                          .collect::<Vec<_>>());
         MethodWidthLuaCallbackTransmuteStatic!(
             $methods,
-            connect_map (lua,w,f)=>{
+            connect_map (_lua,w,f)=>{
                 let widget = w.downgrade();
                 w.connect_map(move |_|{
                     if let Some(w) = widget.upgrade() {
@@ -232,20 +233,27 @@ AddMethods!(gtk4::Window,methods => {
         Ok(())
     });
     methods.add_method("set_child",|_,w,child:usize|{
+        // let child = unsafe {
+        //     &*(child as *const gtk4::Widget)
+        // };
         let child = unsafe {
-            &*(child as *const gtk4::Widget)
+            Widget::from_glib_none(child as *const GtkWidget)
         };
-        w.set_child(Some(child));
+        w.set_child(Some(&child));
         Ok(())
     });
 });
 AddMethods!(gtk4::ScrolledWindow,methods=>{
     GtkWidgetExt!(gtk::Window,methods);
     methods.add_method("set_child",|_,w,child:usize|{
+        // let child = unsafe {
+        //     &*(child as *const gtk4::Widget)
+        // };
+
         let child = unsafe {
-            &*(child as *const gtk4::Widget)
+            Widget::from_glib_none(child as *const GtkWidget)
         };
-        w.set_child(Some(child));
+        w.set_child(Some(&child));
         Ok(())
     });
 });
@@ -261,13 +269,13 @@ AddMethods!(gtk4::Box,methods => {
         Ok(())
     });
     Setter!(methods,append child:usize=>unsafe {
-       &*(child as *const gtk4::Widget)
+            &Widget::from_glib_none(child as *const GtkWidget)
     });
     Setter!(methods,prepend child:usize=>unsafe {
-       &*(child as *const gtk4::Widget)
+            &Widget::from_glib_none(child as *const GtkWidget)
     });
     Setter!(methods,remove child:usize=>unsafe {
-       &*(child as *const gtk4::Widget)
+            &Widget::from_glib_none(child as *const GtkWidget)
     });
 });
 AddMethods!(gtk4::Button,methods => {
@@ -336,7 +344,7 @@ AddMethods!(gtk4::ListBoxRow,methods=>{
     GtkWidgetExt!(gtk4::ListBox,methods);
     methods.add_method("set_child",|_,w,child:usize|{
         let child = unsafe {
-            &*(child as *const gtk4::Widget)
+            &Widget::from_glib_none(child as *const GtkWidget)
         };
         w.set_child(Some(child));
         Ok(())
@@ -371,7 +379,7 @@ AddMethods!(gtk4::ListBox,methods=>{
         Ok(())
     });
     Setter!(methods,append child:usize=>unsafe {
-            &*(child as *const gtk4::Widget)
+            &Widget::from_glib_none(child as *const GtkWidget)
     });
 });
 AddMethods!(gtk4::Picture,methods => {
@@ -409,32 +417,34 @@ AddMethods!(gtk4::Picture,methods => {
 
 struct ListView {
     list: gtk4::ListView,
+    teardown: Rc<RefCell<Option<mlua::Function<'static>>>>,
     factory: std::rc::Rc<RefCell<Option<mlua::Function<'static>>>>,
     update: std::rc::Rc<RefCell<Option<mlua::Function<'static>>>>,
 }
 impl ListView {
     fn new() -> Self {
-        let model: gtk4::StringList = (0..1000).map(|i| i.to_string()).collect();
+        let model: gtk4::StringList = (1..1000).map(|i| i.to_string()).collect();
         let lua_fn = std::rc::Rc::new(RefCell::new(None::<mlua::Function<'static>>));
 
         let f = std::rc::Rc::clone(&lua_fn);
         let factory = gtk4::SignalListItemFactory::new();
         factory.connect_setup(move |_, list_item| {
-            println!("setup");
             let item = list_item
                 .downcast_ref::<gtk4::ListItem>()
                 .expect("ListItem");
             if let Some(ref f) = f.borrow().as_ref() {
-                let child = f.call::<(), usize>(()).unwrap();
-                
-                let child = unsafe {
-                    gtk4::Widget::from_glib_ptr_borrow(child as *const *const GtkWidget)
-                        .downcast_ref::<gtk4::Widget>()
-                        .unwrap()
-                };
-                item.set_child(Some(child));
+                let lua_ret = f.call::<(), usize>(());
+                if let Ok(child) = lua_ret {
+                    let child = unsafe { Widget::from_glib_none(child as *const GtkWidget) };
+                    item.set_child(Some(&child));
+                } else {
+                    eprintln!("[gtk4.rs] {:?}", lua_ret);
+                }
             }
         });
+        let teardown = Rc::new(RefCell::new(None::<mlua::Function<'static>>));
+        let teardown_cp = Rc::clone(&teardown);
+
         let update = std::rc::Rc::new(RefCell::new(None::<mlua::Function<'static>>));
         let f = Rc::clone(&update);
         factory.connect_bind(move |_, list_item| {
@@ -445,25 +455,53 @@ impl ListView {
                 .item()
                 .and_downcast::<StringObject>()
                 .expect("String Object");
-            let child = item
-                .child()
-                .and_downcast::<gtk4::Button>()
-                .unwrap()
-                .as_ptr();
-            if let Some(ref f) = f.borrow().as_ref() {
-                f.call::<(i32, usize), ()>((
-                    data_item.string().parse::<i32>().unwrap(),
-                    child as usize,
-                ))
-                .unwrap();
+            let child = item.child();
+            if let Some(child) = child {
+                let child = child.as_ptr();
+                if let Some(ref f) = f.borrow().as_ref() {
+                    let lua_ret = f.call::<(i32, usize), ()>((
+                        data_item.string().parse::<i32>().unwrap(),
+                        child as usize,
+                    ));
+                    if lua_ret.is_err() {
+                        eprintln!("[gtk4.rs] {:?}", lua_ret);
+                    }
+                }
+            } else {
+                eprintln!("[gtk4.rs] {:?}", "No child")
             }
         });
         let list = gtk4::ListView::new(Some(gtk4::NoSelection::new(Some(model))), Some(factory));
+        let p = list.upcast_ref::<gtk4::Widget>();
+        // unsafe {
+        //     crate::gtk4_ffi::gtk_list_base_set_anchor_max_widgets(p.as_ptr(), 10, 2);
+        // }
+        //list.to_glib_none().0
         Self {
             list,
             update,
+            teardown,
             factory: lua_fn,
         }
+    }
+    fn set_count(&self, cnt: usize) {
+        // let list = &self.list;
+        // let m = list.model().unwrap();
+        // let m = m.downcast::<gtk4::NoSelection>().unwrap();
+        // let mut list_model = m.model().and_downcast::<gtk4::StringList>().unwrap();
+        // let size = list_model.n_items() as usize;
+        // if size < cnt {
+        //     list_model.extend(((size + 1)..=cnt).map(|i| i.to_string()))
+        // } else if size > cnt {
+        //     let to_remove = size - cnt;
+        //     list_model.splice((size - 1 - to_remove) as u32, to_remove as u32, &[]);
+        // }
+        let t1 = std::time::Instant::now();
+        let model: gtk4::StringList = (1..=cnt).map(|i| i.to_string()).collect();
+        self.list
+            .set_model(Some(&gtk4::NoSelection::new(Some(model))));
+            let t2 = std::time::Instant::now();
+        println!("set_count takes:{:?}",t2-t1);
     }
 }
 impl Deref for ListView {
@@ -474,19 +512,25 @@ impl Deref for ListView {
 }
 
 AddMethods!(ListView,methods=>{
+    Setter!(methods,set_count usize);
     methods.add_method("as_ptr",|_,this,()|{
-        Ok(&this.0.list as *const gtk4::ListView as usize)
+        Ok(this.as_ptr() as usize)
     });
     methods.add_method_mut("set_item_factory",|_,this,f:mlua::Function|{
         println!("set factory{:?}",f);
         let f = unsafe {std::mem::transmute::<_,mlua::Function<'static>>(f)};
-        this.0.factory.borrow_mut().insert(f);
+        let _ = this.0.factory.borrow_mut().insert(f);
         Ok(())
     });
     methods.add_method_mut("set_item_updater",|_,this,f:mlua::Function|{
         println!("set factory{:?}",f);
         let f = unsafe {std::mem::transmute::<_,mlua::Function<'static>>(f)};
-        this.0.update.borrow_mut().insert(f);
+        let _ = this.0.update.borrow_mut().insert(f);
+        Ok(())
+    });
+    methods.add_method_mut("set_teardown",|_,this,f:mlua::Function|{
+        let f = unsafe {std::mem::transmute::<_,mlua::Function<'static>>(f)};
+        let _ = this.0.teardown.borrow_mut().insert(f);
         Ok(())
     });
 });

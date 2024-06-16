@@ -80,7 +80,8 @@
                                (w:set_pos x y))
                         :size_request (fn [w [width height]]
                                         (w:set_size_request width height))})
- :scrolled-window (make-builder gtk.scrolled_win)}
+ :scrolled-window (make-builder gtk.scrolled_win)
+ :list-view (make-builder gtk.list_view)}
  ;:grid (make-builder gtk.grid)
  ;:notebook (make-builder gtk.note_book)
  ;:event-box (make-builder gtk.event_box)}
