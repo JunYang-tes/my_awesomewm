@@ -70,9 +70,15 @@ static int widget_set_hexpand(lua_State *L) {
   gtk_widget_set_vexpand(w->widget, expand);
   return 0;
 }
+static int widget_grab_focus(lua_State *L) {
+  Widget *w = lua_touserdata(L, 1);
+  gtk_widget_grab_focus(w->widget);
+  return 0;
+}
 
 const luaL_Reg widget_apis[] = {{"set_hexpand", widget_set_hexpand},
                                 {"set_vexpand", widget_set_vexpand},
+                                {"grab_focus", widget_grab_focus},
                                 {"get_first_child", widget_get_first_child},
                                 {"get_next_sibling", widget_get_next_sibling},
                                 {NULL, NULL}};
@@ -168,13 +174,7 @@ typedef struct GtkWrapper {
   void *fields[4];
 } GtkWrapper;
 
-static int window_new(lua_State *L) {
-  Widget *win = (Widget *)lua_newuserdata(L, sizeof(Widget));
-  luaL_getmetatable(L, "GtkWindow");
-  lua_setmetatable(L, -2);
-  win->widget = gtk_window_new();
-  return 1;
-}
+static int window_new(lua_State *L) { return make_a_widget(L, gtk_window_new); }
 static int window_set_child(lua_State *L) {
   Widget *win = (Widget *)luaL_checkudata(L, 1, "GtkWindow");
   void *p = lua_touserdata(L, 2);
@@ -182,15 +182,15 @@ static int window_set_child(lua_State *L) {
                        GTK_WIDGET(((Widget *)p)->widget));
   return 0;
 }
-static int window_gc(lua_State *L) {
-  widget_gc(L);
-  return 0;
-}
 static int window_present(lua_State *L) {
   Widget *win = (Widget *)luaL_checkudata(L, 1, "GtkWindow");
   gtk_window_present(GTK_WINDOW(win->widget));
   return 0;
 }
+const luaL_Reg window_methods[] = {{"__gc", widget_gc},
+                                   {"present", window_present},
+                                   {"set_child", window_set_child},
+                                   {NULL, NULL}};
 
 static int label_new(lua_State *L) {
   Widget *label = (Widget *)lua_newuserdata(L, sizeof(Widget));
@@ -234,20 +234,52 @@ static int box_remove(lua_State *L) {
   gtk_box_remove(GTK_BOX(box->widget), p->widget);
   return 0;
 }
+static int box_set_spacing(lua_State *L) {
+  Widget *box = (Widget *)luaL_checkudata(L, 1, "GtkBox");
+  int space = (int)lua_tonumber(L, 2);
+  gtk_box_set_spacing(GTK_BOX(box->widget), space);
+  return 0;
+}
+static int box_set_homogeneous(lua_State *L) {
+  Widget *box = (Widget *)luaL_checkudata(L, 1, "GtkBox");
+  bool b = lua_toboolean(L, 2);
+  gtk_box_set_homogeneous(GTK_BOX(box->widget), b);
+  return 0;
+}
+static int box_remove_all_children(lua_State *L) {
+  Widget *box = (Widget *)luaL_checkudata(L, 1, "GtkBox");
+  GtkWidget *child = gtk_widget_get_first_child(box->widget);
+  while (child) {
+    gtk_box_remove(GTK_BOX(box->widget), child);
+    child = gtk_widget_get_first_child(box->widget);
+  }
+  return 0;
+}
+static const luaL_Reg box_methods[] = {
+  {"__gc",widget_gc},
+  {"remove",box_remove},
+  {"remove_all_children",box_remove_all_children},
+  {"set_spacing",box_set_spacing},
+  {"set_homogeneous",box_set_homogeneous},
+  {NULL,NULL}
+};
 
 static int scroll_win_new(lua_State *L) {
-  Widget *widget = (Widget *)lua_newuserdata(L, sizeof(Widget));
-  luaL_getmetatable(L, "ScrollWin");
-  lua_setmetatable(L, -2);
-  widget->widget = gtk_scrolled_window_new();
-  return 1;
+  return make_a_widget(L,gtk_scrolled_window_new);
 }
 static int scroll_win_new_set_child(lua_State *L) {
-  Widget *w = (Widget *)luaL_checkudata(L, 1, "ScrollWin");
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkScrolledWindown");
   Widget *p = (Widget *)lua_touserdata(L, 2);
   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(w->widget), p->widget);
   return 1;
 }
+static const luaL_Reg scrolled_win_methods[] = {
+  {"__gc",widget_gc},
+  {"set_child",scroll_win_new_set_child},
+  {NULL,NULL}
+};
+
+
 static GtkWidget *new_empty_listview() { return gtk_list_view_new(NULL, NULL); }
 static int listview_new(lua_State *L) {
   return make_a_widget(L, new_empty_listview);
@@ -421,23 +453,16 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
                              {NULL, NULL}};
 
   setup_metatable(L, "GtkApp", gtkapp);
-  const luaL_Reg win[] = {{"__gc", window_gc},
-
-                          {"set_child", window_set_child},
-                          {"present", window_present},
-                          {NULL, NULL}};
-  setup_metatable(L, "GtkWindow", win);
+  const luaL_Reg *win[] = {widget_apis, window_methods, NULL};
+  setup_metatable_(L, "GtkWindow", win);
   const luaL_Reg *label[] = {widget_apis, label_methods, NULL};
   setup_metatable_(L, "GtkLabel", label);
-  const luaL_Reg box[] = {{"append", box_append},
-                          {"remove", box_remove},
-                          {"get_first_child", widget_get_first_child},
-                          {NULL, NULL}};
-  const luaL_Reg *box_[] = {widget_apis, box, NULL};
+  const luaL_Reg *box_[] = {widget_apis, box_methods, NULL};
   setup_metatable_(L, "GtkBox", box_);
-  const luaL_Reg scrolled[] = {{"set_child", scroll_win_new_set_child},
-                               {NULL, NULL}};
-  setup_metatable(L, "ScrollWin", scrolled);
+
+  const luaL_Reg *scrolled[] = {widget_apis,scrolled_win_methods,NULL};
+  setup_metatable_(L, "GtkScrolledWindown", scrolled);
+
   const luaL_Reg listview[] = {{"set_model", listview_set_moda},
                                {"set_factory", listview_set_item_factory},
                                {NULL, NULL}};
