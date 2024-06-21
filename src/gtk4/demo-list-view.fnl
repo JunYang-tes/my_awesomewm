@@ -1,5 +1,5 @@
 (import-macros {: unmount : defn : effect} :lite-reactive)
-(local widgets (require :widgets))
+(local gtk (require :libgtk-lua))
 (local {: window
         : scrolled-window
         : label
@@ -60,38 +60,50 @@
            (list.filter data #true)))) 
                         ; (fn [i] (stringx.includes i.description filter))))))
            
-(local app (widgets.gtk4.app))
+(local app (gtk.app))
 
 (run (window
        (box
         {:orientation consts.Orientation.VERTICAL}
         (entry
           {
-           :connect_text_notify (fn [w]
-                                  (filter w))})
+           :connect_change (fn [w]
+                             (if (= w "a")
+                               (profile:start))
+                             (if (= w "aa")
+                               (do
+                                 (profile:stop)
+                                 (profile:writeReport "/tmp/a.txt")))
+                             (print :change w)
+                             (filter w))})
         (label {:text filter})
         (label {:text (map filtered #(length $1))})
-        (button {:label "Start profile"
-                 :connect_clicked (fn []
-                                    (profile:start))})
-        (button {:label "Stop profile"
-                 :connect_clicked (fn []
-                                    (profile:stop)
-                                    (profile:writeReport "/tmp/a.txt"))})
+        ; (button {:label "Start profile"
+        ;          :connect_clicked (fn []
+        ;                             (profile:start))})
+        ; (button {:label "Stop profile"
+        ;          :connect_clicked (fn []
+        ;                             (profile:stop)
+        ;                             (profile:writeReport "/tmp/a.txt"))})
         (scrolled-window
           {:vexpand true}
           (list-view
             {
              :data filtered
              :render (fn [cmd]
+                       ;(label {:text :a})
+                       ; (box 
+                       ;   (label {:text :hello})
+                       ;   (label {:text (map cmd #$1.description)})))})))))
+                       (label {:text :hello})
                        (box 
-                         {:spacing 10
-                          :class "cmd-item"}
+                         {:spacing 10}
+                          ;:class "cmd-item"}
                          (box 
                            {:orientation consts.Orientation.VERTICAL}
                            (label
                              {:markup (map cmd #$1.label)
-                              :class :cmd-label
+                              ;:class :cmd-label
                               :hexpand true
                               :wrap true
                               :xalign 0})
@@ -100,7 +112,7 @@
                                                 cmd.description))]
                              (label
                                {:label desc
-                                :class "cmd-desc"
+                                ;:class "cmd-desc"
                                 :wrap true
                                 :wrap_mode consts.WrapMode.Char
                                 :xalign 0})))))})))))

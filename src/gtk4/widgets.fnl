@@ -1,5 +1,6 @@
 (import-macros {: catch } :utils)
-(local {:gtk4 gtk} (require :widgets))
+;(local {:gtk4 gtk} (require :widgets))
+(local gtk (require :libgtk-lua))
 (local {: apply-property
         : is-observable} (require :lite-reactive.observable))
 (local strings (require :utils.string))
@@ -57,19 +58,19 @@
  : is-widget
  :label (make-builder gtk.label { :text (make-setter :label "")
                                   :label (make-setter :label "")
-                                  :markup (make-setter :markup "")})
- :button (make-builder gtk.button)
+                                  :markup (make-setter :markup "")
+ ;:button (make-builder gtk.button)
  ;:menu-button (make-builder gtk.menu_button)
  ;:image (make-builder gtk.image {:size (vargs :size)})
- :picture (make-builder gtk.picture {:size (vargs :size)
+ ;:picture (make-builder gtk.picture {:size (vargs :size)
                                      :size_request (vargs :size_request)})
  :entry (make-builder gtk.text_box {:auto-focus (fn [w auto-focus]
                                                   (if auto-focus
                                                     (w:grab_focus)))})
  ;:check-button (make-builder gtk.check_button)
  :box (make-builder gtk.box)
- :list-box (make-builder gtk.list_box)
- :list-row (make-builder gtk.list_box_row)
+ ;:list-box (make-builder gtk.list_box)
+ ;:list-row (make-builder gtk.list_box_row)
  ;:flow-box (make-builder gtk.flow_box)
  :window (make-builder #(let [win (gtk.win)]
                           (win:present)

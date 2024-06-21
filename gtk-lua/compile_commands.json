@@ -1,0 +1,11 @@
+[
+{
+  "directory": "/home/yj/tmp/gtk-lua",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-O3", "-DPCRE2_CODE_UNIT_WIDTH=8", "-I", "/usr/include/lua5.3", "-I", "/usr/include/gtk-4.0", "-I", "/usr/include/pango-1.0", "-I", "/usr/include/harfbuzz", "-I", "/usr/include/gdk-pixbuf-2.0", "-I", "/usr/include/cairo", "-I", "/usr/include/glib-2.0", "-I", "/usr/lib/glib-2.0/include", "-I", "/usr/include/freetype2", "-I", "/usr/include/graphene-1.0", "-I", "/usr/lib/graphene-1.0/include", "-I", "/usr/include/libmount", "-I", "/usr/include/blkid", "-I", "/usr/include/sysprof-6", "-I", "/usr/include/fribidi", "-I", "/usr/include/libpng16", "-I", "/usr/include/pixman-1", "-I", "/usr/include/libdrm", "-mfpmath=sse", "-msse", "-msse2", "-pthread", "-DNDEBUG", "-o", "build/.objs/gtk-lua/linux/x86_64/release/src/main.c.o", "src/main.c"],
+  "file": "src/main.c"
+},
+{
+  "directory": "/home/yj/tmp/gtk-lua",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-O3", "-DPCRE2_CODE_UNIT_WIDTH=8", "-I", "/usr/include/lua5.3", "-I", "/usr/include/gtk-4.0", "-I", "/usr/include/pango-1.0", "-I", "/usr/include/harfbuzz", "-I", "/usr/include/gdk-pixbuf-2.0", "-I", "/usr/include/cairo", "-I", "/usr/include/glib-2.0", "-I", "/usr/lib/glib-2.0/include", "-I", "/usr/include/freetype2", "-I", "/usr/include/graphene-1.0", "-I", "/usr/lib/graphene-1.0/include", "-I", "/usr/include/libmount", "-I", "/usr/include/blkid", "-I", "/usr/include/sysprof-6", "-I", "/usr/include/fribidi", "-I", "/usr/include/libpng16", "-I", "/usr/include/pixman-1", "-I", "/usr/include/libdrm", "-mfpmath=sse", "-msse", "-msse2", "-pthread", "-DNDEBUG", "-o", "build/.objs/gtk-lua/linux/x86_64/release/src/tpl.c.o", "src/tpl.c"],
+  "file": "src/tpl.c"
+}]

@@ -29,13 +29,15 @@
         (local curr value)
         (set value new)
         (each [_ ob (ipairs observers)]
-          (let [(ok res) (pcall ob new curr)]
-            (if (not ok)
-              (print res))))
+          (ob new curr))
+          ; (let [(ok res) (pcall ob new curr)]
+          ;   (if (not ok)
+          ;     (print res))))
         (each [_ ob (ipairs weak-observers)]
-          (let [(ok res) (pcall ob new curr)]
-            (if (not ok)
-              (print res)))))))
+          (ob new curr)))))
+          ; (let [(ok res) (pcall ob new curr)]
+          ;   (if (not ok)
+          ;     (print res)))))))
   (local result (setmetatable 
                     {
                       :set set-value

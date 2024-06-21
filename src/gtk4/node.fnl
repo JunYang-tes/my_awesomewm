@@ -14,13 +14,14 @@
          : use-run } (require :lite-reactive.app))
 (local inspect (require :inspect))
 (local widgets (require :gtk4.widgets))
-(local gtk4 (. (require :widgets) :gtk4))
+;(local gtk4 (. (require :widgets) :gtk4))
+(local gtk4 (require :libgtk-lua))
 (local {: assign } (require :utils.table))
 (local observable (require :lite-reactive.observable))
+(local list (require :utils.list))
 (fn clear-child [widget]
   (if widget.remove_all_children
-    (widget:remove_all_children)
-    (print "Warning: no remove_all_children find in " widget)))
+    (widget:remove_all_children)))
 (local box
        (container-node
          widgets.box
@@ -28,7 +29,7 @@
             (clear-child container)
             (each [_ child (ipairs children)]
                  (container:append
-                   (child:as_ptr))))
+                   child)))
           #$
           :box))
 (local window_
@@ -36,8 +37,8 @@
          widgets.window
          (fn [children container ctx]
           (if (= (length children) 1)
-            (container:set_child (: (. children 1)
-                                    :as_ptr))))
+            (container:set_child (. children 1))))
+                                    
          #$
          :window))
 (local scrolled-window
@@ -45,8 +46,7 @@
          widgets.scrolled-window
          (fn [children container ctx]
           (if (= (length children) 1)
-            (container:set_child (: (. children 1)
-                                    :as_ptr))))
+            (container:set_child (. children 1))))
          #$))
 (local window
  (custom-node
@@ -71,13 +71,13 @@
       (time-it "Recreate list"
         (clear-child list)
         (each [i child (ipairs children)]
-          (list:append (child:as_ptr)))))
+          (list:append child))))
     #$))
 (local list-row
   (container-node
     widgets.list-row
     (fn [children row]
-      (row:set_child (: (. children 1) :as_ptr)))))
+      (row:set_child (. children 1)))))
 (local list-view-atom
   (atom-node widgets.list-view))
 (local list-view
@@ -94,47 +94,36 @@
             render (props.render)
             run (use-run)
             on-built (use-built)
+            setup (fn []
+                    (do
+                      (let [props (observable.of (. (props.data) 1))
+                            child (run (render props) true)]
+                        (tset items child props)
+                        child)))
+            bind (fn [child i]
+                   (let [data_items (props.data)
+                         item_props (. items child)]
+                     (item_props (. data_items i))))
+            item_factory (gtk4.signal_item_factory setup bind)
             view (list-view-atom
-                   {:item_factory (fn []
-                                    ; (let [box4 (gtk4.box)
-                                    ;       ptr (box4:as_ptr)
-                                    ;       label (gtk4.label)
-                                    ;       desc (gtk4.label)
-                                    ;       desc_ptr (desc:as_ptr)]
-                                    ;   (box4:append (label:as_ptr))
-                                    ;   (box4:append desc_ptr)
-                                    ;   (tset widgets ptr desc)
-                                    ;   ptr))
-                                    (do
-                                      (let [props (observable.of (. (props.data) 1))
-                                            child (run (render props) true)]
-                                        (tset all_widgets (child:as_ptr) child)
-                                        (tset items (child:as_ptr) props)
-                                        (child:as_ptr))))
-                    ; :teardown (fn [key]
-                    ;             (print :recycle)
-                    ;             (table.insert widgets (. all_widgets key)))
-                    ;:count (observable.map props.data #(length $1))
-                    :item_updater (fn [i key]
-                                    (let [data_items (props.data)
-                                          item_props (. items key)]
-                                      (item_props (. data_items i))))})]
+                   {:factory item_factory})]
         (effect [props.data]
                 (when (on-built)
-                  (let [v (view)]
+                  (let [v (view)
+                        data (props.data)]
                     (time-it "update count"
-                      (v:set_count (length (props.data)))))))
+                      (v:set_model (list.range 1 (length data)))))))
         view))))
 
 
-{ :button (atom-node widgets.button :Button)
+{ ;:button (atom-node widgets.button :Button)
   :entry (atom-node widgets.entry :Entry)
   : box
-  : list-row
-  : list-box
+  ; : list-row
+  ; : list-box
   : list-view
   :label (atom-node widgets.label :Label)
-  :picture (atom-node widgets.picture :Picture)
+  ;:picture (atom-node widgets.picture :Picture)
   : window
   : scrolled-window}
 
