@@ -1,5 +1,4 @@
 (import-macros {: catch } :utils)
-;(local {:gtk4 gtk} (require :widgets))
 (local gtk (require :libgtk-lua))
 (local {: apply-property
         : is-observable} (require :lite-reactive.observable))
@@ -25,7 +24,10 @@
   (fn find-setter [prop]
     (or (. props-setter prop)
         (fn [widget value]
-          (catch (.. "Failed to set " prop " to " (tostring value)) 
+          (catch (.. "Failed to set " prop " to " (tostring value) 
+                     " of "
+                     (tostring widget)
+                     ":") 
             nil
             (let [f (or (. widget (.. :set_ prop))
                         ;connect_xx
@@ -53,16 +55,22 @@
   (fn [widget value]
     (let [f (. widget (.. :set_ prop))]
       (f widget (table.unpack value)))))
+(fn nilabel [prop]
+  (fn [widget value]
+    (let [f (. widget (.. :set_ prop))]
+      (when (not= nil value)
+        (f widget value)))))
 
 {
  : is-widget
  :label (make-builder gtk.label { :text (make-setter :label "")
                                   :label (make-setter :label "")
-                                  :markup (make-setter :markup "")
+                                  :markup (make-setter :markup "")})
  ;:button (make-builder gtk.button)
  ;:menu-button (make-builder gtk.menu_button)
  ;:image (make-builder gtk.image {:size (vargs :size)})
- ;:picture (make-builder gtk.picture {:size (vargs :size)
+ :picture (make-builder gtk.picture {:size (vargs :size)
+                                     :texture (nilabel :texture)
                                      :size_request (vargs :size_request)})
  :entry (make-builder gtk.text_box {:auto-focus (fn [w auto-focus]
                                                   (if auto-focus

@@ -10,10 +10,11 @@
                             (math.random 9 0xb))]
                   (string.format :%x v))))
         args [...]]
-   `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))
-          gtk4_css# (. (require :widgets) :gtk4_css)
-          provider# (gtk4_css#.load_css content#)]
-      (values ,cls provider#))))
+   `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))]
+          ;gtk4_css# (. (require :widgets) :gtk4_css)
+          ;provider# (gtk4_css#.load_css content#)]
+      ;(values ,cls provider#)
+      (values ,cls {}))))
 (fn global-css [...]
   (let [cls (string.gsub
               :cls_xxxxxxxx_xxxx_4xxx_yxxx_xxxxxxxxxxxx
@@ -24,16 +25,21 @@
                             (math.random 9 0xb))]
                   (string.format :%x v))))
         args [...]]
-   `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))
-          gtk4_css# (. (require :widgets) :gtk4_css)
-          provider# (gtk4_css#.load_css content#)]
-      (values ,cls provider#))))
+   `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))]
+          ;gtk4_css# (. (require :widgets) :gtk4_css)
+          ;provider# (gtk4_css#.load_css content#)]
+      ;(values ,cls provider#)
+      (values ,cls {}))))
+      ;     gtk4_css# (. (require :widgets) :gtk4_css)
+      ;     provider# (gtk4_css#.load_css content#)]
+      ; (values ,cls provider#))))
 (fn global-id-css [id ...]
   (let [args [...]]
-    `(let [content# (css-gen ,(.. "#" id) ,(table.unpack args))
-           gtk4_css# (. (require :widgets) :gtk4_css)
-           provider# (gtk4_css#.load_css content#)]
-      (values ,id provider#))))
+    `(let [content# (css-gen ,(.. "#" id) ,(table.unpack args))]
+           ; gtk4_css# (. (require :widgets) :gtk4_css)
+           ; provider# (gtk4_css#.load_css content#)]
+      (values ,id {}))))
+      ;(values ,id provider#))))
 {
  : css
  : global-id-css

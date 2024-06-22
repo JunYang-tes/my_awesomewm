@@ -19,7 +19,7 @@
         : map-list
         : map
         : mapn} (require :lite-reactive.observable))
-(local profile (require :ProFi))
+(local profile {}) ;(require :ProFi))
 
 
 (local path (let [(ok? path) (pcall
@@ -68,12 +68,6 @@
         (entry
           {
            :connect_change (fn [w]
-                             (if (= w "a")
-                               (profile:start))
-                             (if (= w "aa")
-                               (do
-                                 (profile:stop)
-                                 (profile:writeReport "/tmp/a.txt")))
                              (print :change w)
                              (filter w))})
         (label {:text filter})
@@ -113,8 +107,8 @@
                              (label
                                {:label desc
                                 ;:class "cmd-desc"
-                                :wrap true
-                                :wrap_mode consts.WrapMode.Char
+                                ; :wrap true
+                                ; :wrap_mode consts.WrapMode.Char
                                 :xalign 0})))))})))))
 
 (lua "while(true) do app:iteration(true);  end")

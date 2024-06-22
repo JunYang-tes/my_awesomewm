@@ -1,0 +1,20 @@
+(local theme (require :theme.theme))
+(local beautiful (require :beautiful))
+(beautiful.init theme)
+(require :theme.notification)
+(local root _G.root)
+(local awful (require :awful))
+(local inspect (require :inspect))
+(local modkey "Mod4")
+;(require :floating)
+
+;(local tag (require :tag))
+;(local {: tag-untaged} (require :client))
+(local wp (require :utils.wallpapers))
+
+
+(require :command-palette.load-cmds)
+(require :notification)
+(require :rules)
+(require :components.function-bar)
+(require :autorun)

@@ -1,7 +1,7 @@
 (import-macros {: unmount : defn : effect} :lite-reactive)
 (import-macros {: css-gen } :css)
-(import-macros {: global-css : css
-                : global-id-css } :gtk)
+; (import-macros {: global-css : css
+;                 : global-id-css } :gtk)
 (import-macros {: catch-ignore : catch} :utils)
 (local {: run
         : use-built
@@ -9,6 +9,7 @@
 (local {: window
         : box
         : label
+        
         ;: list-box
         : list-view
         : picture
@@ -47,42 +48,42 @@
         [(string.sub input 1 (- index 1)) (string.sub input (+ index 1))]
         [input ""])))
 
-(local win-css (global-css
-                 [:background :#111828
-                  :color :white]
-                 (& " *"
-                    [:background :transparent
-                     :color :white
-                     :outline-width :0])
-                 (& " entry"
-                    (& ":focus"
-                       [:border "2px solid #111828"
-                        :border-bottom "1px solid #CCC"
-                        :-gtk-outline-top-right-radius :20px])
-                    [
-                     :font-size (px 16)
-                     :box-shadow :none
-                     :border "2px solid #111828"
-                     :border-bottom "1px solid #CCC"
-                     :padding   (px 10)])
-                 (& " .cmd-item"
-                    [:min-height (px 48)])
-                 (& " .cmd-label"
-                    [:font-size (px 16)
-                     :margin-bottom (px 4)])
-                 (>> ".cmd-desc"
-                     [:font-size (px 12)])
-                 (& " row"
-                    [:padding (px 4)]
-                    (> "box"
-                      [:padding (px 4)
-                       :padding-left (px 10)])
-                    (& ".selected"
-                       (> "box"
-                          [:border-radius (px 8)
-                           :background "#202938"])))
-                 (>> ".tips"
-                     [:padding (px 4)])))
+; (local win-css (global-css
+;                  [:background :#111828
+;                   :color :white]
+;                  (& " *"
+;                     [:background :transparent
+;                      :color :white
+;                      :outline-width :0])
+;                  (& " entry"
+;                     (& ":focus"
+;                        [:border "2px solid #111828"
+;                         :border-bottom "1px solid #CCC"
+;                         :-gtk-outline-top-right-radius :20px])
+;                     [
+;                      :font-size (px 16)
+;                      :box-shadow :none
+;                      :border "2px solid #111828"
+;                      :border-bottom "1px solid #CCC"
+;                      :padding   (px 10)])
+;                  (& " .cmd-item"
+;                     [:min-height (px 48)])
+;                  (& " .cmd-label"
+;                     [:font-size (px 16)
+;                      :margin-bottom (px 4)])
+;                  (>> ".cmd-desc"
+;                      [:font-size (px 12)])
+;                  (& " row"
+;                     [:padding (px 4)]
+;                     (> "box"
+;                       [:padding (px 4)
+;                        :padding-left (px 10)])
+;                     (& ".selected"
+;                        (> "box"
+;                           [:border-radius (px 8)
+;                            :background "#202938"])))
+;                  (>> ".tips"
+;                      [:padding (px 4)])))
 
 ;; (defn command-item
 ;;       (box))
@@ -142,25 +143,36 @@
                    {
                     :connect_map (fn [entry]
                                    (entry:grab_focus))
-                    :connect_text_notify (fn [new-text]
-                                           (input new-text))
-                    :connect_activate (fn []
-                                        (run (input)))
-                    :connect_key_press_event (fn [entry code]
-                                               (match code
-                                                 consts.KeyCode.esc (handle-esc)
-                                                 consts.KeyCode.down (do (inc-selected-index)
-                                                                       true)
-                                                 consts.KeyCode.up (do (dec-selected-index)
-                                                                     true)))})
+                    :connect_change (fn [new-text]
+                                      (input new-text))
+                    ; :connect_activate (fn []
+                    ;                     (run (input)))
+                    :connect_key_pressed_capture 
+                    (fn [keyval code]
+                       (print code (type code)) 
+                       (match (tonumber code)
+                         consts.KeyCode.esc (handle-esc)
+                         consts.KeyCode.enter (do (run (input))
+                                                true)
+                         consts.KeyCode.down (do (inc-selected-index)
+                                               true)
+                         consts.KeyCode.up (do (dec-selected-index)
+                                             true)))})
         list (list-view
                {:data cmds
                 :render (fn [cmd]
                           (box 
                             {:spacing 10
+                             :orientation consts.Orientation.Horizontal
                              :class "cmd-item"}
+                            ; (box 
+                            ;   {:size_request [(dpi 48) (dpi 48)]})
+                            (picture {:texture (map cmd #$1.image)
+                                      :size_request (map cmd 
+                                                         #(if (not= nil $1.image)
+                                                            [(dpi 48) (dpi 48)]
+                                                            [0 0]))})
                             (box 
-                              {:orientation consts.Orientation.VERTICAL}
                               (label
                                 {:markup (map cmd #$1.label)
                                  :class :cmd-label
@@ -186,7 +198,7 @@
         (window
           {
            : visible
-           :class win-css
+           ;:class win-css
            :skip_taskbar_hint true
            :role :cmd-palette}
            ;:connect_focus_out_event close}
@@ -194,12 +206,14 @@
             {:orientation consts.Orientation.VERTICAL}
             cmd_input
             (scrolled-window
-              {:vexpand true
-               :class (css [:min-height :400px])}
+              {:vexpand true}
+               ;:class (css [:min-height :400px])}
               list)
             (box
-              {:class :tips}
+              {:class :tips
+               :orientation consts.Orientation.Horizontal}
               (label {:hexpand true})
+              (label {:label selected-index})
               (label {:label "󰜷 Ctrl+K "})
               (label {:label "󰜮 Ctrl+J "})
               (label {:label (map cmds #(.. "󰘳 " (length $1)))}))))]
@@ -210,14 +224,11 @@
                     text (entry:text)]
                 (when (not= text (input))
                   (entry:set_text (input))))))
-    ; (effect [selected-index]
-    ;   (when (on-built)
-    ;     (let [index (- (selected-index) 1)
-    ;           list (list)
-    ;           row (list:row_at_index index)]
-    ;       (list:select_row row)
-    ;       (row:grab_focus) ;;let it scroll to this row
-    ;       (: (cmd_input) :grab_focus))))
+    (effect [selected-index]
+      (when (on-built)
+        (let [index (- (selected-index) 1)
+              list (list)]
+          (list:scroll_to index 2))))
     (effect [visible]
       (refresh-cmds))
     win))
@@ -232,6 +243,7 @@
             (var win nil)
             (local close (fn []
                            (set running nil)
+                           (print :close)
                            (win:close)))
             (set win (run (pallet-node
                               {: visible

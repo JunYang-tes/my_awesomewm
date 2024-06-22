@@ -23,4 +23,4 @@
 (load apps)
 (load (require :command-palette.bookmark))
 (load (require :command-palette.windows))
-(load (require :command-palette.chrome))
+;(load (require :command-palette.chrome))
