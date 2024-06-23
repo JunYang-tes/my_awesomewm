@@ -165,13 +165,18 @@
                             {:spacing 10
                              :orientation consts.Orientation.Horizontal
                              :class "cmd-item"}
-                            ; (box 
-                            ;   {:size_request [(dpi 48) (dpi 48)]})
-                            (picture {:texture (map cmd #$1.image)
-                                      :size_request (map cmd 
-                                                         #(if (not= nil $1.image)
-                                                            [(dpi 48) (dpi 48)]
-                                                            [0 0]))})
+                            (box 
+                              {:size_request (map cmd 
+                                                            #(if (not= nil $1.image)
+                                                               [(dpi 48) (dpi 48)]
+                                                               [0 0])) 
+                               :vexpand false :hexpand false
+                               :valign consts.Align.Center
+                               :halign consts.Align.Start}
+                              (picture {:texture (map cmd #$1.image)
+                                        :vexpand false
+                                        :hexpand false
+                                        :content_fit consts.ContentFit.Cover}))
                             (box 
                               (label
                                 {:markup (map cmd #$1.label)

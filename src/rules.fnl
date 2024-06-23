@@ -63,7 +63,7 @@
                     :borderless true
                     :sticky true
                     :width 900
-                    ;;:height 48
+                    :height 600
                     :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))}}
