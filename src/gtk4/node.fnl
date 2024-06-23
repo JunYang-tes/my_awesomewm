@@ -111,7 +111,8 @@
             item_factory (gtk4.signal_item_factory setup bind)
             view (list-view-atom
                    {:factory item_factory})]
-        (effect [props.data  on-built]
+        
+        (effect [props.data]
                 (when (on-built)
                   (let [v (view)
                         data (props.data)]
