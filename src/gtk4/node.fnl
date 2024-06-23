@@ -96,14 +96,18 @@
             on-built (use-built)
             setup (fn []
                     (do
-                      (let [props (observable.of (. (props.data) 1))
-                            child (run (render props) true)]
+                      (let [data_item (. (props.data ) 1)
+                            _ (tset data_item :_data_index 1)
+                            props (observable.of data_item)
+                            child (run (render props 1) true)]
                         (tset items (child:address) props)
                         child)))
             bind (fn [child i]
                    (let [data_items (props.data)
-                         item_props (. items (child:address))]
-                     (item_props (. data_items (tonumber i)))))
+                         item_props (. items (child:address))
+                         data_item (. data_items (tonumber i))]
+                     (tset data_item :_data_index (tonumber i))
+                     (item_props data_item)))
             item_factory (gtk4.signal_item_factory setup bind)
             view (list-view-atom
                    {:factory item_factory})]

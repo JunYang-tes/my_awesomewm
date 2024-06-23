@@ -15,9 +15,14 @@
   (local props-setter (or props-setter {}))
   (tset props-setter :class
         (fn [w cls old]
-          (w:add_css_class cls)
-          (if old
-            (w:remove_css_class old))))
+          (when old
+            (each [_ v (ipairs (strings.split old " "))]
+              (w:remove_css_class v))
+            (-> old
+                (strings.split old " ")
+                (list.foreach #(w:remove_css_class $1))))
+          (each [_ v (ipairs (strings.split cls " "))]
+            (w:add_css_class v))))
   (tset props-setter :size_request
         (fn [w size]
           (w:set_size_request (table.unpack size))))

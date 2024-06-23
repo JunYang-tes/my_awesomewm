@@ -2,6 +2,7 @@
 #include "glib-object.h"
 #include "glib.h"
 #include "luaconf.h"
+#include <gtk-4.0/gtk/gtkcssprovider.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -190,16 +191,12 @@ static int widget_connect_map(lua_State *L) {
 gboolean on_key_pressed(GtkEventControllerKey *self, guint keyval,
                         guint keycode, GdkModifierType state,
                         gpointer user_data) {
-  printf("[C}key pressed\n");
   GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
   lua_State *L = user_data;
-  print_stack(L);
   get_event_callbacl(L, w, "e_key_pressed");
-  print_stack(L);
   lua_pushinteger(L, keyval);
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
-  print_stack(L);
   lua_call(L, 3, 1);
   return lua_toboolean(L, -1);
 }
@@ -208,13 +205,10 @@ gboolean on_key_pressed_capture(GtkEventControllerKey *self, guint keyval,
                                 gpointer user_data) {
   GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
   lua_State *L = user_data;
-  print_stack(L);
   get_event_callbacl(L, w, "e_key_pressed_capture");
-  print_stack(L);
   lua_pushinteger(L, keyval);
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
-  print_stack(L);
   lua_call(L, 3, 1);
   return lua_toboolean(L, -1);
 }
@@ -438,7 +432,7 @@ static int label_set_xalign(lua_State *L) {
 }
 static int label_set_wrap(lua_State *L) {
   Widget *label = (Widget *)luaL_checkudata(L, 1, "GtkLabel");
-  bool wrap = lua_tonumber(L, 2);
+  bool wrap = lua_toboolean(L, 2);
   gtk_label_set_wrap(GTK_LABEL(label->widget), wrap);
   return 0;
 }
@@ -772,7 +766,32 @@ static int picture_set_content_fit(lua_State *L) {
 const static luaL_Reg picture_methods[] = {
     {"__gc", widget_gc},
     {"set_texture", picture_set_texture},
-    {"set_content_fit", picture_set_content_fit}, {NULL, NULL}};
+    {"set_content_fit", picture_set_content_fit},
+    {NULL, NULL}};
+
+void css_parsing_error(GtkCssProvider *self, GtkCssSection *section,
+                       GError *error, gpointer user_data) {
+  printf("[C] css error: %s", error->message);
+}
+static int load_css(lua_State *L) {
+  const char *css = luaL_checkstring(L, 1);
+  GtkCssProvider *provider = gtk_css_provider_new();
+  GdkDisplay *display = gdk_display_get_default();
+  gtk_css_provider_load_from_string(provider, css);
+  gtk_style_context_add_provider_for_display(
+      display, GTK_STYLE_PROVIDER(provider),
+      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  g_object_unref(display);
+  Gwrapper *wrapper = lua_newuserdata(L, sizeof(Gwrapper));
+  wrapper->object = G_OBJECT(provider);
+  g_signal_connect(provider, "parsing-error", G_CALLBACK(css_parsing_error),
+                   NULL);
+  lua_createtable(L, 0, 1);          // [table,udata]
+  lua_pushcfunction(L, gwrapper_gc); // [gc,table,udata]
+  lua_setfield(L, -2, "__gc");       // [table,udata]
+  lua_setmetatable(L, -2);
+  return 1;
+}
 
 MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *gtkapp_[] = {widget_apis, NULL};
@@ -823,6 +842,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
       {"signal_item_factory", signal_item_factory_new},
       {"texture_from_file", texture_from_file},
       {"texture_from_cairo_ptr", texture_from_cairo_ptr},
+      {"load_css", load_css},
       {NULL, NULL}};
   luaL_newlib(L, mylib);
   return 1;

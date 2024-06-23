@@ -1,7 +1,7 @@
 (import-macros {: unmount : defn : effect} :lite-reactive)
 (import-macros {: css-gen } :css)
-; (import-macros {: global-css : css
-;                 : global-id-css } :gtk)
+(import-macros {: global-css : css
+                : global-id-css } :gtk)
 (import-macros {: catch-ignore : catch} :utils)
 (local {: run
         : use-built
@@ -48,42 +48,41 @@
         [(string.sub input 1 (- index 1)) (string.sub input (+ index 1))]
         [input ""])))
 
-; (local win-css (global-css
-;                  [:background :#111828
-;                   :color :white]
-;                  (& " *"
-;                     [:background :transparent
-;                      :color :white
-;                      :outline-width :0])
-;                  (& " entry"
-;                     (& ":focus"
-;                        [:border "2px solid #111828"
-;                         :border-bottom "1px solid #CCC"
-;                         :-gtk-outline-top-right-radius :20px])
-;                     [
-;                      :font-size (px 16)
-;                      :box-shadow :none
-;                      :border "2px solid #111828"
-;                      :border-bottom "1px solid #CCC"
-;                      :padding   (px 10)])
-;                  (& " .cmd-item"
-;                     [:min-height (px 48)])
-;                  (& " .cmd-label"
-;                     [:font-size (px 16)
-;                      :margin-bottom (px 4)])
-;                  (>> ".cmd-desc"
-;                      [:font-size (px 12)])
-;                  (& " row"
-;                     [:padding (px 4)]
-;                     (> "box"
-;                       [:padding (px 4)
-;                        :padding-left (px 10)])
-;                     (& ".selected"
-;                        (> "box"
-;                           [:border-radius (px 8)
-;                            :background "#202938"])))
-;                  (>> ".tips"
-;                      [:padding (px 4)])))
+(local win-css (global-css
+                 [:background :#111828
+                  :color :white]
+                 (& " *"
+                    [:background :transparent
+                     :color :white
+                     :outline-width :0])
+                 (& " entry"
+                    (& ":focus"
+                       [:border "2px solid #111828"
+                        :border-bottom "1px solid #CCC"
+                        :-gtk-outline-top-right-radius :20px])
+                    [
+                     :font-size (px 16)
+                     :box-shadow :none
+                     :border "2px solid #111828"
+                     :border-bottom "1px solid #CCC"
+                     :padding   (px 10)])
+                 (& " .cmd-item"
+                    [:min-height (px 38)
+                     :padding (.. (px 2) " " (px 8))
+                     :border-radius (px 8)])
+                 (& " .selected"
+                    [:background-color "#202938"])
+                 ; (& " .image"
+                 ;    [:border "1px solid red"])
+                 (& " .labels"
+                    [:margin-left (px 10)])
+                 (& " .cmd-label"
+                    [:font-size (px 16)
+                     :margin-bottom (px 4)])
+                 (>> ".cmd-desc"
+                     [:font-size (px 12)])
+                 (>> ".tips"
+                     [:padding (px 4)])))
 
 ;; (defn command-item
 ;;       (box))
@@ -134,11 +133,6 @@
                              (input "")
                              (refresh-cmds))
                   :keep-open (input cmd))))
-        top-cmds (map cmds (fn [cmds]
-                             (if (> (length cmds)
-                                    200)
-                               (table.move cmds 1 200 1 {})
-                               cmds)))
         cmd_input (entry
                    {
                     :connect_map (fn [entry]
@@ -149,7 +143,6 @@
                     ;                     (run (input)))
                     :connect_key_pressed_capture 
                     (fn [keyval code]
-                       (print code (type code)) 
                        (match (tonumber code)
                          consts.KeyCode.esc (handle-esc)
                          consts.KeyCode.enter (do (run (input))
@@ -162,14 +155,21 @@
                {:data cmds
                 :render (fn [cmd]
                           (box 
-                            {:spacing 10
+                            {:spacing 0
                              :orientation consts.Orientation.Horizontal
-                             :class "cmd-item"}
+                             :class (mapn [cmd selected-index] 
+                                          (fn [[cmd selected]]
+                                            (.. "cmd-item "
+                                                (if (= cmd._data_index
+                                                       selected)
+                                                  "selected "
+                                                  ""))))}
                             (box 
                               {:size_request (map cmd 
                                                             #(if (not= nil $1.image)
-                                                               [(dpi 48) (dpi 48)]
+                                                               [(dpi 36) (dpi 36)]
                                                                [0 0])) 
+                               :class "image"
                                :vexpand false :hexpand false
                                :valign consts.Align.Center
                                :halign consts.Align.Start}
@@ -178,6 +178,9 @@
                                         :hexpand false
                                         :content_fit consts.ContentFit.Cover}))
                             (box 
+                              {:spacing 0
+                               :class "labels"
+                               :valign consts.Align.Center}
                               (label
                                 {:markup (map cmd #$1.label)
                                  :class :cmd-label
@@ -189,8 +192,9 @@
                                                  (if cmd.real-time
                                                    (let [[_ args] (split-input input)]
                                                     (catch "" ""
-                                                           (cmd.real-time args)))
-                                                   (or cmd.description ""))))]
+                                                           (or (cmd.real-time args)
+                                                               "(No description)")))
+                                                   (or cmd.description "(No description)"))))]
                                 (label
                                   {:label desc
                                    :class "cmd-desc"
@@ -203,7 +207,7 @@
         (window
           {
            : visible
-           ;:class win-css
+           :class win-css
            :skip_taskbar_hint true
            :role :cmd-palette}
            ;:connect_focus_out_event close}
@@ -229,6 +233,9 @@
                     text (entry:text)]
                 (when (not= text (input))
                   (entry:set_text (input))))))
+    ; set selected to the fist, when input changed
+    (effect [input]
+            (selected-index 1))
     (effect [selected-index]
       (when (on-built)
         (let [index (- (selected-index) 1)
