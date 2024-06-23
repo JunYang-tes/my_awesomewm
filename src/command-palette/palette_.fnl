@@ -130,8 +130,8 @@
                 (match result
                   :close ((close))
                   :has-sub (do
-                             (input "")
-                             (refresh-cmds))
+                             (input ""))
+                             ;(refresh-cmds))
                   :keep-open (input cmd))))
         cmd_input (entry
                    {
@@ -139,8 +139,6 @@
                                    (entry:grab_focus))
                     :connect_change (fn [new-text]
                                       (input new-text))
-                    ; :connect_activate (fn []
-                    ;                     (run (input)))
                     :connect_key_pressed_capture 
                     (fn [keyval code]
                        (match (tonumber code)
