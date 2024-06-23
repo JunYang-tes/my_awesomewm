@@ -255,6 +255,18 @@ static int widget_remove_css_class(lua_State *L) {
   gtk_widget_remove_css_class(w->widget, css);
   return 0;
 }
+static int widget_set_halign(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  int align = lua_tonumber(L, 2);
+  gtk_widget_set_halign(w->widget, align);
+  return 0;
+}
+static int widget_set_valign(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  int align = lua_tonumber(L, 2);
+  gtk_widget_set_valign(w->widget, align);
+  return 0;
+}
 
 const luaL_Reg widget_apis[] = {
     {"set_hexpand", widget_set_hexpand},
@@ -270,6 +282,8 @@ const luaL_Reg widget_apis[] = {
     {"get_first_child", widget_get_first_child},
     {"set_size_request", widget_set_size_request},
     {"get_next_sibling", widget_get_next_sibling},
+    {"set_valign", widget_set_valign},
+    {"set_halign", widget_set_halign},
     {NULL, NULL}};
 
 typedef GtkWidget *(*widget_factory)();
@@ -749,8 +763,16 @@ static int picture_set_texture(lua_State *L) {
                             GDK_PAINTABLE(texture->object));
   return 0;
 }
+static int picture_set_content_fit(lua_State *L) {
+  Widget *w = luaL_checkudata(L, 1, "GtkPicture");
+  int fit = lua_tonumber(L, 2);
+  gtk_picture_set_content_fit(GTK_PICTURE(w->widget), fit);
+  return 0;
+}
 const static luaL_Reg picture_methods[] = {
-    {"__gc", widget_gc}, {"set_texture", picture_set_texture}, {NULL, NULL}};
+    {"__gc", widget_gc},
+    {"set_texture", picture_set_texture},
+    {"set_content_fit", picture_set_content_fit}, {NULL, NULL}};
 
 MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *gtkapp_[] = {widget_apis, NULL};
