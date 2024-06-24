@@ -174,13 +174,19 @@ static void get_event_callbacl(lua_State *L, void *key, const char *name) {
   lua_pushlightuserdata(L, key);      //[key,...]
   lua_gettable(L, LUA_REGISTRYINDEX); //[table,...]
   lua_getfield(L, -1, name);          // [fn,table]
+  lua_remove(L, -2);                  // remove the register table
 }
 
 static void on_map(GtkWidget *self, gpointer user_data) {
   lua_State *L = user_data;
+  int stack_size = lua_gettop(L);
   get_event_callbacl(L, self, "e_map");
   wrap_gtk_widget(L, self);
   lua_call(L, 1, 0);
+  int shrink = lua_gettop(L) - stack_size;
+  if (shrink > 0) {
+    lua_pop(L, shrink);
+  }
 }
 static int widget_connect_map(lua_State *L) {
   Widget *w = (Widget *)lua_touserdata(L, 1);
@@ -198,7 +204,9 @@ gboolean on_key_pressed(GtkEventControllerKey *self, guint keyval,
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
   lua_call(L, 3, 1);
-  return lua_toboolean(L, -1);
+  bool processed = lua_toboolean(L, -1);
+  lua_pop(L, 1);
+  return processed;
 }
 gboolean on_key_pressed_capture(GtkEventControllerKey *self, guint keyval,
                                 guint keycode, GdkModifierType state,
@@ -210,7 +218,9 @@ gboolean on_key_pressed_capture(GtkEventControllerKey *self, guint keyval,
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
   lua_call(L, 3, 1);
-  return lua_toboolean(L, -1);
+  bool processed = lua_toboolean(L, -1);
+  lua_pop(L, -1);
+  return processed;
 }
 
 static int widget_connect_key_pressed(lua_State *L) {
@@ -569,6 +579,7 @@ void signal_item_on_bind(GtkSignalListItemFactory *self, GObject *object,
   GtkListItem *item = GTK_LIST_ITEM(object);
 
   lua_State *L = (lua_State *)user_data;
+  int stack_size = lua_gettop(L);
   lua_pushlightuserdata(L, self);
   lua_gettable(L, LUA_REGISTRYINDEX); //[table ..]
   lua_rawgeti(L, -1, 2);              // [bind table ]
@@ -581,21 +592,26 @@ void signal_item_on_bind(GtkSignalListItemFactory *self, GObject *object,
   lua_pushstring(L, content); // [list-data,child,bind ...]
 
   lua_call(L, 2, 0);
+  int should_pop = lua_gettop(L) - stack_size;
+  if (should_pop > 0) {
+    lua_pop(L, should_pop);
+  }
 }
 void signal_item_on_setup(GtkSignalListItemFactory *self, GObject *object,
                           gpointer user_data) {
   GtkListItem *item = GTK_LIST_ITEM(object);
 
   lua_State *L = (lua_State *)user_data;
-  lua_pushlightuserdata(L, self);
-  lua_gettable(L, LUA_REGISTRYINDEX); // [table ..]
+  lua_pushlightuserdata(L, self);     // [ludata ...]
+  lua_gettable(L, LUA_REGISTRYINDEX); // [table ...]
   luaL_checktype(L, -1, LUA_TTABLE);
   lua_rawgeti(L, -1, 1); // [setup table ...]
   luaL_checktype(L, -1, LUA_TFUNCTION);
-  lua_call(L, 0, 1);
+  lua_call(L, 0, 1); // [r ...]
   luaL_checktype(L, -1, LUA_TUSERDATA);
-  void *p = lua_touserdata(L, -1);
+  void *p = lua_touserdata(L, -1); //[r ...]
   gtk_list_item_set_child(item, ((Widget *)p)->widget);
+  lua_pop(L, 2); // pop the return value & register table
 }
 static int signal_item_factory_new(lua_State *L) {
   if (lua_gettop(L) != 2) {
@@ -650,13 +666,16 @@ static int entry_get_text(lua_State *L) {
 }
 static void on_entry_text_changed(GtkEntry *self, gpointer user_data) {
   lua_State *L = user_data;
+  int stack_size = lua_gettop(L);
   get_event_callbacl(L, self, "e_text_change");
   GtkEntryBuffer *buffer = gtk_entry_get_buffer(self);
   const char *s = gtk_entry_buffer_get_text(buffer);
   lua_pushstring(L, s);
-
   lua_call(L, 1, 0);
-  lua_settop(L, 1);
+  int shrink = lua_gettop(L) - stack_size;
+  if (shrink > 0) {
+    lua_pop(L, shrink);
+  }
 }
 static int entry_connect_changed(lua_State *L) {
   Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkEntry");
