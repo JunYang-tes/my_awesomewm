@@ -8,21 +8,17 @@
 (local inspect (require :inspect))
 (local {: assign} (require :utils.table))
 
-(fn is-widget [obj]
-  (let [str (tostring obj)]
-    (and (strings.starts-with str :LuaWrapper))))
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
   (tset props-setter :class
         (fn [w cls old]
           (when old
             (each [_ v (ipairs (strings.split old " "))]
-              (w:remove_css_class v))
-            (-> old
-                (strings.split old " ")
-                (list.foreach #(w:remove_css_class $1))))
+              (if (not= v "")
+                (w:remove_css_class v))))
           (each [_ v (ipairs (strings.split cls " "))]
-            (w:add_css_class v))))
+            (if (not= v "")
+              (w:add_css_class v)))))
   (tset props-setter :size_request
         (fn [w size]
           (w:set_size_request (table.unpack size))))
@@ -67,7 +63,6 @@
         (f widget value)))))
 
 {
- : is-widget
  :label (make-builder gtk.label { :text (make-setter :label "")
                                   :label (make-setter :label "")
                                   :markup (make-setter :markup "")})

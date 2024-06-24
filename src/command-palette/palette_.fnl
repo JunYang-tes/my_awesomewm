@@ -138,7 +138,8 @@
                     :connect_map (fn [entry]
                                    (entry:grab_focus))
                     :connect_change (fn [new-text]
-                                      (input new-text))
+                                      (input new-text)
+                                      "hello")
                     :connect_key_pressed_capture 
                     (fn [keyval code]
                        (match (tonumber code)
