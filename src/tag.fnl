@@ -155,8 +155,8 @@
         s2
         s1))
   (set tag.screen tgt-screen)
-  (switch-tag tag)
-  (awful.screen.focus tgt-screen))
+  (awful.screen.focus tgt-screen)
+  (switch-tag tag))
 
 (fn move-to-screen []
   (local screens (icollect [ k v (pairs (screen-utils.get-screens))]

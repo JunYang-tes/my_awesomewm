@@ -57,8 +57,8 @@
                 (fn [t]
                   (fn []
                     (current:swap t))))})
-(local move-tag-to-screem
-       {:label "Move tag to screem"
+(local move-tag-to-screen
+       {:label "Move tag to screen"
         :exec (fn []
                 (local screens 
                        (icollect [ k v (pairs (screen-utils.get-screens))]
@@ -95,6 +95,6 @@
  : delete-tag
  : delete-unnamed-tag
  : move-to-tag
- : move-tag-to-screem
+ : move-tag-to-screen
  : swap-tag
  : rename-tag}
