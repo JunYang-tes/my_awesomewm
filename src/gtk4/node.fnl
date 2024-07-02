@@ -88,14 +88,16 @@
     ;;
     (fn [props]
       (let [items {}
-            all_widgets {}
-            widgets {}
+             widget_pool {}
             counter {:create 1}
             render (props.render)
             run (use-run)
             on-built (use-built)
             setup (fn []
-                    (do
+                    (if (> (length widget_pool) 0)
+                      (let [child (. widget_pool (length widget_pool))]
+                        (table.remove widget_pool)
+                        child)
                       (let [data_item (. (props.data ) 1)
                             _ (tset data_item :_data_index 1)
                             props (observable.of data_item)
@@ -108,16 +110,23 @@
                          data_item (. data_items (tonumber i))]
                      (tset data_item :_data_index (tonumber i))
                      (item_props data_item)))
-            item_factory (gtk4.signal_item_factory setup bind)
+            teardown (fn [child]
+                       (table.insert widget_pool child))
+            item_factory (gtk4.signal_item_factory setup bind teardown)
             view (list-view-atom
                    {:factory item_factory})]
         
+        (effect [on-built]
+                (when (on-built)
+                  (let [v (view)
+                        data (props.data)]
+                    (v:set_model (list.range 1 (+ 1 (length data)))))))
         (effect [props.data]
                 (when (on-built)
                   (let [v (view)
                         data (props.data)]
                     (time-it "update count"
-                      (v:set_model (list.range 1 (+ 1 (length data))))))))
+                      (v:update_model (list.range 1 (+ 1 (length data))))))))
         view))))
 
 

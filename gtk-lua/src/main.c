@@ -54,6 +54,7 @@ static int gwrapper_gc(lua_State *L) {
 
 static Widget *wrap_gtk_widget(lua_State *L, GtkWidget *w) {
   Widget *ret = lua_newuserdata(L, sizeof(Widget)); // [udata,...]
+  
   const char *mt_name = G_OBJECT_TYPE_NAME(w);
   luaL_getmetatable(L, mt_name); //[mt,udata...]
   lua_setmetatable(L, -2);       //[udata...]
@@ -531,7 +532,7 @@ static GtkWidget *new_empty_listview() { return gtk_list_view_new(NULL, NULL); }
 static int listview_new(lua_State *L) {
   return make_a_widget(L, new_empty_listview);
 }
-static int listview_set_moda(lua_State *L) {
+static int listview_set_model(lua_State *L) {
   int argc = lua_gettop(L);
   if (argc != 2) {
     return 0;
@@ -557,6 +558,33 @@ static int listview_set_moda(lua_State *L) {
   gtk_list_view_set_model(GTK_LIST_VIEW(w->widget), m);
   return 0;
 }
+static int listview_update_model(lua_State *L) {
+  int argc = lua_gettop(L);
+  if (argc != 2) {
+    return 0;
+  }
+
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkListView");
+  luaL_checktype(L, 2, LUA_TTABLE);
+  lua_len(L, 2);
+  int cnt = lua_tonumber(L, 3);
+  lua_pop(L, 1);
+
+  GtkStringList *list_model = gtk_string_list_new(NULL);
+  int i = 1;
+  while (i <= cnt) {
+    lua_rawgeti(L, -1, i);
+    const char *s = luaL_checkstring(L, -1);
+    lua_pop(L, 1);
+    gtk_string_list_append(list_model, s);
+    i++;
+  }
+  GtkNoSelection *m =
+      GTK_NO_SELECTION(gtk_list_view_get_model(GTK_LIST_VIEW(w->widget)));
+  gtk_no_selection_set_model(m, G_LIST_MODEL(list_model));
+
+  return 0;
+}
 
 static int listview_set_item_factory(lua_State *L) {
   Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkListView");
@@ -573,6 +601,34 @@ static int listview_scroll_to(lua_State *L) {
   gtk_list_view_scroll_to(GTK_LIST_VIEW(w->widget), pos, flag, NULL);
   return 0;
 }
+static void signal_item_on_teardown(GtkSignalListItemFactory *self, GObject *object,
+                             gpointer user_data) {
+  // static int teardown_count = 0 ;
+  // printf("td %d\n",++teardown_count);
+  GtkListItem *item = GTK_LIST_ITEM(object);
+  lua_State *L = (lua_State *)user_data;
+  int stack_size = lua_gettop(L);
+  lua_pushlightuserdata(L, self);
+  lua_gettable(L, LUA_REGISTRYINDEX); //[table ..]
+  lua_rawgeti(L, -1, 3);              // [teardown table ]
+  //
+  lua_pushlightuserdata(L,(void *)object);// [ludata,teardown,table]
+  lua_gettable(L,LUA_REGISTRYINDEX);// [child teardown table]
+  //
+  //wrap_gtk_widget(L, gtk_list_item_get_child(item)); // [chid,bind,table ...]
+  lua_call(L, 1, 0);
+
+  // clear child in registry
+  lua_pushlightuserdata(L,(void *)object);
+  lua_pushnil(L);
+  lua_settable(L,LUA_REGISTRYINDEX);
+
+  int should_pop = lua_gettop(L) - stack_size;
+  if (should_pop > 0) {
+    lua_pop(L, should_pop);
+  }
+}
+
 
 void signal_item_on_bind(GtkSignalListItemFactory *self, GObject *object,
                          gpointer user_data) {
@@ -602,6 +658,7 @@ void signal_item_on_setup(GtkSignalListItemFactory *self, GObject *object,
   GtkListItem *item = GTK_LIST_ITEM(object);
 
   lua_State *L = (lua_State *)user_data;
+  int stack_size = lua_gettop(L);
   lua_pushlightuserdata(L, self);     // [ludata ...]
   lua_gettable(L, LUA_REGISTRYINDEX); // [table ...]
   luaL_checktype(L, -1, LUA_TTABLE);
@@ -611,16 +668,25 @@ void signal_item_on_setup(GtkSignalListItemFactory *self, GObject *object,
   luaL_checktype(L, -1, LUA_TUSERDATA);
   void *p = lua_touserdata(L, -1); //[r ...]
   gtk_list_item_set_child(item, ((Widget *)p)->widget);
-  lua_pop(L, 2); // pop the return value & register table
+
+  lua_pushlightuserdata(L,(void *)item); // [ldata r ...]
+  lua_pushvalue(L,-2);// [returned ludata ...]
+  lua_settable(L,LUA_REGISTRYINDEX);// register[ludata] = returned
+
+  int should_pop = lua_gettop(L) - stack_size;
+  if (should_pop > 0) {
+    lua_pop(L, should_pop);
+  }
 }
 static int signal_item_factory_new(lua_State *L) {
-  if (lua_gettop(L) != 2) {
+  if (lua_gettop(L) != 3) {
     lua_pushliteral(L, "Too few arguemnts to create SignalItemFactory");
     lua_error(L);
     return 0;
   }
   luaL_checktype(L, 1, LUA_TFUNCTION); // setup callback (Lua fn)
   luaL_checktype(L, 2, LUA_TFUNCTION); // bind callback (Lua fn)
+  luaL_checktype(L, 3, LUA_TFUNCTION); // bind callback (Lua fn)
 
   GtkWrapper *wrapper = (GtkWrapper *)lua_newuserdata(L, sizeof(GtkWrapper));
 
@@ -636,6 +702,10 @@ static int signal_item_factory_new(lua_State *L) {
   lua_pushvalue(L, 2);   // [bind table .. ]
   lua_rawseti(L, -2, 2); // table[2]=bind
 
+  lua_pushvalue(L,3);// [teardown table ...]
+  lua_rawseti(L,-2,3);// table[3] = teardown
+
+
   lua_pushlightuserdata(L, wrapper->fields[0]); // [ludata,table ...]
   lua_pushvalue(L, -2);                         // [table,ludata,table ...]
   lua_settable(L, LUA_REGISTRYINDEX); // registry[ludata] = table,[table ...]
@@ -643,6 +713,8 @@ static int signal_item_factory_new(lua_State *L) {
   g_signal_connect(wrapper->fields[0], "setup",
                    G_CALLBACK(signal_item_on_setup), L);
   g_signal_connect(wrapper->fields[0], "bind", G_CALLBACK(signal_item_on_bind),
+                   L);
+  g_signal_connect(wrapper->fields[0], "teardown", G_CALLBACK(signal_item_on_teardown),
                    L);
   lua_pop(L, 1);
 
@@ -830,8 +902,9 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *scrolled[] = {widget_apis, scrolled_win_methods, NULL};
   setup_metatable_(L, "GtkScrolledWindow", scrolled);
 
-  const luaL_Reg listview[] = {{"set_model", listview_set_moda},
+  const luaL_Reg listview[] = {{"set_model", listview_set_model},
                                {"set_factory", listview_set_item_factory},
+                               {"update_model", listview_update_model},
                                {"scroll_to", listview_scroll_to},
                                {NULL, NULL}};
   setup_metatable(L, "GtkListView", listview);
@@ -866,3 +939,5 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   luaL_newlib(L, mylib);
   return 1;
 }
+
+
