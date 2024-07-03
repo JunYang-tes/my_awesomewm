@@ -95,4 +95,10 @@
                    :titlebar   true
                    :titlebars_enabled true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)
-                   :floating true}}])
+                   :floating true}}
+
+    ;; titleless
+    {:rule_any {:class [:wechat]}
+     :properties {:titlebars_enabled false
+                  :titlebar false}}])
+    
