@@ -130,7 +130,7 @@
         view))))
 
 
-{ ;:button (atom-node widgets.button :Button)
+{ :button (atom-node widgets.button :Button)
   :entry (atom-node widgets.entry :Entry)
   : box
   ; : list-row

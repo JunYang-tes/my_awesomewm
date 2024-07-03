@@ -7,6 +7,7 @@
         : box
         : list-box
         : list-view
+        : picture
         : list-row
         : button} (require :gtk4.node))
 (local {: run } (require :lite-reactive.app))
@@ -19,7 +20,7 @@
         : map-list
         : map
         : mapn} (require :lite-reactive.observable))
-(local profile {}) ;(require :ProFi))
+(local profile (require :ProFi))
 
 
 (local path (let [(ok? path) (pcall
@@ -72,41 +73,62 @@
                              (filter w))})
         (label {:text filter})
         (label {:text (map filtered #(length $1))})
-        ; (button {:label "Start profile"
-        ;          :connect_clicked (fn []
-        ;                             (profile:start))})
-        ; (button {:label "Stop profile"
-        ;          :connect_clicked (fn []
-        ;                             (profile:stop)
-        ;                             (profile:writeReport "/tmp/a.txt"))})
+        (button {:label "Start profile"
+                 :connect_click (fn []
+                                  (profile:start))})
+        (button {:label "Stop profile"
+                 :connect_click (fn []
+                                  (profile:stop)
+                                  (profile:writeReport "/tmp/a.txt"))})
         (scrolled-window
           {:vexpand true}
           (list-view
             {
              :data filtered
              :render (fn [cmd]
-                       ;(label {:text :a})
-                       ; (box 
-                       ;   (label {:text :hello})
-                       ;   (label {:text (map cmd #$1.description)})))})))))
-                       (label {:text :hello})
                        (box 
-                         {:spacing 10}
-                          ;:class "cmd-item"}
+                         {:spacing 0
+                          :orientation consts.Orientation.Horizontal}
+                          ; :class (mapn [cmd (value 0)] 
+                          ;              (fn [[cmd selected]]
+                          ;                (.. "cmd-item "
+                          ;                    (if (= cmd._data_index
+                          ;                           selected)
+                          ;                      "selected "
+                          ;                      ""))))}
+                         ; (box 
+                         ;   {:size_request (map cmd 
+                         ;                                 #(if (not= nil $1.image)
+                         ;                                    [36 36]
+                         ;                                    [0 0])) 
+                         ;    :class "image"
+                         ;    :vexpand false :hexpand false
+                         ;    :valign consts.Align.Center
+                         ;    :halign consts.Align.Start}
+                         ;   (picture {:texture (map cmd #$1.image)
+                         ;             :vexpand false
+                         ;             :hexpand false
+                         ;             :content_fit 0}))
                          (box 
-                           {:orientation consts.Orientation.VERTICAL}
+                           {:spacing 0
+                            :class "labels"
+                            :valign consts.Align.Center}
                            (label
-                             {:markup (map cmd #$1.label)
-                              ;:class :cmd-label
-                              :hexpand true
-                              :wrap true
+                             {;:markup (map cmd #$1.label)
+                              :markup filter
+                              :class :cmd-label
+                              ; :hexpand true
+                              ; :wrap true
                               :xalign 0})
-                           (let [desc (mapn [cmd filter]
+                           (let [desc (mapn [cmd (value "")]
                                             (fn [[cmd input]]
-                                                cmd.description))]
+                                              (if cmd.real-time
+                                                "real time"
+                                                (or cmd.description "(No description)"))))]
                              (label
                                {:label desc
-                                ;:class "cmd-desc"
+                                ;:markup filter
+                                :class "cmd-desc"
                                 ; :wrap true
                                 ; :wrap_mode consts.WrapMode.Char
                                 :xalign 0})))))})))))

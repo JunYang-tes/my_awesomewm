@@ -23,19 +23,23 @@
         (fn [w size]
           (w:set_size_request (table.unpack size))))
   (fn find-setter [prop]
-    (or (. props-setter prop)
-        (fn [widget value]
-          (catch (.. "Failed to set " prop " to " (tostring value) 
-                     " of "
-                     (tostring widget)
-                     ":") 
-            nil
-            (let [f (or (. widget (.. :set_ prop))
-                        ;connect_xx
-                        (. widget prop))]
-              (if f
-                (f widget value)
-                (print "No " prop " or " (.. "set_"prop))))))))
+    (let [setter (. props-setter prop)]
+      (when (= setter nil)
+        (tset props-setter
+              prop
+              (fn [widget value]
+                ; (catch (.. "Failed to set " prop " to " (tostring value) 
+                ;            " of "
+                ;            (tostring widget)
+                ;            ":") 
+                ;   nil)
+                (let [f (or (. widget (.. :set_ prop))
+                            ;connect_xx
+                            (. widget prop))]
+                  (if f
+                    (f widget value)
+                    (print "No " prop " or " (.. "set_"prop)))))))
+      (. props-setter prop)))
   (fn [props]
     (let [
           ; props (assign {:visible true}
@@ -45,8 +49,10 @@
                         (when (not= v nil)
                           (apply-property
                             v
-                            (utils.catch (fn [value old]
-                                          ((find-setter k) widget value old))))))]
+                            (fn [value old]
+                             ((find-setter k) widget value old)))))]
+                            ; (utils.catch (fn [value old]
+                            ;               ((find-setter k) widget value old))))))]
       widget)))
 (fn make-setter [prop def]
   (fn [widget value]
@@ -66,7 +72,7 @@
  :label (make-builder gtk.label { :text (make-setter :label "")
                                   :label (make-setter :label "")
                                   :markup (make-setter :markup "")})
- ;:button (make-builder gtk.button)
+ :button (make-builder gtk.button)
  ;:menu-button (make-builder gtk.menu_button)
  ;:image (make-builder gtk.image {:size (vargs :size)})
  :picture (make-builder gtk.picture {:size (vargs :size)
