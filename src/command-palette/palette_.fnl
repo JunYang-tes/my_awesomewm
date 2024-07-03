@@ -31,6 +31,7 @@
         : register } (require :command-palette.cmds))
 (local xresources (require :beautiful.xresources))
 (local dpi xresources.apply_dpi)
+(local {: debounce} (require :utils.timer))
 ;; Command = {
 ;;  label: string
 ;;  real-time?: (arg:string)=>string
@@ -137,9 +138,10 @@
                    {
                     :connect_map (fn [entry]
                                    (entry:grab_focus))
-                    :connect_change (fn [new-text]
-                                      (input new-text)
-                                      "hello")
+                    :connect_change  
+                                 (fn [new-text]
+                                   (input new-text)
+                                  200)
                     :connect_key_pressed_capture 
                     (fn [keyval code]
                        (match (tonumber code)
@@ -184,7 +186,7 @@
                                 {:markup (map cmd #$1.label)
                                  :class :cmd-label
                                  :hexpand true
-                                 :wrap true
+                                 ;:wrap true
                                  :xalign 0})
                               (let [desc (mapn [cmd input]
                                                (fn [[cmd input]]
@@ -197,8 +199,8 @@
                                 (label
                                   {:label desc
                                    :class "cmd-desc"
-                                   :wrap true
-                                   :wrap_mode consts.WrapMode.Char
+                                   ; :wrap true
+                                   ; :wrap_mode consts.WrapMode.Char
                                    :xalign 0})))))})
                                     
         on-built (use-built)
