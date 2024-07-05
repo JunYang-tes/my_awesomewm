@@ -14,13 +14,13 @@
 (local {: is-enter-event } (require :gtk.utils))
 (local keys (require :gtk.keyval))
  
-(local entry-style 
-       (global-css 
-         [:font-size :30px]))
-(local win-style
-       (global-css
-         [:min-width :500px
-          :max-width :500px]))
+; (local entry-style 
+;        (global-css 
+;          [:font-size :30px]))
+; (local win-style
+;        (global-css
+;          [:min-width :500px
+;           :max-width :500px]))
 
 (fn prompt [{: on-finished}])
 { : prompt}

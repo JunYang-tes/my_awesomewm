@@ -1,8 +1,9 @@
 ;; got gtk4 not actully initialized if without this
-(pcall #(let [lgi (require :lgi)]
-          (print lgi.Gtk)))
+; (pcall #(let [lgi (require :lgi)]
+;           (print lgi.Gtk)))
 (local widgets (require :widgets))
-(local gtkapp (widgets.gtk4.app))
+(local gtk (require :libgtk-lua))
+(local gtkapp (gtk.app))
 (local app (widgets.fltk.app))
 (_G.awesome.connect_signal :refresh #(app:wait))
 (local gears (require :gears))

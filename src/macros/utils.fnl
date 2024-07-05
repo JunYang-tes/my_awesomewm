@@ -20,7 +20,7 @@
        (local a# (os.clock))
        (local b# ,l)
        (local c# (os.clock))
-       (print ,title a# c# (- c# a#))
+       (print ,title  (* 1000 (- c# a#)))
        b#)))
 
 { : catch

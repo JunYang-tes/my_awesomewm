@@ -63,7 +63,7 @@
                     :borderless true
                     :sticky true
                     :width 900
-                    ;;:height 48
+                    :height 600
                     :ontop true
                     :placement (let [f awful.placement.top]
                                  (fn [c] (f c)))}}
@@ -95,4 +95,10 @@
                    :titlebar   true
                    :titlebars_enabled true
                    :placement (+ awful.placement.centered awful.placement.no_offscreen)
-                   :floating true}}])
+                   :floating true}}
+
+    ;; titleless
+    {:rule_any {:class [:wechat]}
+     :properties {:titlebars_enabled false
+                  :titlebar false}}])
+    

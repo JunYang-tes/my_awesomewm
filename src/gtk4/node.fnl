@@ -10,15 +10,18 @@
          : inspect-node
          : container-node } (require :lite-reactive.node))
 (local { : use-destroy
+         : use-built
          : use-run } (require :lite-reactive.app))
 (local inspect (require :inspect))
 (local widgets (require :gtk4.widgets))
+;(local gtk4 (. (require :widgets) :gtk4))
+(local gtk4 (require :libgtk-lua))
 (local {: assign } (require :utils.table))
 (local observable (require :lite-reactive.observable))
+(local list (require :utils.list))
 (fn clear-child [widget]
   (if widget.remove_all_children
-    (widget:remove_all_children)
-    (print "Warning: no remove_all_children find in " widget)))
+    (widget:remove_all_children)))
 (local box
        (container-node
          widgets.box
@@ -35,6 +38,7 @@
          (fn [children container ctx]
           (if (= (length children) 1)
             (container:set_child (. children 1))))
+                                    
          #$
          :window))
 (local scrolled-window
@@ -74,11 +78,64 @@
     widgets.list-row
     (fn [children row]
       (row:set_child (. children 1)))))
+(local list-view-atom
+  (atom-node widgets.list-view))
+(local list-view
+  (custom-node
+    ;; props:
+    ;;   render: render item ,not reactive
+    ;;   data: list data
+    ;;
+    (fn [props]
+      (let [items {}
+             widget_pool {}
+            counter {:create 1}
+            render (props.render)
+            run (use-run)
+            on-built (use-built)
+            setup (fn []
+                    (if (> (length widget_pool) 0)
+                      (let [child (. widget_pool (length widget_pool))]
+                        (table.remove widget_pool)
+                        child)
+                      (let [data_item (. (props.data ) 1)
+                            _ (tset data_item :_data_index 1)
+                            props (observable.of data_item)
+                            child (run (render props 1) true)]
+                        (tset items (child:address) props)
+                        child)))
+            bind (fn [child i]
+                   (let [data_items (props.data)
+                         item_props (. items (child:address))
+                         data_item (. data_items (tonumber i))]
+                     (tset data_item :_data_index (tonumber i))
+                     (item_props data_item)))
+            teardown (fn [child]
+                       (table.insert widget_pool child))
+            item_factory (gtk4.signal_item_factory setup bind teardown)
+            view (list-view-atom
+                   {:factory item_factory})]
+        
+        (effect [on-built]
+                (when (on-built)
+                  (let [v (view)
+                        data (props.data)]
+                    (v:set_model (list.range 1 (+ 1 (length data)))))))
+        (effect [props.data]
+                (when (on-built)
+                  (let [v (view)
+                        data (props.data)]
+                    (time-it "update count"
+                      (v:update_model (list.range 1 (+ 1 (length data))))))))
+        view))))
+
+
 { :button (atom-node widgets.button :Button)
   :entry (atom-node widgets.entry :Entry)
   : box
-  : list-row
-  : list-box
+  ; : list-row
+  ; : list-box
+  : list-view
   :label (atom-node widgets.label :Label)
   :picture (atom-node widgets.picture :Picture)
   : window

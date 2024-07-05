@@ -65,6 +65,7 @@
             :WordChar 2}
  :KeyCode {:down 116
            :up 111
+           :enter 36
            :esc 9
            :j 116
            :k 107}}

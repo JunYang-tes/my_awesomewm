@@ -23,7 +23,7 @@
         (button {:label :Inc
                  :connect_clicked #(counter.set (+ (counter) 1))})
         (label {:label "This is a label"})
-        (label {:text (r.map counter #(.. "Count:" $1))})
-        (button {:label :Button 
-                 :connect_clicked #(print :clicked)}))))
+        (label {:text (r.map counter #(.. "Count:" $1))}))))
+        ; (button {:label :Button} 
+        ;        :connect_clicked #(print :clicked)))))
 

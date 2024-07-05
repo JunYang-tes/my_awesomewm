@@ -1,4 +1,5 @@
-(local {: xdgkit : gdk4} (require :widgets))
+(local {: xdgkit } (require :widgets))
+(local gtk (require :libgtk-lua))
 (local {: read-popen} (require :utils.process))
 (local list (require :utils.list))
 (local str-fns (require :utils.string))
@@ -12,7 +13,7 @@
 (local {: get-codebase-dir} (require :utils.utils))
 
 (local apps
-  (let [def-icon (gdk4.texture_from_file (.. (get-codebase-dir) "/icons/executable.svg"))
+  (let [def-icon (gtk.texture_from_file (.. (get-codebase-dir) "/icons/executable.svg"))
         load (fn []
               (-> search-path
                   xdgkit.load_desktop_entries
@@ -33,7 +34,7 @@
                    item._icon
                    (xdgkit.find_icon item._icon))]
         (if (not= icon "")
-          (tset item :image (gdk4.texture_from_file icon))
+          (tset item :image (gtk.texture_from_file icon))
           (tset item :image def-icon)))
       (set index (+ index 1))
       (when (< index (length cache))

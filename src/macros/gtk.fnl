@@ -11,8 +11,8 @@
                   (string.format :%x v))))
         args [...]]
    `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))
-          gtk4_css# (. (require :widgets) :gtk4_css)
-          provider# (gtk4_css#.load_css content#)]
+          gtk# (require :libgtk-lua)
+          provider# (gtk#.load_css content#)]
       (values ,cls provider#))))
 (fn global-css [...]
   (let [cls (string.gsub
@@ -25,14 +25,14 @@
                   (string.format :%x v))))
         args [...]]
    `(let [content# (css-gen ,(.. "." cls) ,(table.unpack args))
-          gtk4_css# (. (require :widgets) :gtk4_css)
-          provider# (gtk4_css#.load_css content#)]
+          gtk# (require :libgtk-lua)
+          provider# (gtk#.load_css content#)]
       (values ,cls provider#))))
 (fn global-id-css [id ...]
   (let [args [...]]
-    `(let [content# (css-gen ,(.. "#" id) ,(table.unpack args))
-           gtk4_css# (. (require :widgets) :gtk4_css)
-           provider# (gtk4_css#.load_css content#)]
+    `(let [content# (css-gen ,(.. "#" id) ,(table.unpack args))]
+          gtk# (require :libgtk-lua)
+          provider# (gtk#.load_css content#)
       (values ,id provider#))))
 {
  : css

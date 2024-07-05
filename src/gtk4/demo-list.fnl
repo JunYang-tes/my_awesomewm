@@ -74,7 +74,6 @@
      :wrap true
      :xalign 0}))
 
-
 (defn App
   (effect [filter]
           (filtered 

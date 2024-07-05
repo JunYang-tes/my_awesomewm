@@ -1,6 +1,7 @@
 (local list (require :utils.list))
 (local {: focus } (require :utils.wm))
 (local {: cairo } (require :widgets))
+(local gtk (require :libgtk-lua))
 (local tag (require :tag))
 (local screen-utils (require :utils.screen))
 (fn get-icon [client]
@@ -12,7 +13,7 @@
             (string.match "0x%x+")
             (string.sub 3)
             (tonumber 16)
-            cairo.from_ptr)))))
+            gtk.texture_from_cairo_ptr)))))
 {:window {:label :Window
           :exec (fn []
                   (-> (_G.client.get)

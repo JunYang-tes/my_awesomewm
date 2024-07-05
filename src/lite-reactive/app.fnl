@@ -7,7 +7,7 @@
 (local {: weak-table 
         : assign
         : partition} (require :utils.table))
-(local {: memoed} (require :utils.utils))
+(local utils (require :utils.utils))
 (local strings (require :utils.string))
 (local inspect (require :inspect))
 (local {: destroy : inspect-node } (require :lite-reactive.node))
@@ -85,6 +85,7 @@
       (each [_ f (ipairs disposeable)]
         (catch "" nil (f))))))
 (fn make-runer [ctx]
+  (local memoed utils.memoed)
   (var fns nil)
   (set fns
    { 
@@ -261,8 +262,11 @@
       (destroy root))))
 (fn use-run []
   (let [ctx (CURRENT_CTX.get)]
-    (lambda [node]
-      (ctx.run node))))
+    (lambda [node nomemo]
+      (let [r (ctx.run node)]
+        (when nomemo
+          (ctx.run.clean node))
+        r))))
 (lambda foreach [items render]
   (let [memoed-render (utils.memoed (fn [data] (render data)))
         items (observable.of items)]
