@@ -2,3 +2,7 @@ lua/
 config/
 widgets/target
 gkt-lua/build
+.xmake
+fcitx5-cursor-position/build
+.cache
+compile_commands.json
