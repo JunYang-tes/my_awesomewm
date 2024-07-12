@@ -33,6 +33,7 @@
 (local windows (require :command-palette.windows))
 (local list (require :utils.list))
 (local screen-utils (require :utils.screen))
+(local clipboard (require :clipboard))
 
 (fn run-lua []
   (prompt {
@@ -191,6 +192,9 @@
          :group :others})
   (key [modkey "Shift"] "d" toggle-desktop
        { :description "Toggle desktop"
+         :group "awesome"})
+  (key [modkey] "v" #(clipboard.show _G.client.focus)
+       { :description "Clipboard"
          :group "awesome"})
   (key [modkey "Shift"] "space"
        (let [map (weak-key-table)]

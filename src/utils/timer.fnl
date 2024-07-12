@@ -4,6 +4,7 @@
   (set t (gears.timer {
                          :timeout time
                          :autostart true
+                         :call_now false
                          :callback (fn [] 
                                      (t:stop)
                                      (tset t :__stopped true)
