@@ -49,7 +49,11 @@
                 (let [curr (clipboard-items)]
                   (table.insert curr 1 {:content txt
                                         :sub (string.sub txt 1 100)
-                                        :mime_types mime_types
+                                        :mime_types 
+                                          (list.filter mime_types
+                                                       ;; ... application/vnd.portal.filetransfer
+                                                       ;; can't paste in dolphin, filter it out
+                                                       #(not= $1 :application/vnd.portal.filetransfer))
                                         :type :text})
                   (clipboard-items
                     (list.map curr #$1)))))))
@@ -100,8 +104,10 @@
     (tset _G.client :focus (paste-target))
     (let [item (. list index)]
       (match item.type
-        :text (clipboard:set_text (. list index :content))
-        :image (clipboard:set_texture (. list index :texture)))
+        :text (clipboard:set_text_content 
+                item.mime_types
+                item.content)
+        :image (clipboard:set_texture item.texture))
       (send_ctrl_v)
       (move-to-first item.index))))
 
