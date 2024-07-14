@@ -111,6 +111,14 @@
       (send_ctrl_v)
       (move-to-first item.index))))
 
+(fn execute-paste [index]
+  (visible false)
+  (timer.set-timeout
+    #(paste (filtered-item)
+            index)
+    0.2))
+
+
 (local win 
   (run 
     (window
@@ -132,24 +140,8 @@
            :connect_key_pressed_capture 
              (fn [_ code state]
                (match (tonumber code)
-                 (where a (and (<=  code consts.KeyCode.9)
-                               (>=  code consts.KeyCode.1)
-                               (= (band state consts.Modifier.Control) consts.Modifier.Control)))
-                                
-                 (do 
-                    (visible false
-                      (timer.set-timeout
-                        #(paste (filtered-item)
-                                (- a 9))
-                        0.2)
-                      true))
                  consts.KeyCode.esc (visible false)
-                 consts.KeyCode.enter (do
-                                         (visible false)
-                                         (timer.set-timeout
-                                           #(paste (filtered-item)
-                                                   (+ 1 (selected-index)))
-                                           0.2))))})
+                 consts.KeyCode.enter (execute-paste (+ 1 (selected-index)))))})
                                                    
         (scrolled-window
           {:vexpand true}
@@ -174,4 +166,8 @@
            (input "")
            (paste-target client)
            (selected-index 0)
-           (visible true)))}
+           (visible true)))
+ :is-visble (fn []
+              (visible))
+ :paste (fn [i]
+          (execute-paste i))}

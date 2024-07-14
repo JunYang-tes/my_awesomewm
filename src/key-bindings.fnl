@@ -85,7 +85,11 @@
 
 (join-keys
   (icollect [i _ (ipairs (range 1 10 1))]
-     (key [modkey] (.. "#" (+ i 9)) #(tag.switch-by-index i)
+     (key [modkey] (.. "#" (+ i 9)) 
+          (fn []
+            (if (clipboard.is-visble)
+              (clipboard.paste i)
+              (tag.switch-by-index i)))
        { :description (.. "Switch to tag " i)
          :group "tag"}))
   (key [modkey] "p" cmd-palette.run
