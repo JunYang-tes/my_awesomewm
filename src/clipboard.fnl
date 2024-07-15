@@ -24,6 +24,21 @@
 (local inspect (require :inspect))
 (local gtk (require :libgtk-lua))
 (local wm (require :utils.wm))
+(local cfg (require :utils.cfg))
+(local {: assign } (require :utils.table))
+(local msgpack (require :msgpack))
+
+(fn save-clipboard-items [items]
+  (with-open [out (io.open "/tmp/t.dat" :w)]
+    (-> items
+      (list.map 
+        (fn [item]
+          (assign item
+                  (match item.type
+                    :image (item:save_bytes)
+                    _ {}))))
+      msgpack.encode
+      out:write)))
 
 (local clipboard-items
   ;; :content string

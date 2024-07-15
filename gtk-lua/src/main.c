@@ -959,8 +959,18 @@ static int texture_save(lua_State *L) {
   gdk_texture_save_to_png(GDK_TEXTURE(texture->object), path);
   return 0;
 }
-static luaL_Reg texture_methods[] = {
-    {"__gc", gwrapper_gc}, {"save", texture_save}, {NULL, NULL}};
+static int texture_save_bytes(lua_State *L) {
+  Gwrapper *texture = lua_touserdata(L, 1);
+  GBytes *data = gdk_texture_save_to_png_bytes(GDK_TEXTURE(texture->object));
+  gsize size;
+  lua_pushlstring(L, g_bytes_get_data(data, &size), size);
+  free(data);
+  return 0;
+}
+static luaL_Reg texture_methods[] = {{"__gc", gwrapper_gc},
+                                     {"save", texture_save},
+                                     {"save_bytes", texture_save_bytes},
+                                     {NULL, NULL}};
 
 static int picture_new(lua_State *L) {
   return make_a_widget(L, gtk_picture_new);
