@@ -953,6 +953,15 @@ static int texture_from_cairo_ptr(lua_State *L) {
   return 1;
 }
 
+static int texture_save(lua_State *L) {
+  Gwrapper *texture = lua_touserdata(L, 1);
+  const char *path = lua_tostring(L, 2);
+  gdk_texture_save_to_png(GDK_TEXTURE(texture->object), path);
+  return 0;
+}
+static luaL_Reg texture_methods[] = {
+    {"__gc", gwrapper_gc}, {"save", texture_save}, {NULL, NULL}};
+
 static int picture_new(lua_State *L) {
   return make_a_widget(L, gtk_picture_new);
 }
@@ -1171,6 +1180,8 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
 
   const luaL_Reg *clipboard[] = {clipboard_methods, NULL};
   setup_metatable_(L, "GdkClipboard", clipboard);
+  const luaL_Reg *texture[] = {texture_methods, NULL};
+  setup_metatable_(L, "GdkTexture", texture);
 
   static const luaL_Reg mylib[] = {
       {"app", gtk_app},
