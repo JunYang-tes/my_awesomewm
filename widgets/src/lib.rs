@@ -14,6 +14,7 @@ use mlua::prelude::*;
 fn widgets(lua: &Lua) -> LuaResult<LuaTable> {
     let exports = lua.create_table()?;
     exports.set("fltk", fltk::exports(lua)?)?;
+    exports.set("cairo",cairo::exports(lua)?)?;
     exports.set("fs",fs::exports(lua)?)?;
     exports.set("xdgkit",xdgkit::exports(lua)?)?;
     exports.set("launcher",launch::exports(lua)?)?;
