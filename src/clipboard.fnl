@@ -107,6 +107,19 @@
   (_G.root.fake_input :key_release :Control_L)
   (_G.root.fake_input :key_release :v))
 
+(fn send_ctrl_shift_v []
+  (_G.root.fake_input :key_press :Control_L)
+  (_G.root.fake_input :key_press :Shift_L)
+  (_G.root.fake_input :key_press :v)
+  (_G.root.fake_input :key_release :Control_L)
+  (_G.root.fake_input :key_release :Shift_L)
+  (_G.root.fake_input :key_release :v))
+
+(fn is-terminal [client]
+  (or (= client.class :kitty)
+      (= client.class :tilda)
+      (= client.class :dev.warp.Warp)))
+
 
 (local visible (value false))
 (local selected-index (value 0))
@@ -138,7 +151,9 @@
                 item.mime_types
                 item.content)
         :image (clipboard:set_texture item.texture))
-      (send_ctrl_v)
+      (if (is-terminal (paste-target))
+        (send_ctrl_shift_v)
+        (send_ctrl_v))
       (move-to-first item.index))))
 
 (fn execute-paste [index]
