@@ -28,17 +28,8 @@
 (local {: assign } (require :utils.table))
 (local msgpack (require :msgpack))
 
-(fn save-clipboard-items [items]
-  (with-open [out (io.open "/tmp/t.dat" :w)]
-    (-> items
-      (list.map 
-        (fn [item]
-          (assign item
-                  (match item.type
-                    :image (item:save_bytes)
-                    _ {}))))
-      msgpack.encode
-      out:write)))
+(local max-save-count 500)
+
 
 (local clipboard-items
   ;; :content string
@@ -51,6 +42,32 @@
   ;; :mime_types
   ;; :type :text
   (value []))
+
+(fn load-saved-clipboard-items []
+  (case (io.open (.. cfg.cfg_dir "clipboard.dat") :r)
+    f (let [data (f:read :*all)
+            decoded (msgpack.decode data)]
+        (-> decoded
+          (list.map
+            (fn [item]
+              (assign item
+                      (match item.type
+                        :image {:texture (gtk.texture_from_bytes item.texture)}
+                        _ {}))))
+          clipboard-items))))
+
+(fn save-clipboard-items [items]
+  (with-open [out (io.open (.. cfg.cfg_dir "clipboard.dat") :w)]
+    (-> items
+      (list.slice 1 max-save-count)
+      (list.map
+        (fn [item]
+          (assign item
+                  (match item.type
+                    :image {:texture (item.texture:save_bytes)}
+                    _ {}))))
+      msgpack.encode
+      out:write)))
 
 (local clipboard (gtk.clipboard))
 (clipboard:connect_changed
@@ -73,10 +90,8 @@
                   (clipboard-items
                     (list.map curr #$1)))))))
         (when (list.some mime_types #(stringx.starts-with $1 :image))
-          (print :texture)
           (clipboard:get_texture
             (fn [texture]
-              (print :texture-is texture)
               (let [curr (clipboard-items)]
                 (table.insert curr 1 {:texture texture
                                       :sub "Image"
@@ -129,8 +144,10 @@
 (fn execute-paste [index]
   (visible false)
   (timer.set-timeout
-    #(paste (filtered-item)
-            index)
+    #(do 
+       (paste (filtered-item)
+          index)
+       (save-clipboard-items (clipboard-items)))
     0.2))
 
 
@@ -171,11 +188,16 @@
                                  (match item.type
                                    :text (label {:label item.sub
                                                  :xalign 0})
-                                   :image (box {:size_request [36 36]
+                                   :image (box {:size_request [100 100]
+                                                :orientation consts.Orientation.Horizontal
+                                                :valign consts.Align.Center
+                                                :halign consts.Align.Start
                                                 :vexpand false :hexpand false}
                                             (picture {:texture item.texture})))))))}))))))
 
 {:show (fn [client]
+         (when (<= (length (clipboard-items)) 1)
+           (load-saved-clipboard-items))
          (when (and (not= nil client)
                     (> (length (clipboard-items)) 0))
            (input "")

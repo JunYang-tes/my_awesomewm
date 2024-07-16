@@ -922,6 +922,21 @@ static int texture_from_file(lua_State *L) {
   wrap_g_object(L, G_OBJECT(texture));
   return 1;
 }
+static int texture_from_bytes(lua_State *L) {
+  size_t len;
+  const char *data = luaL_checklstring(L, 1, &len);
+  GBytes *bytes = g_bytes_new(data, len);
+  GdkTexture *texture = gdk_texture_new_from_bytes(bytes, NULL);
+  if (texture == NULL) {
+    printf("[gtk-lua] Failed to load image\n");
+    g_bytes_unref(bytes);
+    return 0;
+  } else {
+    wrap_g_object(L, G_OBJECT(texture));
+    g_bytes_unref(bytes);
+    return 1;
+  }
+}
 static inline GdkMemoryFormat cairo_fmt_to_gdk_fmt(cairo_format_t fmt) {
   if (fmt == CAIRO_FORMAT_ARGB32) {
     return GDK_MEMORY_B8G8R8A8;
@@ -963,9 +978,10 @@ static int texture_save_bytes(lua_State *L) {
   Gwrapper *texture = lua_touserdata(L, 1);
   GBytes *data = gdk_texture_save_to_png_bytes(GDK_TEXTURE(texture->object));
   gsize size;
-  lua_pushlstring(L, g_bytes_get_data(data, &size), size);
+  const char *bytes = g_bytes_get_data(data, &size);
+  lua_pushlstring(L, bytes , size);
   free(data);
-  return 0;
+  return 1;
 }
 static luaL_Reg texture_methods[] = {{"__gc", gwrapper_gc},
                                      {"save", texture_save},
@@ -1192,6 +1208,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   setup_metatable_(L, "GdkClipboard", clipboard);
   const luaL_Reg *texture[] = {texture_methods, NULL};
   setup_metatable_(L, "GdkTexture", texture);
+  setup_metatable_(L, "GdkMemoryTexture", texture);
 
   static const luaL_Reg mylib[] = {
       {"app", gtk_app},
@@ -1208,6 +1225,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
       {"list_view", listview_new},
       {"signal_item_factory", signal_item_factory_new},
       {"texture_from_file", texture_from_file},
+      {"texture_from_bytes", texture_from_bytes},
       {"texture_from_cairo_ptr", texture_from_cairo_ptr},
       {"load_css", load_css},
       {NULL, NULL}};
