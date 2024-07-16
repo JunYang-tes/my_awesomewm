@@ -172,11 +172,7 @@
                    :forced_width (dpi 30)
                    :forced_height (dpi 30)}))
       (textbox {:markup props.text}))))
-(let [a 1
-      b (+ a 1)
-      c (fn []
-          (+ a 1))]
-  :TDO)
+
 (defn start-menu
   (local hide #(((props.on-close))))
   (let [popover
