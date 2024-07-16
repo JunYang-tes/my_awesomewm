@@ -183,6 +183,10 @@
               :show_separators true
               :render (fn [item]
                         (box
+                          {:connect_click_release 
+                           (fn []
+                             (let [index (. (item) :index)]
+                               (execute-paste index)))}
                           (map item
                                (fn [item]
                                  (match item.type
