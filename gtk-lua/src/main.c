@@ -329,6 +329,31 @@ static int widget_connect_focus_out(lua_State *L) {
   gtk_widget_add_controller(w->widget, controller);
   return 0;
 }
+
+void on_click_released(GtkGestureClick *self, gint n_press, gdouble x,
+                       gdouble y, gpointer user_data) {
+  GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
+  lua_State *L = user_data;
+  int stack_size = lua_gettop(L);
+  get_event_callback(L, w, "e_click_release");
+  lua_call(L, 0, 0);
+
+  int shrink = lua_gettop(L) - stack_size;
+  if (shrink > 0) {
+    lua_pop(L, shrink);
+  }
+}
+
+static int widget_connect_click_released(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  put_event_callback_to_registry(L, w->widget, "e_click_release");
+  GtkEventController *controller =
+      GTK_EVENT_CONTROLLER(gtk_gesture_click_new());
+  g_signal_connect(controller, "released", G_CALLBACK(on_click_released), L);
+  gtk_widget_add_controller(w->widget, controller);
+  return 0;
+}
+
 static int widget_set_visible(lua_State *L) {
   Widget *w = (Widget *)lua_touserdata(L, 1);
   bool visible = lua_toboolean(L, 2);
@@ -371,6 +396,7 @@ const luaL_Reg widget_apis[] = {
     {"connect_key_pressed", widget_connect_key_pressed},
     {"connect_key_pressed_capture", widget_connect_key_pressed_capture},
     {"connect_focus_out", widget_connect_focus_out},
+    {"connect_click_release",widget_connect_click_released},
     {"grab_focus", widget_grab_focus},
     {"get_first_child", widget_get_first_child},
     {"set_size_request", widget_set_size_request},
@@ -979,7 +1005,7 @@ static int texture_save_bytes(lua_State *L) {
   GBytes *data = gdk_texture_save_to_png_bytes(GDK_TEXTURE(texture->object));
   gsize size;
   const char *bytes = g_bytes_get_data(data, &size);
-  lua_pushlstring(L, bytes , size);
+  lua_pushlstring(L, bytes, size);
   free(data);
   return 1;
 }
