@@ -1,4 +1,6 @@
 #include "cairo.h"
+#include "gdk/gdk.h"
+#include "gio/gio.h"
 #include "glib-object.h"
 #include "glib.h"
 #include "luaconf.h"
@@ -30,14 +32,18 @@ typedef struct Widget {
     gtk_##widget_##fname(w->widget);                                           \
     return 0;                                                                  \
   };
-static Gwrapper *wrap_g_object(lua_State *L, GObject *w) {
+static Gwrapper *wrap_g_object_with_name(lua_State *L, GObject *w,
+                                         const char *name) {
   Gwrapper *ret = lua_newuserdata(L, sizeof(Gwrapper)); // [udata,...]
-  const char *mt_name = G_OBJECT_TYPE_NAME(w);
-  luaL_getmetatable(L, mt_name); //[mt,udata...]
-  lua_setmetatable(L, -2);       //[udata...]
+  luaL_getmetatable(L, name);                           //[mt,udata...]
+  lua_setmetatable(L, -2);                              //[udata...]
   ret->object = w;
   g_object_ref(w);
   return ret;
+}
+static Gwrapper *wrap_g_object(lua_State *L, GObject *w) {
+  const char *mt_name = G_OBJECT_TYPE_NAME(w);
+  return wrap_g_object_with_name(L, w, mt_name);
 }
 static int gwrapper_gc(lua_State *L) {
   Gwrapper *w = lua_touserdata(L, 1);
@@ -120,6 +126,7 @@ static int widget_address(lua_State *L) {
 static void print_stack(lua_State *L) {
   int i = 1;
   int c = lua_gettop(L);
+  printf("[%d] ", c);
   while (i <= c) {
     switch (lua_type(L, i)) {
     case LUA_TNIL:
@@ -132,7 +139,7 @@ static void print_stack(lua_State *L) {
       printf("ld ");
       break;
     case LUA_TNUMBER:
-      printf("number (%d)", lua_tonumber(L, i));
+      printf("number (%lld)", lua_tointeger(L, i));
       break;
     case LUA_TSTRING:
       printf("str(%s) ", lua_tostring(L, i));
@@ -171,17 +178,76 @@ static void put_event_callback_to_registry(lua_State *L, void *key,
   lua_setfield(L, -2, name); // [table,fn,...]
   lua_pop(L, 1);             //[fn...]
 }
-static void get_event_callbacl(lua_State *L, void *key, const char *name) {
+
+/**
+ * put the stack top to a registry by key, queue name is specificed by name
+ * registry[key] =  tbl
+ * tbl[name] = [stack top ]
+ * */
+static void put_to_registry_q(lua_State *L, void *key, const char *name) {
+  if (lua_gettop(L) == 0) {
+    lua_pushstring(L, "lua stack is empty");
+    lua_error(L);
+    return;
+  }
+  lua_pushlightuserdata(L, key);      //[key,val]
+  lua_gettable(L, LUA_REGISTRYINDEX); //[table/nil,val]
+  if (!lua_istable(L, -1)) {
+    lua_pop(L, 1);                      // [val]
+    lua_pushlightuserdata(L, key);      // [key,val]
+    lua_newtable(L);                    //[table,key,val...]
+    lua_settable(L, LUA_REGISTRYINDEX); //[val ...]
+    lua_pushlightuserdata(L, key);      // [key,val...]
+    lua_gettable(L, LUA_REGISTRYINDEX); // [table,val..]
+  }
+  lua_getfield(L, -1, name); // [queue/nil,table,val ...]
+  if (lua_type(L, -1) == LUA_TNIL) {
+    lua_pop(L, 1);             // [table,val,...]
+    lua_createtable(L, 1, 0);  //[queue,table,val...]
+    lua_setfield(L, -2, name); //[table,val, ...]
+    lua_getfield(L, -1, name); // [queue,table]
+  }
+  lua_len(L, -1); // [q-size,queue,table,val ...]
+  LUA_INTEGER size = lua_tointeger(L, -1);
+  lua_pop(L, 1); //[q,table,val]
+  // q[size+1] = val
+
+  lua_pushvalue(L, -3);         // [val,q,table,val ...]
+  lua_rawseti(L, -2, size + 1); // [q,table,val]
+  lua_pop(L, 3);
+}
+static void registry_q_pop(lua_State *L, void *key, const char *q_name) {
+  lua_pushlightuserdata(L, key);      //[key,...]
+  lua_gettable(L, LUA_REGISTRYINDEX); //[table,...]
+  lua_getfield(L, -1, q_name);        // [q,table]
+  lua_len(L, -1);                     //[size,q,table]
+  LUA_INTEGER size = lua_tointeger(L, -1);
+  lua_pop(L, 1);         // [q,table...]
+  lua_geti(L, -1, size); //[val,q,table]
+  lua_pushnil(L);        //[nil,val,q,table]
+  lua_seti(L, -3, size); //[val,q,table]
+  lua_remove(L, -2);     //[val,q...]
+  lua_remove(L, -2);     // [val,...]
+}
+
+static void get_event_callback(lua_State *L, void *key, const char *name) {
   lua_pushlightuserdata(L, key);      //[key,...]
   lua_gettable(L, LUA_REGISTRYINDEX); //[table,...]
   lua_getfield(L, -1, name);          // [fn,table]
   lua_remove(L, -2);                  // remove the register table
 }
+static void clear_event_callback(lua_State *L, void *key, const char *name) {
+  lua_pushlightuserdata(L, key);      //[key,...]
+  lua_gettable(L, LUA_REGISTRYINDEX); //[table,...]
+  lua_pushnil(L);                     //[nil,table...]
+  lua_setfield(L, -2, name);          // [table ...]
+  lua_pop(L, -1);
+}
 
 static void on_map(GtkWidget *self, gpointer user_data) {
   lua_State *L = user_data;
   int stack_size = lua_gettop(L);
-  get_event_callbacl(L, self, "e_map");
+  get_event_callback(L, self, "e_map");
   wrap_gtk_widget(L, self);
   lua_call(L, 1, 0);
   int shrink = lua_gettop(L) - stack_size;
@@ -200,7 +266,7 @@ gboolean on_key_pressed(GtkEventControllerKey *self, guint keyval,
                         gpointer user_data) {
   GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
   lua_State *L = user_data;
-  get_event_callbacl(L, w, "e_key_pressed");
+  get_event_callback(L, w, "e_key_pressed");
   lua_pushinteger(L, keyval);
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
@@ -214,7 +280,7 @@ gboolean on_key_pressed_capture(GtkEventControllerKey *self, guint keyval,
                                 gpointer user_data) {
   GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
   lua_State *L = user_data;
-  get_event_callbacl(L, w, "e_key_pressed_capture");
+  get_event_callback(L, w, "e_key_pressed_capture");
   lua_pushinteger(L, keyval);
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
@@ -240,6 +306,27 @@ static int widget_connect_key_pressed_capture(lua_State *L) {
                    L);
   gtk_widget_add_controller(w->widget, key_event);
   gtk_event_controller_set_propagation_phase(key_event, GTK_PHASE_CAPTURE);
+  return 0;
+}
+void on_focus_out(GtkEventControllerFocus *self, gpointer user_data) {
+  GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
+  lua_State *L = user_data;
+  int stack_size = lua_gettop(L);
+  get_event_callback(L, w, "e_focus_out");
+  lua_call(L, 0, 0);
+
+  int shrink = lua_gettop(L) - stack_size;
+  if (shrink > 0) {
+    lua_pop(L, shrink);
+  }
+}
+
+static int widget_connect_focus_out(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  put_event_callback_to_registry(L, w->widget, "e_focus_out");
+  GtkEventController *controller = gtk_event_controller_focus_new();
+  g_signal_connect(controller, "leave", G_CALLBACK(on_focus_out), L);
+  gtk_widget_add_controller(w->widget, controller);
   return 0;
 }
 static int widget_set_visible(lua_State *L) {
@@ -283,6 +370,7 @@ const luaL_Reg widget_apis[] = {
     {"address", widget_address},
     {"connect_key_pressed", widget_connect_key_pressed},
     {"connect_key_pressed_capture", widget_connect_key_pressed_capture},
+    {"connect_focus_out", widget_connect_focus_out},
     {"grab_focus", widget_grab_focus},
     {"get_first_child", widget_get_first_child},
     {"set_size_request", widget_set_size_request},
@@ -307,7 +395,7 @@ static int button_new(lua_State *L) { return make_a_widget(L, gtk_button_new); }
 static void on_button_click(GtkButton *self, gpointer user_data) {
   lua_State *L = user_data;
   int stack_size = lua_gettop(L);
-  get_event_callbacl(L, self, "e_click");
+  get_event_callback(L, self, "e_click");
   lua_call(L, 0, 0);
   int shrink = lua_gettop(L) - stack_size;
   if (shrink > 0) {
@@ -396,12 +484,40 @@ static int window_set_role(lua_State *L) {
   gdk_x11_surface_set_utf8_property(surf, "WM_WINDOW_ROLE", role);
   return 0;
 }
-const luaL_Reg window_methods[] = {{"__gc", widget_gc},
-                                   {"present", window_present},
-                                   {"set_child", window_set_child},
-                                   {"set_role", window_set_role},
-                                   {"close", window_close},
-                                   {NULL, NULL}};
+static int window_set_title(lua_State *L) {
+  Widget *win = (Widget *)luaL_checkudata(L, 1, "GtkWindow");
+  const char *title = lua_tostring(L, 2);
+  gtk_window_set_title(GTK_WINDOW(win->widget), title);
+  return 0;
+}
+gboolean handle_close_request(GtkWindow *self, gpointer user_data) {
+  lua_State *L = user_data;
+  int stack_size = lua_gettop(L);
+  get_event_callback(L, self, "e_close_request");
+  lua_call(L, 0, 1);
+  gboolean b = lua_toboolean(L, -1);
+  int shrink = lua_gettop(L) - stack_size;
+  if (shrink > 0) {
+    lua_pop(L, shrink);
+  }
+  return b;
+}
+static int window_connect_close_request(lua_State *L) {
+  Widget *win = (Widget *)luaL_checkudata(L, 1, "GtkWindow");
+  put_event_callback_to_registry(L, win->widget, "e_close_request");
+  g_signal_connect(win->widget, "close-request",
+                   G_CALLBACK(handle_close_request), L);
+  return 0;
+}
+const luaL_Reg window_methods[] = {
+    {"__gc", widget_gc},
+    {"present", window_present},
+    {"set_title", window_set_title},
+    {"set_child", window_set_child},
+    {"set_role", window_set_role},
+    {"connect_close_request", window_connect_close_request},
+    {"close", window_close},
+    {NULL, NULL}};
 
 static int label_new(lua_State *L) {
   Widget *label = (Widget *)lua_newuserdata(L, sizeof(Widget));
@@ -706,6 +822,19 @@ static int signal_item_factory_new(lua_State *L) {
 
   return 1;
 }
+static int listview_set_show_separators(lua_State *L) {
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkListView");
+  gboolean show_sep = lua_tonumber(L, 2);
+  gtk_list_view_set_show_separators(GTK_LIST_VIEW(w->widget), show_sep);
+  return 0;
+}
+const luaL_Reg listview_methods[] = {
+    {"set_model", listview_set_model},
+    {"set_factory", listview_set_item_factory},
+    {"update_model", listview_update_model},
+    {"scroll_to", listview_scroll_to},
+    {"set_show_separators", listview_set_show_separators},
+    {NULL, NULL}};
 
 static int entry_new(lua_State *L) { return make_a_widget(L, gtk_entry_new); }
 static int entry_set_text(lua_State *L) {
@@ -725,7 +854,7 @@ static int entry_get_text(lua_State *L) {
 static void on_entry_text_changed(GtkEntry *self, gpointer user_data) {
   lua_State *L = user_data;
   int stack_size = lua_gettop(L);
-  get_event_callbacl(L, self, "e_text_change");
+  get_event_callback(L, self, "e_text_change");
   GtkEntryBuffer *buffer = gtk_entry_get_buffer(self);
   const char *s = gtk_entry_buffer_get_text(buffer);
   lua_pushstring(L, s);
@@ -793,6 +922,21 @@ static int texture_from_file(lua_State *L) {
   wrap_g_object(L, G_OBJECT(texture));
   return 1;
 }
+static int texture_from_bytes(lua_State *L) {
+  size_t len;
+  const char *data = luaL_checklstring(L, 1, &len);
+  GBytes *bytes = g_bytes_new(data, len);
+  GdkTexture *texture = gdk_texture_new_from_bytes(bytes, NULL);
+  if (texture == NULL) {
+    printf("[gtk-lua] Failed to load image\n");
+    g_bytes_unref(bytes);
+    return 0;
+  } else {
+    wrap_g_object(L, G_OBJECT(texture));
+    g_bytes_unref(bytes);
+    return 1;
+  }
+}
 static inline GdkMemoryFormat cairo_fmt_to_gdk_fmt(cairo_format_t fmt) {
   if (fmt == CAIRO_FORMAT_ARGB32) {
     return GDK_MEMORY_B8G8R8A8;
@@ -823,6 +967,26 @@ static int texture_from_cairo_ptr(lua_State *L) {
   g_bytes_unref(gbytes);
   return 1;
 }
+
+static int texture_save(lua_State *L) {
+  Gwrapper *texture = lua_touserdata(L, 1);
+  const char *path = lua_tostring(L, 2);
+  gdk_texture_save_to_png(GDK_TEXTURE(texture->object), path);
+  return 0;
+}
+static int texture_save_bytes(lua_State *L) {
+  Gwrapper *texture = lua_touserdata(L, 1);
+  GBytes *data = gdk_texture_save_to_png_bytes(GDK_TEXTURE(texture->object));
+  gsize size;
+  const char *bytes = g_bytes_get_data(data, &size);
+  lua_pushlstring(L, bytes , size);
+  free(data);
+  return 1;
+}
+static luaL_Reg texture_methods[] = {{"__gc", gwrapper_gc},
+                                     {"save", texture_save},
+                                     {"save_bytes", texture_save_bytes},
+                                     {NULL, NULL}};
 
 static int picture_new(lua_State *L) {
   return make_a_widget(L, gtk_picture_new);
@@ -870,6 +1034,145 @@ static int load_css(lua_State *L) {
   return 1;
 }
 
+static int clipboard_new(lua_State *L) {
+  GdkDisplay *display = gdk_display_get_default();
+  GdkClipboard *clipboard = gdk_display_get_clipboard(display);
+  wrap_g_object_with_name(L, G_OBJECT(clipboard), "GdkClipboard");
+  return 1;
+}
+
+void gdk_clipboard_read_text_callback(GObject *source_object, GAsyncResult *res,
+                                      gpointer data) {
+  lua_State *L = data;
+  registry_q_pop(L, source_object, "get_text");
+  char *txt =
+      gdk_clipboard_read_text_finish(GDK_CLIPBOARD(source_object), res, NULL);
+  lua_pushstring(L, txt);
+  free(txt);
+  lua_call(L, 1, 0);
+}
+
+static int clipboard_get_text(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  put_to_registry_q(L, w->object, "get_text");
+  gdk_clipboard_read_text_async(GDK_CLIPBOARD(w->object), NULL,
+                                gdk_clipboard_read_text_callback, L);
+  return 0;
+}
+
+void gdk_clipboard_read_texture_callback(GObject *source_object,
+                                         GAsyncResult *res, gpointer data) {
+  lua_State *L = data;
+  registry_q_pop(L, source_object, "get_texture");
+  GdkTexture *texture = gdk_clipboard_read_texture_finish(
+      GDK_CLIPBOARD(source_object), res, NULL);
+  wrap_g_object(L, G_OBJECT(texture));
+  lua_call(L, 1, 0);
+}
+
+static int clipboard_get_texture(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  put_to_registry_q(L, w->object, "get_texture");
+  gdk_clipboard_read_texture_async(GDK_CLIPBOARD(w->object), NULL,
+                                   gdk_clipboard_read_texture_callback, L);
+  return 0;
+}
+
+void clipboard_changed(GdkClipboard *self, gpointer user_data) {
+  lua_State *L = user_data;
+  get_event_callback(L, self, "changed");
+  lua_call(L, 0, 0);
+}
+
+static int clipboard_connect_change(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  put_event_callback_to_registry(L, w->object, "changed");
+  g_signal_connect(G_OBJECT(w->object), "changed",
+                   G_CALLBACK(clipboard_changed), L);
+  return 0;
+}
+static int clipboard_set_text(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  const char *txt = lua_tostring(L, 2);
+  g_signal_handlers_disconnect_by_func(G_OBJECT(w->object),
+                                       G_CALLBACK(clipboard_changed), L);
+  gdk_clipboard_set_text(GDK_CLIPBOARD(w->object), txt);
+  g_signal_connect(G_OBJECT(w->object), "changed",
+                   G_CALLBACK(clipboard_changed), L);
+  return 0;
+}
+static int clipboard_set_texture(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  Gwrapper *texture = lua_touserdata(L, 2);
+  g_signal_handlers_disconnect_by_func(G_OBJECT(w->object),
+                                       G_CALLBACK(clipboard_changed), L);
+  gdk_clipboard_set_texture(GDK_CLIPBOARD(w->object),
+                            GDK_TEXTURE(texture->object));
+  g_signal_connect(G_OBJECT(w->object), "changed",
+                   G_CALLBACK(clipboard_changed), L);
+  return 0;
+}
+static int clipboard_get_content(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  GdkContentProvider *p = gdk_clipboard_get_content(GDK_CLIPBOARD(w->object));
+  lua_pushlightuserdata(L, p);
+  return 1;
+}
+static int clipboard_set_text_content(lua_State *L) {
+  // [GdkClipboard,mime_types,content]
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  g_signal_handlers_disconnect_by_func(G_OBJECT(w->object),
+                                       G_CALLBACK(clipboard_changed), L);
+
+  const char *content = lua_tostring(L, 3);
+  GBytes *bytes = g_bytes_new(content, strlen(content));
+  lua_len(L, 2);
+  LUA_INTEGER len = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+  GdkContentProvider **providers = malloc(len * sizeof(GdkContentProvider *));
+  for (int i = 0; i < len; i++) {
+    lua_rawgeti(L, 2, i + 1);
+    const char *mime = lua_tostring(L, -1);
+    lua_pop(L, 1);
+    providers[i] = gdk_content_provider_new_for_bytes(mime, bytes);
+  }
+
+  GdkContentProvider *provider = gdk_content_provider_new_union(providers, len);
+  gdk_clipboard_set_content(GDK_CLIPBOARD(w->object), provider);
+  g_object_unref(provider);
+  g_bytes_unref(bytes);
+
+  g_signal_connect(G_OBJECT(w->object), "changed",
+                   G_CALLBACK(clipboard_changed), L);
+  return 0;
+}
+static int clipboard_get_mime_type(lua_State *L) {
+  Gwrapper *w = luaL_checkudata(L, 1, "GdkClipboard");
+  GdkContentFormats *fmt = gdk_clipboard_get_formats(GDK_CLIPBOARD(w->object));
+  const char *const *mime_types = gdk_content_formats_get_mime_types(fmt, NULL);
+  lua_createtable(L, 5, 0);
+  int i = 0;
+  if (mime_types) {
+    while (mime_types[i] != NULL) {
+      lua_pushstring(L, mime_types[i]);
+      i++;
+      lua_rawseti(L, -2, i);
+    }
+  }
+  return 1;
+}
+static const luaL_Reg clipboard_methods[] = {
+    {"__gc", gwrapper_gc},
+    {"get_text", clipboard_get_text},
+    {"set_text", clipboard_set_text},
+    {"set_text_content", clipboard_set_text_content},
+    {"get_texture", clipboard_get_texture},
+    {"set_texture", clipboard_set_texture},
+    {"get_mime_types", clipboard_get_mime_type},
+    {"connect_changed", clipboard_connect_change},
+    {NULL, NULL},
+};
+
 MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *gtkapp_[] = {widget_apis, NULL};
   const luaL_Reg gtkapp[] = {{"__gc", gtk_app_gc},
@@ -888,12 +1191,8 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *scrolled[] = {widget_apis, scrolled_win_methods, NULL};
   setup_metatable_(L, "GtkScrolledWindow", scrolled);
 
-  const luaL_Reg listview[] = {{"set_model", listview_set_model},
-                               {"set_factory", listview_set_item_factory},
-                               {"update_model", listview_update_model},
-                               {"scroll_to", listview_scroll_to},
-                               {NULL, NULL}};
-  setup_metatable(L, "GtkListView", listview);
+  const luaL_Reg *listview[] = {widget_apis, listview_methods, NULL};
+  setup_metatable_(L, "GtkListView", listview);
 
   const luaL_Reg signal_item[] = {{NULL, NULL}};
   setup_metatable(L, "GtkSignalItemFactory", signal_item);
@@ -905,9 +1204,16 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *picture[] = {widget_apis, picture_methods, NULL};
   setup_metatable_(L, "GtkPicture", picture);
 
+  const luaL_Reg *clipboard[] = {clipboard_methods, NULL};
+  setup_metatable_(L, "GdkClipboard", clipboard);
+  const luaL_Reg *texture[] = {texture_methods, NULL};
+  setup_metatable_(L, "GdkTexture", texture);
+  setup_metatable_(L, "GdkMemoryTexture", texture);
+
   static const luaL_Reg mylib[] = {
       {"app", gtk_app},
       {"box", box_new},
+      {"clipboard", clipboard_new},
       {"button", button_new},
       {"scrolled_win", scroll_win_new},
       {"picture", picture_new},
@@ -919,6 +1225,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
       {"list_view", listview_new},
       {"signal_item_factory", signal_item_factory_new},
       {"texture_from_file", texture_from_file},
+      {"texture_from_bytes", texture_from_bytes},
       {"texture_from_cairo_ptr", texture_from_cairo_ptr},
       {"load_css", load_css},
       {NULL, NULL}};

@@ -66,6 +66,8 @@
  :KeyCode {:down 116
            :up 111
            :enter 36
+           :9 18
+           :1 10
            :esc 9
            :j 116
            :k 107}}

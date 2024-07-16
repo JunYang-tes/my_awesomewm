@@ -46,4 +46,5 @@
         (print msg)))))
 
 { : load-cfg
+  :cfg_dir cfg_path
   : save-cfg}

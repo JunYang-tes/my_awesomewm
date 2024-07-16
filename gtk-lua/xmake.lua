@@ -6,6 +6,7 @@ add_requires("cairo")
 
 target("gtk-lua")
     set_kind("shared")
+    set_symbols("debug")
     add_files("src/*.c")
     add_packages("lua5.3")
     add_packages("gtk4")
