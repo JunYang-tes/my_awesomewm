@@ -47,15 +47,20 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
                     img.height() as i32,
                 );
                 if let Ok(mut surface) = surface {
+                    let stride = surface.stride();
+                    println!("stride={:}", stride);
                     {
                         let mut surface_data = surface.data().unwrap();
                         for y in 0..img.height() {
                             for x in 0..img.width() {
-                                let index = (y * img.width() * 3 + x) as usize;
+                                let index = (y * img.width() * 3 + 3 * x) as usize;
+                                let sindex = (y * stride as u32 + 4 * x) as usize;
                                 unsafe {
-                                    surface_data[index] = *rgb.get_unchecked(index);
-                                    surface_data[index + 1] = *rgb.get_unchecked(index + 1);
-                                    surface_data[index + 2] = *rgb.get_unchecked(index + 2);
+                                    // blue
+                                    surface_data[sindex] = *rgb.get_unchecked(index + 2);
+                                    // green
+                                    surface_data[sindex + 1] = *rgb.get_unchecked(index + 1);
+                                    surface_data[sindex + 2] = *rgb.get_unchecked(index)
                                 }
                             }
                         }
@@ -75,6 +80,19 @@ pub fn exports(lua: &Lua) -> LuaResult<LuaTable> {
             } else {
                 Err(LuaError::RuntimeError(format!("Invalid Image {:?}", path)))
             }
+        })?,
+    )?;
+    table.set(
+        "destroy_cairo_image_surface",
+        lua.create_function(|_, val: LuaValue| match val {
+            LuaValue::LightUserData(LuaLightUserData(ptr)) => unsafe {
+                drop(cairo::ImageSurface::from_raw_none(
+                    ptr as *mut cairo::ffi::cairo_surface_t,
+                ));
+
+                Ok(())
+            },
+            _ => Ok(()),
         })?,
     )?;
     Ok(table)
