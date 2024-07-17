@@ -41,18 +41,20 @@
          :onButtonRelease (fn [self y x button]
                             (signal.emit
                               :wallpaper::click x y button))
-         :bgimage (fn [ctx cr w h]
-                    (let [surf (gears.surface.load path)
-                          (sw sh) (gears.surface.get_size surf)]
-                      (cr:scale
-                        (/ screen-w sw)
-                        (/ screen-h sh))
-                      (cr:set_source_surface surf 0 0)
-                      (tset cr :operator
-                            cairo.Operator.SOURCE)
-                      (cr:paint)))
+         ; :bgimage (fn [ctx cr w h]
+         ;            (let [surf (gears.surface.load path)
+         ;                  (sw sh) (gears.surface.get_size surf)]
+         ;              (cr:scale
+         ;                (/ screen-w sw)
+         ;                (/ screen-h sh))
+         ;              (cr:set_source_surface surf 0 0)
+         ;              (tset cr :operator
+         ;                    cairo.Operator.SOURCE)
+         ;              (cr:paint)))
          : visible}))))
 
 
 {: set-wallpaper
+ :wallpaper (.. (utils.get-codebase-dir)                    
+                "/theme/win-clastic/wallpaper.jpg")
  :hide #(visible false)}

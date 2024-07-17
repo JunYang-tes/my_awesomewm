@@ -179,6 +179,7 @@
         (popup
           {:visible props.visible
            :screen props.screen
+           :ontop true
            :placement (fn [c]
                         (awful.placement.bottom_left
                           c
