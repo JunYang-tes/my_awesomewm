@@ -79,6 +79,8 @@
                  :class ["Arandr" "Blueman-manager"
                          "feh"
                          "Gpick" "Kruler"
+                         "wechat"
+                         "polkit-kde-authentication-agent-1"
                          "MessageWin" "Sxiv" "Wpa_gui" "veromix"
                          "xtightvncviewer"]
                  :name ["Event Tester"]
