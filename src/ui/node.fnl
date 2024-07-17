@@ -70,12 +70,11 @@
 (local wibar
   (container-node
     (make-builder (fn [props]
-                    (print (inspect props))
                     (awful.wibar
-                      {:widget (wibox.widget {:text ""
-                                              :widget wibox.widget.textbox})
-                       :height props.height
-                       :position :bottom})))
+                      (assign 
+                        props
+                        {:widget (wibox.widget {:text ""
+                                                :widget wibox.widget.textbox})}))))
     (fn [child p]
       (tset p :widget (. child 1)))))
 
