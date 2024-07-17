@@ -396,7 +396,7 @@ const luaL_Reg widget_apis[] = {
     {"connect_key_pressed", widget_connect_key_pressed},
     {"connect_key_pressed_capture", widget_connect_key_pressed_capture},
     {"connect_focus_out", widget_connect_focus_out},
-    {"connect_click_release",widget_connect_click_released},
+    {"connect_click_release", widget_connect_click_released},
     {"grab_focus", widget_grab_focus},
     {"get_first_child", widget_get_first_child},
     {"set_size_request", widget_set_size_request},
@@ -655,8 +655,18 @@ static int scroll_win_new_set_child(lua_State *L) {
   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(w->widget), p->widget);
   return 1;
 }
+static int scroll_win_set_max_content_width(lua_State *L) {
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkScrolledWindow");
+  lua_Integer width = lua_tonumber(L, 2);
+  gtk_scrolled_window_set_max_content_width(GTK_SCROLLED_WINDOW(w->widget),
+                                            width);
+  return 0;
+}
 static const luaL_Reg scrolled_win_methods[] = {
-    {"__gc", widget_gc}, {"set_child", scroll_win_new_set_child}, {NULL, NULL}};
+    {"__gc", widget_gc},
+    {"set_child", scroll_win_new_set_child},
+    {"set_max_content_width", scroll_win_new_set_child},
+    {NULL, NULL}};
 
 static GtkWidget *new_empty_listview() { return gtk_list_view_new(NULL, NULL); }
 static int listview_new(lua_State *L) {
@@ -1030,10 +1040,17 @@ static int picture_set_content_fit(lua_State *L) {
   gtk_picture_set_content_fit(GTK_PICTURE(w->widget), fit);
   return 0;
 }
+static int picture_set_can_shrink(lua_State *L) {
+  Widget *w = luaL_checkudata(L, 1, "GtkPicture");
+  gboolean shrink = lua_toboolean(L, 2);
+  gtk_picture_set_can_shrink(GTK_PICTURE(w->widget), shrink);
+  return 0;
+}
 const static luaL_Reg picture_methods[] = {
     {"__gc", widget_gc},
     {"set_texture", picture_set_texture},
     {"set_content_fit", picture_set_content_fit},
+    {"set_can_shrink", picture_set_can_shrink},
     {NULL, NULL}};
 
 void css_parsing_error(GtkCssProvider *self, GtkCssSection *section,

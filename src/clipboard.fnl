@@ -69,6 +69,17 @@
       msgpack.encode
       out:write)))
 
+(fn mime-satisfy [predict]
+  (fn [mime_types] 
+    (print :mime_types (inspect mime_types))
+    (list.some mime_types predict)))
+
+(local has-html 
+  (mime-satisfy
+    (fn [item]
+      (print :has-html (inspect item))
+      (stringx.includes item :html))))
+
 (local clipboard (gtk.clipboard))
 (clipboard:connect_changed
   (timer.debounce
@@ -165,10 +176,45 @@
        (save-clipboard-items (clipboard-items)))
     0.2))
 
-
-(local win 
-  (run 
-    (window
+(defn detail
+  (local text (value ""))
+  (box
+    {:visible (map props.item #(not= $1 nil))
+     :size_request [500 0]
+     :hexpand true}
+    (scrolled-window
+      {:hexpand true
+       ;:max_content_width 500
+       :vexpand true}
+      (map props.item (fn [item]
+                        (if (= nil item)
+                          (label {:label "Empty"})
+                          (match item.type
+                            :image (picture {:texture item.texture
+                                             :can_shrink false
+                                             :content_fit consts.ContentFit.Contain})
+                            :text (if (has-html item.mime_types)
+                                    (label {:markup item.content})
+                                    (label {:text item.content})))))))
+    (label {:markup (map props.item
+                         #(.. "<b>Mime types:</b>"
+                              (table.concat (or (?. $1 :mime_types)
+                                                []))))
+            :halign consts.Align.Start})
+    (label {:label :Remark
+            :halign consts.Align.Start})
+    (entry 
+      {:connect_change (fn [txt]
+                         (text txt))
+       :connect_key_pressed_capture
+       (fn [_ code]
+         (match (tonumber code)
+           consts.KeyCode.enter ((props.onRemarkUpdate) (text))))})))
+(defn clipboard-root
+  (local selected-item (mapn [filtered-item selected-index]
+                             (fn [[items index]]
+                               (. items (+ 1 index)))))
+  (window
       {: visible
        :title "Clipboard"
        :size_request [500 500]
@@ -190,29 +236,38 @@
                  consts.KeyCode.esc (visible false)
                  consts.KeyCode.enter (execute-paste (+ 1 (selected-index)))))})
                                                    
-        (scrolled-window
-          {:vexpand true}
-          (list-view
-            {
-              :data filtered-item
-              :show_separators true
-              :render (fn [item]
-                        (box
-                          {:connect_click_release 
-                           (fn []
-                             (let [index (. (item) :index)]
-                               (execute-paste index)))}
-                          (map item
-                               (fn [item]
-                                 (match item.type
-                                   :text (label {:label item.sub
-                                                 :xalign 0})
-                                   :image (box {:size_request [100 100]
-                                                :orientation consts.Orientation.Horizontal
-                                                :valign consts.Align.Center
-                                                :halign consts.Align.Start
-                                                :vexpand false :hexpand false}
-                                            (picture {:texture item.texture})))))))}))))))
+        (box
+          {:orientation consts.Orientation.Horizontal}
+          (scrolled-window
+            {:vexpand true
+             :size_request [300 0]}
+            (list-view
+              {
+                :data filtered-item
+                :show_separators true
+                :render (fn [item]
+                          (box
+                            {:connect_click_release 
+                             (fn []
+                               (let [index (. (item) :index)]
+                                 (selected-index (- index 1))))}
+                                 ;(execute-paste index)))}
+                            (map item
+                                 (fn [item]
+                                   (match item.type
+                                     :text (label {:label item.sub
+                                                   :xalign 0})
+                                     :image (box {:size_request [100 100]
+                                                  :orientation consts.Orientation.Horizontal
+                                                  :valign consts.Align.Center
+                                                  :halign consts.Align.Start
+                                                  :vexpand false :hexpand false}
+                                              (picture {:texture item.texture})))))))}))
+          (detail {:item selected-item})))))
+
+(local win 
+  (run (clipboard-root))) 
+    
 
 {:show (fn [client]
          (when (<= (length (clipboard-items)) 1)
