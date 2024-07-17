@@ -112,6 +112,11 @@
                   (list.map curr #$1))))))))
     100))
                     
+(fn update-remark [index remark]
+  (let [items (clipboard-items)
+        item (. items index)]
+    (tset item :remark remark)
+    (save-clipboard-items)))
 (fn send_ctrl_v []
   (_G.root.fake_input :key_press :Control_L)
   (_G.root.fake_input :key_press :v)
@@ -209,7 +214,9 @@
        :connect_key_pressed_capture
        (fn [_ code]
          (match (tonumber code)
-           consts.KeyCode.enter ((props.onRemarkUpdate) (text))))})))
+           consts.KeyCode.enter (let [onRemarkUpdate (props.onRemarkUpdate)]
+                                  (print :enter onRemarkUpdate)
+                                  (onRemarkUpdate (text)))))})))
 (defn clipboard-root
   (local selected-item (mapn [filtered-item selected-index]
                              (fn [[items index]]
@@ -263,7 +270,13 @@
                                                   :halign consts.Align.Start
                                                   :vexpand false :hexpand false}
                                               (picture {:texture item.texture})))))))}))
-          (detail {:item selected-item})))))
+          (detail {:item selected-item
+                   :onRemarkUpdate (fn [txt]
+                                     (let [item (selected-item)]
+                                       (print (inspect item) txt)
+                                       (update-remark
+                                         item.index
+                                         txt)))})))))
 
 (local win 
   (run (clipboard-root))) 
