@@ -5,11 +5,11 @@
 (local {: popup
         : imagebox} (require :ui.node))
 (local {: run } (require :lite-reactive.app))
-(local {: set-wallpaper} (require :theme.win-clastic.wallpaper))
+(local wallpaper (require :theme.win-clastic.wallpaper))
 (local win-switcher (require :theme.win-clastic.win-switcher))
 
 
 {: titlebar
- : set-wallpaper
+ : wallpaper
  : win-switcher
  : taskbar}

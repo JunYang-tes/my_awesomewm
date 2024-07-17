@@ -1,5 +1,6 @@
 (local gears (require :gears))
 (local utils (require :utils.utils))
+(local awful (require :awful))
 (local {: popup
         : imagebox} (require :ui.node))
 (local {: run } (require :lite-reactive.app))
@@ -9,17 +10,20 @@
 (local signal (require :utils.signal))
 (local inspect (require :inspect))
 (local {: keys} (require :utils.table))
+(local visible (value false))
 (fn set-wallpaper
   [tag]
+  (visible true)
   (let [screen-w tag.screen.geometry.width
         screen-h tag.screen.geometry.height
-        visible (value true)
         path (..
                     (utils.get-codebase-dir)
                     "/theme/win-clastic/wallpaper.jpg")]
     (fn select-tag [t]
       (when (= t tag)
-        (if t.selected
+        (if (and t.selected
+                 (= tag.layout
+                    awful.layout.suit.floating))
           (visible true)
           (visible false))))
     (signal.connect-signal
@@ -50,4 +54,5 @@
          : visible}))))
 
 
-{: set-wallpaper}
+{: set-wallpaper
+ :hide #(visible false)}
