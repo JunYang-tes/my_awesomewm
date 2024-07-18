@@ -155,8 +155,11 @@
                                              (tset item :index index)
                                              item))
                                  (list.filter 
-                                   #(stringx.includes
-                                      $1.sub input))))))
+                                   #(or
+                                      (stringx.includes
+                                        (or $1.remark "") input)
+                                      (stringx.includes
+                                        $1.sub input)))))))
 
 (fn move-to-first [index]
   (let [items (clipboard-items)
