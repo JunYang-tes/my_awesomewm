@@ -134,7 +134,7 @@
                          (item_props data_item))))
             teardown (fn [child]
                        (table.insert widget_pool child))
-            item_factory (gtk4.signal_item_factory setup bind teardown)
+            item_factory (gtk4.signal_item_factory setup bind teardown unbind)
             view (list-view-atom
                    {:factory item_factory})]
         

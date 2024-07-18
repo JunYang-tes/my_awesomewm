@@ -284,7 +284,8 @@ gboolean on_key_pressed_capture(GtkEventControllerKey *self, guint keyval,
   lua_pushinteger(L, keyval);
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
-  lua_call(L, 3, 1);
+  wrap_gtk_widget(L,w);
+  lua_call(L, 4, 1);
   bool processed = lua_toboolean(L, -1);
   lua_pop(L, -1);
   return processed;
@@ -841,7 +842,7 @@ void signal_item_on_setup(GtkSignalListItemFactory *self, GObject *object,
   }
 }
 static int signal_item_factory_new(lua_State *L) {
-  if (lua_gettop(L) != 3) {
+  if (lua_gettop(L) < 4) {
     lua_pushliteral(L, "Too few arguemnts to create SignalItemFactory");
     lua_error(L);
     return 0;
