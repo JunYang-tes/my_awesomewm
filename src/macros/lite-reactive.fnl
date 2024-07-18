@@ -13,6 +13,7 @@
       (table.insert f e))
     `(let [{:unmount unmt#} (require :lite-reactive.app)]
        (unmt# ,f))))
+
 (fn onchange [obs ...]
   (let [old (sym :old)
         new (sym :new)
