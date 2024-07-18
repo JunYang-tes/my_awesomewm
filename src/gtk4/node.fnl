@@ -2,6 +2,7 @@
                 : time-it} :utils)
 (import-macros {: defn
                 : unmount
+                : onchange
                 : effect } :lite-reactive)
 (local { : atom-node
          : custom-node
@@ -88,7 +89,11 @@
     ;;
     (fn [props]
       (let [items {}
-             widget_pool {}
+            data_size (observable.map props.data #(if (= nil $1)
+                                                    0
+                                                    (length $1)))
+            widget_pool {}
+            bind_children []
             counter {:create 1}
             render (props.render)
             run (use-run)
@@ -106,10 +111,27 @@
                         child)))
             bind (fn [child i]
                    (let [data_items (props.data)
+                         idx (tonumber i)
+                         child_addr (child:address)
                          item_props (. items (child:address))
-                         data_item (. data_items (tonumber i))]
-                     (tset data_item :_data_index (tonumber i))
+                         data_item (. data_items idx)]
+                     (table.insert bind_children [idx child_addr])
+                     (tset data_item :_data_index idx)
                      (item_props data_item)))
+            unbind (fn [_ i]
+                     (let [idx (tonumber i)]
+                       (list.remove-value-by! 
+                         bind_children
+                         (fn [[i _addr]]
+                           (= i idx)))))
+                       
+            rebind (fn []
+                     (each [_ [idx child_addr] (ipairs bind_children)]
+                       (let [item_props (. items child_addr)
+                             data_items (props.data)
+                             data_item (. data_items idx)]
+                         (tset data_item :_data_index idx)
+                         (item_props data_item))))
             teardown (fn [child]
                        (table.insert widget_pool child))
             item_factory (gtk4.signal_item_factory setup bind teardown)
@@ -121,12 +143,15 @@
                   (let [v (view)
                         data (props.data)]
                     (v:set_model (list.range 1 (+ 1 (length data)))))))
-        (effect [props.data]
-                (when (on-built)
-                  (let [v (view)
-                        data (props.data)]
-                    (time-it "update count"
-                      (v:update_model (list.range 1 (+ 1 (length data))))))))
+        (onchange [props.data]
+                  (let [[old] old
+                        [new] new
+                        v (view)
+                        old-size (length old)
+                        new-size (length new)]
+                    (if (= old new)
+                      (rebind); rebind to keep listview interal state,e.g.,scroll position
+                      (v:update_model (list.range 1 (+ 1 (length new)))))))
         view))))
 
 
