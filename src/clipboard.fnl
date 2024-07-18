@@ -206,14 +206,18 @@
                                              :can_shrink false
                                              :content_fit consts.ContentFit.Contain})
                             :text (if (has-html item.mime_types)
-                                    (label {:markup item.content})
-                                    (label {:text item.content})))))))
+                                    (label {:markup item.content
+                                            :wrap true})
+                                    (label {:text item.content
+                                            :wrap true})))))))
     (label {:markup (map props.item
-                         #(.. "<b>Mime types:</b>"
+                         #(.. "<b>Mime types: </b>"
                               (table.concat (or (?. $1 :mime_types)
-                                                []))))
-            :halign consts.Align.Start})
-    (label {:label :Remark
+                                                [])
+                                            ";")))
+            :halign consts.Align.Start
+            :wrap true})
+    (label {:markup "<b>Remark: </b>"
             :halign consts.Align.Start})
     (entry 
       {:connect_change (fn [txt]
