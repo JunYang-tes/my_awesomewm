@@ -82,6 +82,16 @@
     (fn [item]
       (stringx.includes item :html))))
 
+(fn is-url [content]
+  (or 
+    (stringx.starts-with content :http://)
+    (stringx.starts-with content :ftp://)
+    (stringx.starts-with content :file://)
+    (stringx.starts-with content :https://)))
+(fn make-link [uri]
+  (string.format "<a href='%s'>%s</a>" uri uri))
+  
+
 (local clipboard (gtk.clipboard))
 (clipboard:connect_changed
   (timer.debounce
@@ -210,6 +220,8 @@
                             :text (if (has-html item.mime_types)
                                     (label {:markup item.content
                                             :wrap true})
+                                    (is-url item.content) (label {:markup (make-link item.content)
+                                                                   :wrap true})
                                     (label {:text item.content
                                             :wrap true})))))))
     (label {:markup (map props.item
@@ -274,6 +286,8 @@
                               (map item
                                    (fn [item]
                                      (match item.type
+                                       (where :text (is-url item.content)) (label {:markup (make-link item.content)
+                                                                                   :xalign 0})
                                        :text (label {:label item.sub
                                                      :xalign 0})
                                        :image (box {:size_request [100 100]
