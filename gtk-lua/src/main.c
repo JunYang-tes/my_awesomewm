@@ -890,7 +890,7 @@ static int signal_item_factory_new(lua_State *L) {
 }
 static int listview_set_show_separators(lua_State *L) {
   Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkListView");
-  gboolean show_sep = lua_tonumber(L, 2);
+  gboolean show_sep = lua_toboolean(L, 2);
   gtk_list_view_set_show_separators(GTK_LIST_VIEW(w->widget), show_sep);
   return 0;
 }

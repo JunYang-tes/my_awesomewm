@@ -136,7 +136,8 @@
                        (table.insert widget_pool child))
             item_factory (gtk4.signal_item_factory setup bind teardown unbind)
             view (list-view-atom
-                   {:factory item_factory})]
+                   {:factory item_factory
+                    :show_separators props.show_separators})]
         
         (effect [on-built]
                 (when (on-built)
