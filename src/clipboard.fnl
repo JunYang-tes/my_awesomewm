@@ -189,7 +189,6 @@
     0.2))
 
 (defn detail
-  (local text (value ""))
   (box
     {:visible (map props.item #(not= $1 nil))
      :size_request [500 0]
@@ -220,13 +219,13 @@
     (label {:markup "<b>Remark: </b>"
             :halign consts.Align.Start})
     (entry 
-      {:connect_change (fn [txt]
-                         (text txt))
+      {
        :connect_key_pressed_capture
-       (fn [_ code]
+       (fn [_ code _ entry]
          (match (tonumber code)
            consts.KeyCode.enter (let [onRemarkUpdate (props.onRemarkUpdate)]
-                                  (onRemarkUpdate (text)))))})))
+                                  (onRemarkUpdate (entry:get_text))
+                                  (entry:set_text ""))))})))
 (defn clipboard-root
   (local selected-item (mapn [filtered-item selected-index]
                              (fn [[items index]]
