@@ -21,8 +21,8 @@
 
 (fn value [initial] 
   (var value initial)
-  (local observers [])
-  (local weak-observers (weak-value-table))
+  (var observers [])
+  (var weak-observers (weak-value-table))
   (fn set-value [new]
      (if (not= new value)
       (do
@@ -51,6 +51,10 @@
                                            (fn remove []
                                              (list.remove-value! weak-observers observer)))
                       :weak-observer-count #(length weak-observers)
+                      :destroy (fn []
+                                 (set value nil)
+                                 (set observers nil)
+                                 (set weak-observers nil))
                       :--observable true}
                     {:__call (fn [_ new] 
                                (if (not= nil new)

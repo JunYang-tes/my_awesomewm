@@ -13,6 +13,19 @@
       (table.insert f e))
     `(let [{:unmount unmt#} (require :lite-reactive.app)]
        (unmt# ,f))))
+(fn onchange [obs ...]
+  (let [old (sym :old)
+        new (sym :new)
+        executor `(fn [,new ,old])]
+    (each [_ e (ipairs [...])]
+      (table.insert executor e))
+    `(let [r# (require :lite-reactive.observable)
+           val# (r#.mapn ,obs #$1)]
+       (val#.add-observer
+         ,executor)
+       (unmount 
+         (val#.destroy)))))
+
 (fn effect [obs ...]
   (let [run-effect `(fn [])]
     (each [_ e (ipairs [...])]
@@ -35,4 +48,5 @@
 
 { : defn
   : unmount
+  : onchange
   : effect}
