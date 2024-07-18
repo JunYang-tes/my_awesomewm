@@ -224,7 +224,7 @@
        (fn [_ code _ entry]
          (match (tonumber code)
            consts.KeyCode.enter (let [onRemarkUpdate (props.onRemarkUpdate)]
-                                  (onRemarkUpdate (entry:get_text))
+                                  (onRemarkUpdate (entry:text))
                                   (entry:set_text ""))))})))
 (defn clipboard-root
   (local selected-item (mapn [filtered-item selected-index]
