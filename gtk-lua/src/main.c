@@ -792,6 +792,29 @@ void signal_item_on_bind(GtkSignalListItemFactory *self, GObject *object,
     lua_pop(L, should_pop);
   }
 }
+void signal_item_on_unbind(GtkSignalListItemFactory *self, GObject *object,
+                         gpointer user_data) {
+  GtkListItem *item = GTK_LIST_ITEM(object);
+
+  lua_State *L = (lua_State *)user_data;
+  int stack_size = lua_gettop(L);
+  lua_pushlightuserdata(L, self);
+  lua_gettable(L, LUA_REGISTRYINDEX); //[table ..]
+  lua_rawgeti(L, -1, 4);              // [bind table ]
+  //
+  wrap_gtk_widget(L, gtk_list_item_get_child(item)); // [chid,bind,table ...]
+
+  const char *content = gtk_string_object_get_string(
+
+      GTK_STRING_OBJECT(gtk_list_item_get_item(item)));
+  lua_pushstring(L, content); // [list-data,child,bind ...]
+
+  lua_call(L, 2, 0);
+  int should_pop = lua_gettop(L) - stack_size;
+  if (should_pop > 0) {
+    lua_pop(L, should_pop);
+  }
+}
 void signal_item_on_setup(GtkSignalListItemFactory *self, GObject *object,
                           gpointer user_data) {
   GtkListItem *item = GTK_LIST_ITEM(object);
@@ -825,7 +848,8 @@ static int signal_item_factory_new(lua_State *L) {
   }
   luaL_checktype(L, 1, LUA_TFUNCTION); // setup callback (Lua fn)
   luaL_checktype(L, 2, LUA_TFUNCTION); // bind callback (Lua fn)
-  luaL_checktype(L, 3, LUA_TFUNCTION); // bind callback (Lua fn)
+  luaL_checktype(L, 3, LUA_TFUNCTION); // teardown callback (Lua fn)
+  luaL_checktype(L, 4, LUA_TFUNCTION); // unbind
 
   GtkWrapper *wrapper = (GtkWrapper *)lua_newuserdata(L, sizeof(GtkWrapper));
 
@@ -844,6 +868,9 @@ static int signal_item_factory_new(lua_State *L) {
   lua_pushvalue(L, 3);   // [teardown table ...]
   lua_rawseti(L, -2, 3); // table[3] = teardown
 
+  lua_pushvalue(L,4);// [unbind table ...]
+  lua_rawseti(L,-2,4);// table[4]=unbind
+
   lua_pushlightuserdata(L, wrapper->fields[0]); // [ludata,table ...]
   lua_pushvalue(L, -2);                         // [table,ludata,table ...]
   lua_settable(L, LUA_REGISTRYINDEX); // registry[ludata] = table,[table ...]
@@ -851,6 +878,8 @@ static int signal_item_factory_new(lua_State *L) {
   g_signal_connect(wrapper->fields[0], "setup",
                    G_CALLBACK(signal_item_on_setup), L);
   g_signal_connect(wrapper->fields[0], "bind", G_CALLBACK(signal_item_on_bind),
+                   L);
+  g_signal_connect(wrapper->fields[0], "unbind", G_CALLBACK(signal_item_on_unbind),
                    L);
   g_signal_connect(wrapper->fields[0], "teardown",
                    G_CALLBACK(signal_item_on_teardown), L);

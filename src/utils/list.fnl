@@ -53,12 +53,19 @@
 
 (fn remove-value! [list value]
   (var ind   0)
-  (each [i v (ipairs list)]
+  (each [i v (ipairs list) :until (> ind 0)]
     (if (= v value)
         (set ind i)))
   (if (> ind 0)
       (table.remove list ind))
   list)
+(fn remove-value-by! [list predict]
+  (var ind 0)
+  (each [i v (ipairs list) :until (> ind 0)]
+    (if (predict v)
+      (set ind i)))
+  (if (> ind 0)
+    (table.remove list ind)))
 
 (fn push [list value]
   (let [r (map list (fn [a] a))]
@@ -173,6 +180,7 @@
   : is-list
   : flatten
   : remove-value!
+  : remove-value-by!
   : reduce
   : max-by
   : min-by
