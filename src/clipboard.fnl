@@ -47,37 +47,39 @@
   (case (io.open (.. cfg.cfg_dir "clipboard.dat") :r)
     f (let [data (f:read :*all)
             decoded (msgpack.decode data)]
-        (-> decoded
-          (list.map
-            (fn [item]
-              (assign item
-                      (match item.type
-                        :image {:texture (gtk.texture_from_bytes item.texture)}
-                        _ {}))))
-          clipboard-items))))
+        (when decoded
+          (-> decoded
+            (list.map
+              (fn [item]
+                (assign item
+                        (match item.type
+                          :image {:texture (gtk.texture_from_bytes item.texture)}
+                          _ {}))))
+            clipboard-items)))))
 
 (fn save-clipboard-items [items]
-  (with-open [out (io.open (.. cfg.cfg_dir "clipboard.dat") :w)]
-    (-> items
-      (list.slice 1 max-save-count)
-      (list.map
-        (fn [item]
-          (assign item
-                  (match item.type
-                    :image {:texture (item.texture:save_bytes)}
-                    _ {}))))
-      msgpack.encode
-      out:write)))
+  (when (and items
+             (> (length items)
+                0))
+    (with-open [out (io.open (.. cfg.cfg_dir "clipboard.dat") :w)]
+      (-> items
+        (list.slice 1 max-save-count)
+        (list.map
+          (fn [item]
+            (assign item
+                    (match item.type
+                      :image {:texture (item.texture:save_bytes)}
+                      _ {}))))
+        msgpack.encode
+        out:write))))
 
 (fn mime-satisfy [predict]
   (fn [mime_types] 
-    (print :mime_types (inspect mime_types))
     (list.some mime_types predict)))
 
 (local has-html 
   (mime-satisfy
     (fn [item]
-      (print :has-html (inspect item))
       (stringx.includes item :html))))
 
 (local clipboard (gtk.clipboard))
@@ -92,6 +94,7 @@
                 (let [curr (clipboard-items)]
                   (table.insert curr 1 {:content txt
                                         :sub (string.sub txt 1 100)
+                                        :remark ""
                                         :mime_types 
                                           (list.filter mime_types
                                                        ;; ... application/vnd.portal.filetransfer
@@ -106,6 +109,7 @@
               (let [curr (clipboard-items)]
                 (table.insert curr 1 {:texture texture
                                       :sub "Image"
+                                      :remark ""
                                       :mime_types mime_types
                                       :type :image})
                 (clipboard-items
@@ -116,7 +120,10 @@
   (let [items (clipboard-items)
         item (. items index)]
     (tset item :remark remark)
-    (save-clipboard-items)))
+    (clipboard-items
+      (list.map items #$1))
+    (save-clipboard-items
+      items)))
 (fn send_ctrl_v []
   (_G.root.fake_input :key_press :Control_L)
   (_G.root.fake_input :key_press :v)
@@ -215,7 +222,6 @@
        (fn [_ code]
          (match (tonumber code)
            consts.KeyCode.enter (let [onRemarkUpdate (props.onRemarkUpdate)]
-                                  (print :enter onRemarkUpdate)
                                   (onRemarkUpdate (text)))))})))
 (defn clipboard-root
   (local selected-item (mapn [filtered-item selected-index]
@@ -258,18 +264,21 @@
                              (fn []
                                (let [index (. (item) :index)]
                                  (selected-index (- index 1))))}
-                                 ;(execute-paste index)))}
-                            (map item
-                                 (fn [item]
-                                   (match item.type
-                                     :text (label {:label item.sub
-                                                   :xalign 0})
-                                     :image (box {:size_request [100 100]
-                                                  :orientation consts.Orientation.Horizontal
-                                                  :valign consts.Align.Center
-                                                  :halign consts.Align.Start
-                                                  :vexpand false :hexpand false}
-                                              (picture {:texture item.texture})))))))}))
+                            (box
+                              (map item
+                                   (fn [item]
+                                     (match item.type
+                                       :text (label {:label item.sub
+                                                     :xalign 0})
+                                       :image (box {:size_request [100 100]
+                                                    :orientation consts.Orientation.Horizontal
+                                                    :valign consts.Align.Center
+                                                    :halign consts.Align.Start
+                                                    :vexpand false :hexpand false}
+                                                (picture {:texture item.texture}))))))
+                            (label {:text (map item #(or $1.remark
+                                                         ""))
+                                    :xalign 0})))}))
           (detail {:item selected-item
                    :onRemarkUpdate (fn [txt]
                                      (let [item (selected-item)]
