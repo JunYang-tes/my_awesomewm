@@ -600,7 +600,7 @@ static int label_set_ellipsize(lua_State *L) {
 const luaL_Reg label_methods[] = {{"__gc", widget_gc},
                                   {"set_text", label_set_text},
                                   {"set_label", label_set_text},
-                                  {"set_ellipsize",label_set_ellipsize},
+                                  {"set_ellipsize", label_set_ellipsize},
                                   {"set_wrap", label_set_wrap},
                                   {"set_wrap_mode", label_set_wrap_mode},
                                   {"set_xalign", label_set_xalign},
@@ -972,10 +972,20 @@ static int entry_connect_changed(lua_State *L) {
   g_signal_connect(w->widget, "changed", G_CALLBACK(on_entry_text_changed), L);
   return 0;
 }
+static int entry_set_placeholder(lua_State *L) {
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkEntry");
+  const char *placeholder = lua_tostring(L, 2);
+  gtk_entry_set_placeholder_text(GTK_ENTRY(w->widget), placeholder);
+  return 0;
+}
 static const luaL_Reg entry_methods[] = {
-    {"__gc", widget_gc},          {"connect_changed", entry_connect_changed},
-    {"text", entry_get_text},     {"connect_change", entry_connect_changed},
-    {"set_text", entry_set_text}, {NULL, NULL}};
+    {"__gc", widget_gc},
+    {"connect_changed", entry_connect_changed},
+    {"text", entry_get_text},
+    {"connect_change", entry_connect_changed},
+    {"set_placeholder", entry_set_placeholder},
+    {"set_text", entry_set_text},
+    {NULL, NULL}};
 
 static void setup_metatable(lua_State *L, const char *name,
                             const luaL_Reg *items) {
