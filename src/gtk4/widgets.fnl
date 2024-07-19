@@ -76,6 +76,7 @@
                                   :label (make-setter :label "")
                                   :markup (make-setter :markup "")})
  :button (make-builder gtk.button)
+ :overlay (make-builder gtk.overlay)
  :icon-button (make-builder (fn [props]
                               (let [name props.name]
                                 (gtk.icon_button

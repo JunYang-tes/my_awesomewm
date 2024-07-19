@@ -1129,6 +1129,26 @@ const static luaL_Reg picture_methods[] = {
     {"set_can_shrink", picture_set_can_shrink},
     {NULL, NULL}};
 
+static int overlay_new(lua_State *L) {
+  return make_a_widget(L, gtk_overlay_new);
+}
+static int overlay_set_child(lua_State *L) {
+  Widget *w = luaL_checkudata(L, 1, "GtkOverlay");
+  Widget *c = lua_touserdata(L, 2);
+  gtk_overlay_set_child(GTK_OVERLAY(w->widget), c->widget);
+  return 0;
+}
+static int overlay_set_overlay(lua_State *L) {
+  Widget *w = luaL_checkudata(L, 1, "GtkOverlay");
+  Widget *c = lua_touserdata(L, 2);
+  gtk_overlay_add_overlay(GTK_OVERLAY(w->widget), c->widget);
+  return 0;
+}
+const static luaL_Reg overlay_methods[] = {{"__gc", widget_gc},
+                                           {"set_child", overlay_set_child},
+                                           {"set_overlay", overlay_set_overlay},
+                                           {NULL, NULL}};
+
 void css_parsing_error(GtkCssProvider *self, GtkCssSection *section,
                        GError *error, gpointer user_data) {
   printf("[C] css error: %s", error->message);
@@ -1328,6 +1348,8 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *texture[] = {texture_methods, NULL};
   setup_metatable_(L, "GdkTexture", texture);
   setup_metatable_(L, "GdkMemoryTexture", texture);
+  const luaL_Reg *overlay[] = {widget_apis,overlay_methods,NULL};
+  setup_metatable_(L,"GtkOverlay",overlay);
 
   static const luaL_Reg mylib[] = {
       {"app", gtk_app},
@@ -1348,6 +1370,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
       {"texture_from_bytes", texture_from_bytes},
       {"texture_from_cairo_ptr", texture_from_cairo_ptr},
       {"load_css", load_css},
+      {"overlay", overlay_new},
       {NULL, NULL}};
   luaL_newlib(L, mylib);
   return 1;

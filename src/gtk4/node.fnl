@@ -154,6 +154,14 @@
                       (rebind); rebind to keep listview interal state,e.g.,scroll position
                       (v:update_model (list.range 1 (+ 1 (length new)))))))
         view))))
+(local overlay
+  (container-node
+    widgets.overlay
+    (fn [children overlay]
+      (let [overlay_widget (. children 1)
+            child (. children 2)]
+        (overlay:set_overlay overlay_widget)
+        (overlay:set_child child)))))
 
 
 { :button (atom-node widgets.button :Button)
@@ -166,6 +174,7 @@
   :label (atom-node widgets.label :Label)
   :picture (atom-node widgets.picture :Picture)
   : window
+  : overlay
   : scrolled-window}
 
 
