@@ -11,6 +11,7 @@
         : box
         : label
         : list-view
+        : icon-button
         : picture
         : scrolled-window
         : entry} (require :gtk4.node))
@@ -235,6 +236,7 @@
             :halign consts.Align.Start})
     (entry 
       {
+       :placeholder "type remark here, press enter to update"
        :connect_key_pressed_capture
        (fn [_ code _ entry]
          (match (tonumber code)
@@ -260,6 +262,7 @@
           {:connect_map (fn [entry]
                           (entry:set_text "")
                           (entry:grab_focus))
+           :placeholder "Search content/remark here"
            :connect_change (fn [txt] (input txt))
            :connect_key_pressed_capture 
              (fn [_ code state]
@@ -271,7 +274,8 @@
           {:orientation consts.Orientation.Horizontal}
           (scrolled-window
             {:vexpand true
-             :size_request [300 0]}
+             ;:hpolicy consts.PolicyType.never
+             :size_request [400 0]}
             (list-view
               {
                 :data filtered-item
@@ -281,14 +285,17 @@
                             {:connect_click_release 
                              (fn []
                                (let [index (. (item) :index)]
-                                 (selected-index (- index 1))))}
+                                 (execute-paste index)))}
                             (box
                               (map item
                                    (fn [item]
                                      (match item.type
-                                       (where :text (is-url item.content)) (label {:markup (make-link item.content)
-                                                                                   :xalign 0})
+                                       (where :text (is-url item.content)) 
+                                       (label {:markup (make-link item.content)
+                                               :ellipsize consts.PangoEllipsizeMode.middle
+                                               :xalign 0})
                                        :text (label {:label item.sub
+                                                     :ellipsize consts.PangoEllipsizeMode.middle
                                                      :xalign 0})
                                        :image (box {:size_request [100 100]
                                                     :orientation consts.Orientation.Horizontal
@@ -296,9 +303,23 @@
                                                     :halign consts.Align.Start
                                                     :vexpand false :hexpand false}
                                                 (picture {:texture item.texture}))))))
-                            (label {:text (map item #(or $1.remark
-                                                         ""))
-                                    :xalign 0})))}))
+                            (box
+                              {:orientation consts.Orientation.Horizontal}
+                              (label {:text (map item #(or $1.remark
+                                                           ""))
+                                      :hexpand true
+                                      :xalign 0})
+                              (icon-button
+                                {:name :document-print-preview
+                                 :connect_click (fn []
+                                                  (let [index (. (item) :_data_index)]
+                                                    (selected-index (- index 1))))})
+                              (icon-button
+                                {:name :edit-clear
+                                 :connect_click (fn []
+                                                  (clipboard-items
+                                                    (list.filter (clipboard-items)
+                                                                 #(not= $1 (item)))))}))))}))
           (detail {:item selected-item
                    :onRemarkUpdate (fn [txt]
                                      (let [item (selected-item)]
