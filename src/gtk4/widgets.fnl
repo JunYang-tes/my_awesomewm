@@ -8,7 +8,7 @@
 (local inspect (require :inspect))
 (local {: assign} (require :utils.table))
 
-(fn make-builder [Ctor props-setter]
+(fn make-builder [Ctor props-setter ctor-has-param]
   (local props-setter (or props-setter {}))
   (tset props-setter :class
         (fn [w cls old]
@@ -44,7 +44,10 @@
     (let [
           ; props (assign {:visible true}
           ;               (or props {}))
-          widget (Ctor)
+          widget (if ctor-has-param
+                   (Ctor props)
+                   (Ctor))
+
           disposeable (icollect [k v (pairs props)]
                         (when (not= v nil)
                           (apply-property
@@ -73,6 +76,15 @@
                                   :label (make-setter :label "")
                                   :markup (make-setter :markup "")})
  :button (make-builder gtk.button)
+ :icon-button (make-builder (fn [props]
+                              (let [name props.name]
+                                (gtk.icon_button
+                                  (if (is-observable name)
+                                    (name)
+                                    name))))
+                            {}
+                            true)
+                                  
  ;:menu-button (make-builder gtk.menu_button)
  ;:image (make-builder gtk.image {:size (vargs :size)})
  :picture (make-builder gtk.picture {:size (vargs :size)

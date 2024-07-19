@@ -4,6 +4,7 @@
 #include "glib-object.h"
 #include "glib.h"
 #include "luaconf.h"
+#include "pango/pango-layout.h"
 #include <gtk-4.0/gtk/gtkcssprovider.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -284,7 +285,7 @@ gboolean on_key_pressed_capture(GtkEventControllerKey *self, guint keyval,
   lua_pushinteger(L, keyval);
   lua_pushinteger(L, keycode);
   lua_pushinteger(L, state);
-  wrap_gtk_widget(L,w);
+  wrap_gtk_widget(L, w);
   lua_call(L, 4, 1);
   bool processed = lua_toboolean(L, -1);
   lua_pop(L, -1);
@@ -419,6 +420,12 @@ static inline int make_a_widget(lua_State *L, widget_factory factory) {
 }
 
 static int button_new(lua_State *L) { return make_a_widget(L, gtk_button_new); }
+static int button_from_icon_name(lua_State *L) {
+  const char *name = lua_tostring(L, 1);
+  GtkWidget *w = gtk_button_new_from_icon_name(name);
+  wrap_gtk_widget(L, w);
+  return 1;
+}
 static void on_button_click(GtkButton *self, gpointer user_data) {
   lua_State *L = user_data;
   int stack_size = lua_gettop(L);
@@ -584,9 +591,16 @@ static int label_set_wrap_mode(lua_State *L) {
   gtk_label_set_wrap_mode(GTK_LABEL(label->widget), wrap);
   return 0;
 }
+static int label_set_ellipsize(lua_State *L) {
+  Widget *label = (Widget *)luaL_checkudata(L, 1, "GtkLabel");
+  PangoEllipsizeMode mode = lua_tonumber(L, 2);
+  gtk_label_set_ellipsize(GTK_LABEL(label->widget), mode);
+  return 0;
+}
 const luaL_Reg label_methods[] = {{"__gc", widget_gc},
                                   {"set_text", label_set_text},
                                   {"set_label", label_set_text},
+                                  {"set_ellipsize",label_set_ellipsize},
                                   {"set_wrap", label_set_wrap},
                                   {"set_wrap_mode", label_set_wrap_mode},
                                   {"set_xalign", label_set_xalign},
@@ -656,6 +670,26 @@ static int scroll_win_new_set_child(lua_State *L) {
   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(w->widget), p->widget);
   return 1;
 }
+static int scrolled_window_set_hpolicy(lua_State *L) {
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkScrolledWindow");
+  GtkPolicyType htype;
+  GtkPolicyType vtype;
+  gtk_scrolled_window_get_policy(GTK_SCROLLED_WINDOW(w->widget), &htype,
+                                 &vtype);
+  htype = lua_tonumber(L, 2);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(w->widget), htype, vtype);
+  return 0;
+}
+static int scrolled_window_set_vpolicy(lua_State *L) {
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkScrolledWindow");
+  GtkPolicyType htype;
+  GtkPolicyType vtype;
+  gtk_scrolled_window_get_policy(GTK_SCROLLED_WINDOW(w->widget), &htype,
+                                 &vtype);
+  vtype = lua_tonumber(L, 2);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(w->widget), htype, vtype);
+  return 0;
+}
 static int scroll_win_set_max_content_width(lua_State *L) {
   Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkScrolledWindow");
   lua_Integer width = lua_tonumber(L, 2);
@@ -666,6 +700,8 @@ static int scroll_win_set_max_content_width(lua_State *L) {
 static const luaL_Reg scrolled_win_methods[] = {
     {"__gc", widget_gc},
     {"set_child", scroll_win_new_set_child},
+    {"set_hpolicy", scrolled_window_set_hpolicy},
+    {"set_vpolicy", scrolled_window_set_vpolicy},
     {"set_max_content_width", scroll_win_new_set_child},
     {NULL, NULL}};
 
@@ -794,7 +830,7 @@ void signal_item_on_bind(GtkSignalListItemFactory *self, GObject *object,
   }
 }
 void signal_item_on_unbind(GtkSignalListItemFactory *self, GObject *object,
-                         gpointer user_data) {
+                           gpointer user_data) {
   GtkListItem *item = GTK_LIST_ITEM(object);
 
   lua_State *L = (lua_State *)user_data;
@@ -869,8 +905,8 @@ static int signal_item_factory_new(lua_State *L) {
   lua_pushvalue(L, 3);   // [teardown table ...]
   lua_rawseti(L, -2, 3); // table[3] = teardown
 
-  lua_pushvalue(L,4);// [unbind table ...]
-  lua_rawseti(L,-2,4);// table[4]=unbind
+  lua_pushvalue(L, 4);   // [unbind table ...]
+  lua_rawseti(L, -2, 4); // table[4]=unbind
 
   lua_pushlightuserdata(L, wrapper->fields[0]); // [ludata,table ...]
   lua_pushvalue(L, -2);                         // [table,ludata,table ...]
@@ -880,8 +916,8 @@ static int signal_item_factory_new(lua_State *L) {
                    G_CALLBACK(signal_item_on_setup), L);
   g_signal_connect(wrapper->fields[0], "bind", G_CALLBACK(signal_item_on_bind),
                    L);
-  g_signal_connect(wrapper->fields[0], "unbind", G_CALLBACK(signal_item_on_unbind),
-                   L);
+  g_signal_connect(wrapper->fields[0], "unbind",
+                   G_CALLBACK(signal_item_on_unbind), L);
   g_signal_connect(wrapper->fields[0], "teardown",
                    G_CALLBACK(signal_item_on_teardown), L);
   lua_pop(L, 1);
@@ -1288,6 +1324,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
       {"box", box_new},
       {"clipboard", clipboard_new},
       {"button", button_new},
+      {"icon_button", button_from_icon_name},
       {"scrolled_win", scroll_win_new},
       {"picture", picture_new},
       {"win", window_new},

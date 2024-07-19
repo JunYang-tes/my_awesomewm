@@ -63,6 +63,14 @@
  :WrapMode {:Char 0
             :Word 1
             :WordChar 2}
+ :PolicyType {:always 0
+              :automatic 1
+              :never 2
+              :external 3}
+ :PangoEllipsizeMode {:none 0
+                      :start 1
+                      :middle 2
+                      :end 3}
  :KeyCode {:down 116
            :up 111
            :enter 36

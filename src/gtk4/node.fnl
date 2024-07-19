@@ -157,6 +157,7 @@
 
 
 { :button (atom-node widgets.button :Button)
+  :icon-button (atom-node widgets.icon-button :IconButton)
   :entry (atom-node widgets.entry :Entry)
   : box
   ; : list-row
