@@ -202,7 +202,7 @@
        (paste (filtered-item)
           index)
        (save-clipboard-items (clipboard-items)))
-    0.2))
+    0.1))
 
 (defn detail
   (box
