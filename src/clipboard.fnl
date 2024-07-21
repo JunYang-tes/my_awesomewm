@@ -58,6 +58,8 @@
                           _ {}))))
             clipboard-items)))))
 
+(load-saved-clipboard-items clipboard-items)
+
 (fn save-clipboard-items [items]
   (when (and items
              (> (length items)
@@ -333,8 +335,6 @@
     
 
 {:show (fn [client]
-         (when (<= (length (clipboard-items)) 1)
-           (load-saved-clipboard-items))
          (when (and (not= nil client)
                     (> (length (clipboard-items)) 0))
            (input "")
