@@ -192,6 +192,8 @@
          (if node.on-built
            (node.on-built))
          (ctx.node-stack.pop)
+         (if node.props.id
+           (ctx.set-widget node.props.id result))
          result)))})
   fns.run)
 (fn build-ctx [root]
@@ -218,11 +220,18 @@
       (?. xprops-cache key name)
       def))
   (fn get-root [] root)
+  (local widgets-cache (weak-table "v"))
+  (fn get-widget [id]
+    (. widgets-cache id))
+  (fn set-widget [id widget]
+    (tset widgets-cache id widget))
   { : add-xprops
     : node-stack
     : get-xprop
     : get-xprops
     : get-root
+    : get-widget
+    : set-widget
     : clean})
 
 (lambda run [node]
@@ -240,6 +249,13 @@
       (if (= nil node.disposeable)
           (tset node :disposeable []))
       (table.insert node.disposeable f))))
+(fn use-widget []
+  (let [ctx (CURRENT_CTX.get)]
+    (catch
+      "use-widget must be called inside a node" nil
+      (fn [id]
+        (ctx.get-widget id)))))
+  
 (fn use-root []
   (catch
     "use-root must be called inside a node"
@@ -281,5 +297,6 @@
  : foreach
  : use-destroy
  : use-built
+ : use-widget
  : use-run
  :_tests { : difference}}
