@@ -6,6 +6,7 @@
 (local timer (require :utils.timer))
 (local {: run
         : use-built
+        : use-widget
         : foreach} (require :lite-reactive.app))
 (local {: window
         : box
@@ -207,36 +208,55 @@
     0.1))
 
 (defn detail
+  (local mouse-is-close-to-overlay (value false))
+  (local is-image (map props.item #(= $1.type :image)))
+  (local overlay-visible (mapn [mouse-is-close-to-overlay is-image]
+                               (fn [[a b]]
+                                 (and a b))))
+  (local image-shrink (value false))
+  (local find-widget (use-widget))
   (box
     {:visible (map props.item #(not= $1 nil))
+     :id "preview-container"
      :size_request [500 0]
+     :connect_mouse_move (fn [x y]
+                           ; (let [w (find-widget :clipboard-overlay-container)
+                           ;       height (w:get_height)
+                           ;       width (w:get_width)]
+                           ;   (print height width (: (find-widget :preview-container) :get_width)))
+                           (if (< y 50)
+                             (mouse-is-close-to-overlay true)
+                             (mouse-is-close-to-overlay false)))
      :hexpand true}
-    (scrolled-window
-      {:hexpand true
-       ;:max_content_width 500
-       :vexpand true}
-      (map props.item (fn [item]
-                        (if (= nil item)
-                          (label {:label "Empty"})
-                          (match item.type
-                            :image (overlay
-                                     (fixed
-                                       {:valign consts.Align.Start}
-                                       (box
-                                         {:orientation consts.Orientation.Horizontal
-                                          :valign consts.Align.Start}
-                                         (icon-button {:name :zoom-original})
-                                         (icon-button {:name :zoom-fit-best})))
-                                     (picture {:texture item.texture
-                                               :can_shrink false
-                                               :content_fit consts.ContentFit.Contain}))
-                            :text (if (has-html item.mime_types)
-                                    (label {:markup item.content
-                                            :wrap true})
-                                    (is-url item.content) (label {:markup (make-link item.content)
-                                                                   :wrap true})
-                                    (label {:text item.content
-                                            :wrap true})))))))
+    (overlay
+      (box {:orientation consts.Orientation.Horizontal
+            :id :clipboard-overlay-container
+            :valign consts.Align.Start
+            :visible overlay-visible}
+           (icon-button {:name :zoom-original
+                         :connect_click (fn []
+                                          (image-shrink false))})
+           (icon-button {:name :zoom-fit-best
+                         :connect_click (fn []
+                                          (image-shrink true))}))
+      (scrolled-window
+        {:hexpand true
+         ;:max_content_width 500
+         :vexpand true}
+        (map props.item (fn [item]
+                          (if (= nil item)
+                            (label {:label "Empty"})
+                            (match item.type
+                              :image (picture {:texture item.texture
+                                                 :can_shrink image-shrink
+                                                 :content_fit consts.ContentFit.Contain})
+                              :text (if (has-html item.mime_types)
+                                      (label {:markup item.content
+                                              :wrap true})
+                                      (is-url item.content) (label {:markup (make-link item.content)
+                                                                     :wrap true})
+                                      (label {:text item.content
+                                              :wrap true}))))))))
     (label {:markup (map props.item
                          #(.. "<b>Mime types: </b>"
                               (table.concat (or (?. $1 :mime_types)
