@@ -165,10 +165,15 @@
 (local fixed
   (container-node
     widgets.fixed
-    (fn [children fixed]
-      (let [child (. children 1)]
-        (print :set-child-of-fixed)
-        (fixed:set_child child 100 100)))))
+    (fn [children fixed ctx]
+      (each [_ child (ipairs children)]
+        (let [x (ctx.get-xprop child :x 0)
+              y (ctx.get-xprop child :y 0)]
+          (fixed:add_child child x y))))
+    (fn [container widget ctx]
+      (let [x (ctx.get-xprop widget "x" 0)
+            y (ctx.get-xprop widget "y" 0)]
+        (container:move widget x y)))))
 
 
 { :button (atom-node widgets.button :Button)

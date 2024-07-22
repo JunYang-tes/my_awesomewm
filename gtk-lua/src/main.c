@@ -387,9 +387,9 @@ static int widget_set_valign(lua_State *L) {
   return 0;
 }
 static int widget_overflow(lua_State *L) {
-  Widget *w = (Widget *)lua_touserdata(L,1);
-  GtkOverflow overflow  = lua_tonumber(L,2);
-  gtk_widget_set_overflow(w->widget,overflow);
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  GtkOverflow overflow = lua_tonumber(L, 2);
+  gtk_widget_set_overflow(w->widget, overflow);
   return 0;
 }
 
@@ -1156,7 +1156,7 @@ const static luaL_Reg overlay_methods[] = {{"__gc", widget_gc},
                                            {"set_overlay", overlay_set_overlay},
                                            {NULL, NULL}};
 static int fixed_new(lua_State *L) { return make_a_widget(L, gtk_fixed_new); }
-static int fixed_set_child(lua_State *L) {
+static int fixed_add_child(lua_State *L) {
   Widget *w = luaL_checkudata(L, 1, "GtkFixed");
   Widget *c = lua_touserdata(L, 2);
   double x = lua_tonumber(L, 3);
@@ -1164,8 +1164,30 @@ static int fixed_set_child(lua_State *L) {
   gtk_fixed_put(GTK_FIXED(w->widget), c->widget, x, y);
   return 0;
 }
+static int fixed_move(lua_State *L) {
+  Widget *w = luaL_checkudata(L, 1, "GtkFixed");
+  Widget *c = lua_touserdata(L, 2);
+  double x = lua_tonumber(L, 3);
+  double y = lua_tonumber(L, 4);
+  gtk_fixed_move(GTK_FIXED(w->widget),c->widget,x,y);
+  return 0;
+}
+static int fixed_remove_all_children(lua_State *L) {
+  Widget *container = (Widget *)luaL_checkudata(L, 1, "GtkFixed");
+  GtkWidget *child = gtk_widget_get_first_child(container->widget);
+  while (child) {
+    gtk_fixed_remove(GTK_FIXED(container->widget), child);
+    child = gtk_widget_get_first_child(container->widget);
+  }
+  return 0;
+}
+
 const static luaL_Reg fixed_methods[] = {
-    {"__gc", widget_gc}, {"set_child", fixed_set_child}, {NULL, NULL}};
+    {"__gc", widget_gc},
+    {"add_child", fixed_add_child},
+    {"move", fixed_move},
+    {"remove_all_children", fixed_remove_all_children},
+    {NULL, NULL}};
 
 void css_parsing_error(GtkCssProvider *self, GtkCssSection *section,
                        GError *error, gpointer user_data) {

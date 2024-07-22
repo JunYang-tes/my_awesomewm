@@ -15,12 +15,24 @@
 (local cls (global-css
              (& " button"
                 [:color :red])))
+(local x (r.value 100))
 (run (window
       {:class cls}
       (fixed
         {:overflow 0
          :size [100 100]}
-        (label {:text "hello"}))))
+        (button
+          {:label "X=X+10"
+           :-x 50
+           :connect_click (fn []
+                            (x (+ (x) 10)))})
+           
+        (label {:text (r.map x #(.. "x:" $1))
+                :-x x
+                :-y 0})
+        (label {:text "world"
+                :-x x
+                :-y 100}))))
 
         ; (button {:label :Button} 
         ;        :connect_clicked #(print :clicked)))))
