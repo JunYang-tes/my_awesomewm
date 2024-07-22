@@ -13,6 +13,8 @@
         : list-view
         : icon-button
         : picture
+        : fixed
+        : overlay
         : scrolled-window
         : entry} (require :gtk4.node))
 (local consts (require :gtk4.const))
@@ -217,9 +219,17 @@
                         (if (= nil item)
                           (label {:label "Empty"})
                           (match item.type
-                            :image (picture {:texture item.texture
-                                             :can_shrink false
-                                             :content_fit consts.ContentFit.Contain})
+                            :image (overlay
+                                     (fixed
+                                       {:valign consts.Align.Start}
+                                       (box
+                                         {:orientation consts.Orientation.Horizontal
+                                          :valign consts.Align.Start}
+                                         (icon-button {:name :zoom-original})
+                                         (icon-button {:name :zoom-fit-best})))
+                                     (picture {:texture item.texture
+                                               :can_shrink false
+                                               :content_fit consts.ContentFit.Contain}))
                             :text (if (has-html item.mime_types)
                                     (label {:markup item.content
                                             :wrap true})
