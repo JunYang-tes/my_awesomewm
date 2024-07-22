@@ -331,6 +331,30 @@ static int widget_connect_focus_out(lua_State *L) {
   gtk_widget_add_controller(w->widget, controller);
   return 0;
 }
+void on_mouse_move(GtkEventControllerMotion *self, gdouble x, gdouble y,
+                   gpointer user_data) {
+  GtkWidget *w = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(self));
+  lua_State *L = user_data;
+  int stack_size = lua_gettop(L);
+  get_event_callback(L, w, "e_mouse_move");
+  lua_pushnumber(L, x);
+  lua_pushnumber(L, y);
+  lua_call(L, 2, 0);
+
+  int shrink = lua_gettop(L) - stack_size;
+  if (shrink > 0) {
+    lua_pop(L, shrink);
+  }
+}
+
+static int widget_connect_move(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  put_event_callback_to_registry(L, w->widget, "e_mouse_move");
+  GtkEventController *controller = gtk_event_controller_motion_new();
+  g_signal_connect(controller, "motion", G_CALLBACK(on_mouse_move), L);
+  gtk_widget_add_controller(w->widget, controller);
+  return 0;
+}
 
 void on_click_released(GtkGestureClick *self, gint n_press, gdouble x,
                        gdouble y, gpointer user_data) {
@@ -392,6 +416,18 @@ static int widget_overflow(lua_State *L) {
   gtk_widget_set_overflow(w->widget, overflow);
   return 0;
 }
+static int widget_get_height(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  int height = gtk_widget_get_height(w->widget);
+  lua_pushnumber(L, height);
+  return 1;
+}
+static int widget_get_width(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  int width = gtk_widget_get_width(w->widget);
+  lua_pushnumber(L, width);
+  return 1;
+}
 
 const luaL_Reg widget_apis[] = {
     {"set_hexpand", widget_set_hexpand},
@@ -405,6 +441,7 @@ const luaL_Reg widget_apis[] = {
     {"connect_key_pressed_capture", widget_connect_key_pressed_capture},
     {"connect_focus_out", widget_connect_focus_out},
     {"connect_click_release", widget_connect_click_released},
+    {"connect_mouse_move", widget_connect_move},
     {"grab_focus", widget_grab_focus},
     {"get_first_child", widget_get_first_child},
     {"set_size_request", widget_set_size_request},
@@ -412,6 +449,8 @@ const luaL_Reg widget_apis[] = {
     {"set_valign", widget_set_valign},
     {"set_halign", widget_set_halign},
     {"set_overflow", widget_overflow},
+    {"get_height", widget_get_height},
+    {"get_width", widget_get_width},
     {NULL, NULL}};
 
 typedef GtkWidget *(*widget_factory)();
@@ -1169,7 +1208,7 @@ static int fixed_move(lua_State *L) {
   Widget *c = lua_touserdata(L, 2);
   double x = lua_tonumber(L, 3);
   double y = lua_tonumber(L, 4);
-  gtk_fixed_move(GTK_FIXED(w->widget),c->widget,x,y);
+  gtk_fixed_move(GTK_FIXED(w->widget), c->widget, x, y);
   return 0;
 }
 static int fixed_remove_all_children(lua_State *L) {
