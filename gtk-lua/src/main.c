@@ -386,6 +386,12 @@ static int widget_set_valign(lua_State *L) {
   gtk_widget_set_valign(w->widget, align);
   return 0;
 }
+static int widget_overflow(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L,1);
+  GtkOverflow overflow  = lua_tonumber(L,2);
+  gtk_widget_set_overflow(w->widget,overflow);
+  return 0;
+}
 
 const luaL_Reg widget_apis[] = {
     {"set_hexpand", widget_set_hexpand},
@@ -405,6 +411,7 @@ const luaL_Reg widget_apis[] = {
     {"get_next_sibling", widget_get_next_sibling},
     {"set_valign", widget_set_valign},
     {"set_halign", widget_set_halign},
+    {"set_overflow", widget_overflow},
     {NULL, NULL}};
 
 typedef GtkWidget *(*widget_factory)();
@@ -1148,6 +1155,17 @@ const static luaL_Reg overlay_methods[] = {{"__gc", widget_gc},
                                            {"set_child", overlay_set_child},
                                            {"set_overlay", overlay_set_overlay},
                                            {NULL, NULL}};
+static int fixed_new(lua_State *L) { return make_a_widget(L, gtk_fixed_new); }
+static int fixed_set_child(lua_State *L) {
+  Widget *w = luaL_checkudata(L, 1, "GtkFixed");
+  Widget *c = lua_touserdata(L, 2);
+  double x = lua_tonumber(L, 3);
+  double y = lua_tonumber(L, 4);
+  gtk_fixed_put(GTK_FIXED(w->widget), c->widget, x, y);
+  return 0;
+}
+const static luaL_Reg fixed_methods[] = {
+    {"__gc", widget_gc}, {"set_child", fixed_set_child}, {NULL, NULL}};
 
 void css_parsing_error(GtkCssProvider *self, GtkCssSection *section,
                        GError *error, gpointer user_data) {
@@ -1348,8 +1366,10 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
   const luaL_Reg *texture[] = {texture_methods, NULL};
   setup_metatable_(L, "GdkTexture", texture);
   setup_metatable_(L, "GdkMemoryTexture", texture);
-  const luaL_Reg *overlay[] = {widget_apis,overlay_methods,NULL};
-  setup_metatable_(L,"GtkOverlay",overlay);
+  const luaL_Reg *overlay[] = {widget_apis, overlay_methods, NULL};
+  setup_metatable_(L, "GtkOverlay", overlay);
+  const luaL_Reg *fixed[] = {widget_apis, fixed_methods, NULL};
+  setup_metatable_(L, "GtkFixed", fixed);
 
   static const luaL_Reg mylib[] = {
       {"app", gtk_app},
@@ -1370,6 +1390,7 @@ MY_LIBRARY_EXPORT int luaopen_lua(lua_State *L) {
       {"texture_from_bytes", texture_from_bytes},
       {"texture_from_cairo_ptr", texture_from_cairo_ptr},
       {"load_css", load_css},
+      {"fixed", fixed_new},
       {"overlay", overlay_new},
       {NULL, NULL}};
   luaL_newlib(L, mylib);

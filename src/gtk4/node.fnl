@@ -162,6 +162,13 @@
             child (. children 2)]
         (overlay:set_overlay overlay_widget)
         (overlay:set_child child)))))
+(local fixed
+  (container-node
+    widgets.fixed
+    (fn [children fixed]
+      (let [child (. children 1)]
+        (print :set-child-of-fixed)
+        (fixed:set_child child 100 100)))))
 
 
 { :button (atom-node widgets.button :Button)
@@ -175,6 +182,7 @@
   :picture (atom-node widgets.picture :Picture)
   : window
   : overlay
+  : fixed
   : scrolled-window}
 
 
