@@ -31,6 +31,14 @@
 (local cfg (require :utils.cfg))
 (local {: assign } (require :utils.table))
 (local msgpack (require :msgpack))
+(local {: dpi } (require :utils.wm))
+
+(fn px [n]
+  (.. (dpi n) :px))
+
+(local colors 
+  {:primary-text :#181826
+   :secondary-text :#4f4f5d})
 
 (local max-save-count 500)
 
@@ -279,9 +287,16 @@
   (local selected-item (mapn [filtered-item selected-index]
                              (fn [[items index]]
                                (. items (+ 1 index)))))
+  (local remark-style (css [:font-size (px 16)
+                            :color colors.secondary-text
+                            :font "Hack Nerd Font"]))
+  ; (local style (css [:font-size (px 16)
+  ;                           :color colors.secondary-text
+  ;                           :font "Hack Nerd Font"]))
   (window
       {: visible
        :title "Clipboard"
+       ;:class (css [:color "red"])
        :size_request [500 500]
        :connect_focus_out (fn [] (visible false))
        :connect_close_request 
@@ -290,6 +305,7 @@
          true)
        :role "pop-up"}
       (box
+        {:class remark-style}
         (entry
           {:connect_map (fn [entry]
                           (entry:set_text "")
@@ -337,8 +353,12 @@
                                                 (picture {:texture item.texture}))))))
                             (box
                               {:orientation consts.Orientation.Horizontal}
-                              (label {:text (map item #(or $1.remark
-                                                           ""))
+                              (label {:text (map item 
+                                                 #(let [remark (or $1.remark "")]
+                                                    (if (not= remark "")
+                                                      (.. " " remark)
+                                                      remark)))
+                                      :class remark-style
                                       :hexpand true
                                       :xalign 0})
                               (icon-button
