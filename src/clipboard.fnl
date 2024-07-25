@@ -39,6 +39,7 @@
 (local colors 
   {:primary-text :#181826
    :secondary-text :#4f4f5d})
+(local utils (require :utils.utils))
 
 (local max-save-count 500)
 
@@ -56,34 +57,35 @@
   (value []))
 
 (fn load-saved-clipboard-items []
-  (case (io.open (.. cfg.cfg_dir "clipboard.dat") :r)
+  (case (io.open (.. cfg.cfg_dir "clipboard.data"))
     f (let [data (f:read :*all)
             decoded (msgpack.decode data)]
-        (when decoded
-          (-> decoded
-            (list.map
-              (fn [item]
-                (assign item
-                        (match item.type
-                          :image {:texture (gtk.texture_from_bytes item.texture)}
-                          _ {}))))
-            clipboard-items)))))
+        (print :???? decoded)
+        (list.map 
+          decoded
+          (fn [item]
+            (assign item
+                    (case item.type
+                      :image {:texture (gtk.texture_from_file
+                                         (.. cfg.cfg_dir "clipboard/" item.id ".png"))}
+                      _ {})))))))
 
-(load-saved-clipboard-items clipboard-items)
+(clipboard-items (load-saved-clipboard-items))
 
 (fn save-clipboard-items [items]
   (when (and items
              (> (length items)
                 0))
-    (with-open [out (io.open (.. cfg.cfg_dir "clipboard.dat") :w)]
+    (with-open [out (io.open (.. cfg.cfg_dir "clipboard.data") :w)]
       (-> items
         (list.slice 1 max-save-count)
         (list.map
           (fn [item]
-            (assign item
-                    (match item.type
-                      :image {:texture (item.texture:save_bytes)}
-                      _ {}))))
+            (let [new (assign item {})]
+              (when (= new.type :image)
+                (tset new :texture nil))
+              new)))
+            
         msgpack.encode
         out:write))))
 
@@ -117,6 +119,7 @@
               (when (not= nil txt)
                 (let [curr (clipboard-items)]
                   (table.insert curr 1 {:content txt
+                                        :id (utils.id)
                                         :sub (string.sub txt 1 100)
                                         :remark ""
                                         :mime_types 
@@ -132,10 +135,12 @@
             (fn [texture]
               (let [curr (clipboard-items)]
                 (table.insert curr 1 {:texture texture
+                                      :id (utils.id)
                                       :sub "Image"
                                       :remark ""
                                       :mime_types mime_types
                                       :type :image})
+                (texture:save (.. cfg.cfg_dir "clipboard/" curr.id ".png"))
                 (clipboard-items
                   (list.map curr #$1))))))))
     100))
@@ -371,7 +376,8 @@
                                  :connect_click (fn []
                                                   (clipboard-items
                                                     (list.filter (clipboard-items)
-                                                                 #(not= $1 (item)))))}))))}))
+                                                                 #(not= $1 (item))))
+                                                  (save-clipboard-items (clipboard-items)))}))))}))
           (detail {:item selected-item
                    :onRemarkUpdate (fn [txt]
                                      (let [item (selected-item)]

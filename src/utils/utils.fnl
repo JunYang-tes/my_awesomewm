@@ -45,10 +45,21 @@
     (.. config-path
         "/lua")))
 
+(fn id []
+  (string.gsub
+    :xxxxxxxx_xxxx_4xxx_yxxx_xxxxxxxxxxxx
+    "[xy]"
+    (fn [c]
+      (let [v (if (= c :x)
+                (math.random 0 0xf)
+                (math.random 9 0xb))]
+        (string.format :%x v)))))
+
 {: not-nil
  : catch
  : is-number
  : is-digital
  : get-codebase-dir
+ : id
  : is-uppercase
  : memoed}
