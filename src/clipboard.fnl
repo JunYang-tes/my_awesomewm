@@ -62,9 +62,8 @@
   (case (io.open (.. cfg.cfg_dir "clipboard.data"))
     f (let [data (f:read :*all)
             decoded (msgpack.decode data)]
-        (print :???? decoded)
         (list.map 
-          decoded
+          (or decoded [])
           (fn [item]
             (assign item
                     (case item.type
@@ -104,15 +103,15 @@
                 0))
     (let [items_to_save (if (> (length items) max-save-count)
                           (shrink-items items)
-                          (items))]
+                          items)]
       (with-open [out (io.open (.. cfg.cfg_dir "clipboard.data") :w)]
         (-> items_to_save
+          (list.map 
             (fn [item]
-              (let [new (assign item {})]
-                (when (= new.type :image)
-                  (tset new :texture nil))
-                new))
-              
+             (let [new (assign item {})]
+               (when (= new.type :image)
+                 (tset new :texture nil))
+               new)))
           msgpack.encode
           out:write)))))
 
