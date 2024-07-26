@@ -496,9 +496,16 @@ static int button_set_label(lua_State *L) {
   gtk_button_set_label(GTK_BUTTON(w->widget), label);
   return 0;
 }
+static int button_set_icon_name(lua_State *L) {
+  Widget *w = (Widget *)luaL_checkudata(L, 1, "GtkButton");
+  const char *name = lua_tostring(L, 2);
+  gtk_button_set_icon_name(GTK_BUTTON(w->widget), name);
+  return 0;
+}
 luaL_Reg button_methods[] = {{"connect_click", button_connect_click},
                              {"__gc", widget_gc},
                              {"set_label", button_set_label},
+                             {"set_icon_name", button_set_icon_name},
                              {NULL, NULL}};
 
 typedef struct App {
@@ -1240,7 +1247,6 @@ static int load_css(lua_State *L) {
   gtk_style_context_add_provider_for_display(
       display, GTK_STYLE_PROVIDER(provider),
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-  g_object_unref(display);
   Gwrapper *wrapper = lua_newuserdata(L, sizeof(Gwrapper));
   wrapper->object = G_OBJECT(provider);
   g_signal_connect(provider, "parsing-error", G_CALLBACK(css_parsing_error),
