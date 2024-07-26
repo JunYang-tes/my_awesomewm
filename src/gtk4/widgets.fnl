@@ -49,7 +49,9 @@
                    (Ctor))
 
           disposeable (icollect [k v (pairs props)]
-                        (when (not= v nil)
+                        (when (and 
+                                (not= k :id)
+                                (not= v nil))
                           (apply-property
                             v
                             (fn [value old]
@@ -83,7 +85,8 @@
                                   (if (is-observable name)
                                     (name)
                                     name))))
-                            {}
+                            {:name (fn [w v]
+                                     (w:set_icon_name v))}
                             true)
                                   
  ;:menu-button (make-builder gtk.menu_button)
