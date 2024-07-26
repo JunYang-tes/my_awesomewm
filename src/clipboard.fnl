@@ -47,13 +47,15 @@
 (local clipboard-items
   ;; :content string
   ;; :sub
+  ;; :id
   ;; :mime_types
   ;; :type :text
 
-  ;; :content string
-  ;; :sub
+  ;; :content Image
+  ;; :id
+  ;; :texture
   ;; :mime_types
-  ;; :type :text
+  ;; :type :image
   (value []))
 
 (fn load-saved-clipboard-items []
@@ -72,22 +74,47 @@
 
 (clipboard-items (load-saved-clipboard-items))
 
+(fn shrink-items [items]
+  (let [copy (list.map items #$1)]
+    ;;先删除没有备注的
+    (for [i (length copy) 1 -1 &until (<= (length copy)
+                                          max-save-count)]
+      (let [item (. copy i)]
+        (if (or (= nil item.remark)
+                (= "" item.remark))
+            (table.remove copy i))))
+    ;; 再删除较短的
+    (if (> (length copy)
+           max-save-count)
+      (for [i (length copy) 1 -1 &until (<= (length copy)
+                                            max-save-count)]
+        (let [item (. copy i)]
+          (if (and (not= :image item.type)
+                   (< (length item.content) 20))
+              (table.remove copy i)))))
+    ;; 再删除后面的
+    (if (> (length copy) max-save-count)
+     (list.slice copy 1 max-save-count)
+     copy)))
+  
+
 (fn save-clipboard-items [items]
   (when (and items
              (> (length items)
                 0))
-    (with-open [out (io.open (.. cfg.cfg_dir "clipboard.data") :w)]
-      (-> items
-        (list.slice 1 max-save-count)
-        (list.map
-          (fn [item]
-            (let [new (assign item {})]
-              (when (= new.type :image)
-                (tset new :texture nil))
-              new)))
-            
-        msgpack.encode
-        out:write))))
+    (let [items_to_save (if (> (length items) max-save-count)
+                          (shrink-items items)
+                          (items))]
+      (with-open [out (io.open (.. cfg.cfg_dir "clipboard.data") :w)]
+        (-> items_to_save
+            (fn [item]
+              (let [new (assign item {})]
+                (when (= new.type :image)
+                  (tset new :texture nil))
+                new))
+              
+          msgpack.encode
+          out:write)))))
 
 (fn mime-satisfy [predict]
   (fn [mime_types] 
@@ -222,7 +249,9 @@
 
 (defn detail
   (local mouse-is-close-to-overlay (value false))
-  (local is-image (map props.item #(= $1.type :image)))
+  (local is-image (map props.item #(and 
+                                     (not= $1 nil)
+                                     (= $1.type :image))))
   (local overlay-visible (mapn [mouse-is-close-to-overlay is-image]
                                (fn [[a b]]
                                  (and a b))))
