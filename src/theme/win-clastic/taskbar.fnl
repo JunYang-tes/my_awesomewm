@@ -113,7 +113,6 @@
   (button
     {
      :pressed focused
-     :forced_width (dpi 180)
      :onMouseEnter (fn []
                      (let [bar (find-widget :titlebar-wibar)
                            win bar.drawin.window
@@ -151,6 +150,7 @@
                                  (= $1.type :dialog)
                                  (= $1.type :splashscreen))))
           clients.set))
+    (local find-widget (use-widget))
     (awesome-global.client.connect_signal
       :manage update-clients)
     (awesome-global.client.connect_signal
@@ -159,7 +159,9 @@
       (awesome-global.client:disconnect_signal :manage update-clients))
     (unmount
       (awesome-global.client:disconnect_signal :unmanage update-clients))
-    (h-fixed
+    (h-flex
+      {:id "clients-container"
+       :max_widget_size (dpi 180)}
       (map-list clients
         #(do
            (margin

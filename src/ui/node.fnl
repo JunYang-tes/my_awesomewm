@@ -57,6 +57,7 @@
      [:onButtonPress "button::press"]
      [:onMouseEnter "mouse::enter"]
      [:onMouseLeave "mouse::leave"]
+     [:onLayoutChanged "widget::layout_changed"]
      [:onButtonRelease "button::release"]]))
 
 (local popup
