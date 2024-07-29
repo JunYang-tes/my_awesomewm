@@ -17,6 +17,7 @@
 (local utils (require :utils.utils))
 (local inspect (require :inspect))
 (local scrollview (require :ui.scrollview))
+(local dndoverlay (require :libxdnd-overlay))
 
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
@@ -70,11 +71,21 @@
 (local wibar
   (container-node
     (make-builder (fn [props]
-                    (awful.wibar
-                      (assign 
-                        props
-                        {:widget (wibox.widget {:text ""
-                                                :widget wibox.widget.textbox})}))))
+                    (let [bar
+                          (awful.wibar
+                            (assign 
+                              props
+                              {:widget (wibox.widget {:text ""
+                                                      :widget wibox.widget.textbox})}))
+                          make_overlay (if (is-observable props.fire-motion-on-dnd)
+                                         (props.fire-motion-on-dnd)
+                                         (or props.fire-motion-on-dnd false))]
+                      (print :will-make_overlay make_overlay
+                             (inspect props))
+                      (when make_overlay
+                        (print :make_overlay)
+                        (dndoverlay.make_a_overlay bar.drawin.window))
+                      bar)))
     (fn [child p]
       (tset p :widget (. child 1)))))
 
