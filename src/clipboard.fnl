@@ -159,14 +159,15 @@
         (when (list.some mime_types #(stringx.starts-with $1 :image))
           (clipboard:get_texture
             (fn [texture]
-              (let [curr (clipboard-items)]
-                (table.insert curr 1 {:texture texture
+              (let [curr (clipboard-items)
+                    item {:texture texture
                                       :id (utils.id)
                                       :sub "Image"
                                       :remark ""
                                       :mime_types mime_types
-                                      :type :image})
-                (texture:save (.. cfg.cfg_dir "clipboard/" curr.id ".png"))
+                                      :type :image}]
+                (texture:save (.. cfg.cfg_dir "clipboard/" item.id ".png"))
+                (table.insert curr 1 item)
                 (clipboard-items
                   (list.map curr #$1))))))))
     100))
@@ -412,7 +413,12 @@
                                        (print (inspect item) txt)
                                        (update-remark
                                          item.index
-                                         txt)))})))))
+                                         txt)))}))
+        (box
+          {:orientation consts.Orientation.Horizontal}
+          (label {:label (map clipboard-items #(length $1))
+                  :expand true
+                  :halign consts.Align.End})))))
 
 (local win 
   (run (clipboard-root))) 
