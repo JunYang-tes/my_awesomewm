@@ -5,7 +5,8 @@
 (local wibox (require :wibox))
 (local awful (require :awful))
 (local {: hybrid} (require :utils.table))
-(local {: run } (require :lite-reactive.app))
+(local {: run
+        : use-widget } (require :lite-reactive.app))
 (local {: value
         : map-list
         : map
@@ -54,6 +55,7 @@
 (local signal (require :utils.signal))
 (local timer (require :utils.timer))
 (local list (require :utils.list))
+(local dndoverlay (require :libxdnd-overlay))
 
 
 (local container
@@ -107,11 +109,17 @@
             (fn []
               (client:disconnect_signal :unfocus unfocus)
               (client:disconnect_signal :focus focus))))
-  (var timer-id nil)
+  (local find-widget (use-widget))
   (button
     {
      :pressed focused
      :forced_width (dpi 180)
+     :onMouseEnter (fn []
+                     (let [bar (find-widget :titlebar-wibar)
+                           win bar.drawin.window
+                           client (props.client)]
+                       (when (dndoverlay.is_dragging win)
+                         (client:raise))))
      :onButtonPress (fn []
                       (let [c (props.client)]
                         (if (not= awesome-global.client.focus c)
@@ -232,6 +240,8 @@
       (wibar
         {: screen
          : visible
+         :fire-motion-on-dnd true
+         :id "titlebar-wibar"
          :height (dpi 30)
          ; :height (map visible
          ;              #(if $1 (dpi 30) 0.1))
