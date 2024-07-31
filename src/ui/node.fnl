@@ -42,6 +42,11 @@
                         (apply-property 
                           v 
                           (utils.catch (fn [value old]
+                                         (if (= k :onSystrayUpdate)
+                                           (do
+                                             (print :apply-property k value old)
+                                             (print (inspect props-setter))
+                                             (print (find-setter k))))
                                         ((find-setter k) widget value old)))))]
       widget)))
 
@@ -49,9 +54,11 @@
   (collect [_ [prop event-name] (ipairs events)]
     prop 
     (fn [widget cb curr]
-      (if curr
-        (widget:disconnect_signal curr)
-        (widget:connect_signal event-name cb)))))
+      (when curr
+        (widget:disconnect_signal event-name curr))
+      (if (= event-name :onSystrayUpdate)
+        (print :connect-onSystrayUpdate))
+      (widget:connect_signal event-name cb))))
 (local events
   (event-props
     [
@@ -64,10 +71,13 @@
 (local popup
   (container-node
     (make-builder (fn [props]
-                    (awful.popup {:widget (wibox.widget {:text ""
-                                                         :widget wibox.widget.textbox})
-                                  :ontop true
-                                  :visible true})) events)
+                    (awful.popup 
+                      (assign props
+                        {:widget (wibox.widget {:text ""
+                                                :widget wibox.widget.textbox})
+                         :ontop true
+                         :visible true})))
+                  events)
     (fn [child popup]
       (tset popup :widget (. child 1)))))
 (local wibar
@@ -116,6 +126,7 @@
  : textbox
  : wibar
  : events
+ : event-props
  : make-builder
  :textclock (atom-node
               (make-builder #(wibox.widget.textclock)))
