@@ -18,6 +18,7 @@
 (local inspect (require :inspect))
 (local scrollview (require :ui.scrollview))
 (local dndoverlay (require :libxdnd-overlay))
+(local wm (require :utils.wm))
 
 (fn make-builder [Ctor props-setter]
   (local props-setter (or props-setter {}))
@@ -78,14 +79,20 @@
                               props
                               {:widget (wibox.widget {:text ""
                                                       :widget wibox.widget.textbox})}))
-                          make_overlay (if (is-observable props.fire-motion-on-dnd)
+                          has_overlay (if (is-observable props.fire-motion-on-dnd)
                                          (props.fire-motion-on-dnd)
                                          (or props.fire-motion-on-dnd false))]
-                      (print :will-make_overlay make_overlay
-                             (inspect props))
-                      (when make_overlay
-                        (print :make_overlay)
-                        (dndoverlay.make_a_overlay bar.drawin.window))
+                      (when has_overlay
+                        (bar:connect_signal
+                          "property::visible"
+                          (fn []
+                            (if (and bar.visible)
+                              (do (print :show)
+                                  (dndoverlay.show bar.drawin.window))
+                              (do (print :hide)
+                                  (dndoverlay.hide bar.drawin.window))))))
+                      (when has_overlay
+                        (wm.on-idle #(dndoverlay.make_a_overlay bar.drawin.window)))
                       bar)))
     (fn [child p]
       (tset p :widget (. child 1)))))
