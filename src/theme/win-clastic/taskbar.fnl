@@ -1,5 +1,6 @@
 (import-macros {: defn
                 : unmount
+                : onchange
                 : effect} :lite-reactive)
 (local awesome-global (require :awesome-global))
 (local wibox (require :wibox))
@@ -23,7 +24,6 @@
         : factory
         : popup
         : place
-        : systray
         : margin
         : client-icon
         : imagebox
@@ -236,6 +236,33 @@
                           hide)))
     popover))
 
+(defn systray-area
+  (local find-widget (use-widget))
+  (fn update-overlay-geometry []
+    (let [container (find-widget :systray-container)
+          bar (find-widget :titlebar-wibar)]
+      (when container
+        ; let the dnd overlay don't cover systray area
+        (dndoverlay.update_overlay_geometry
+          bar.drawin.window
+          {:right container._width}))))
+  (onchange [props.visible]
+            (when (props.visible)
+              (update-overlay-geometry)))
+  (button
+    {
+     :id :systray-container
+     :pressed true
+     :border-width 1}
+    (background
+      {:fg :#000}
+      (h-fixed
+        (margin {:left (dpi 2)}
+          (win-utils.systray
+            {
+             :onLayoutChanged (fn []
+                                (timer.set-timeout update-overlay-geometry 0.5))}))
+        (textclock {:format "%H:%M"})))))
 (fn titlebar [screen tag visible]
   (let [cnt (value 0)
         start-menu-visible (value false)]
@@ -287,15 +314,9 @@
                  :bottom (dpi 2)
                  :left (dpi 2)
                  :right (dpi 2)}
-                (button
-                  {:pressed true
-                   :border-width 1}
-                  (background
-                    {:fg :#000}
-                    (h-fixed
-                      (margin {:left (dpi 2)}
-                        (win-utils.systray))
-                      (textclock {:format "%H:%M"}))))))))))
+                (systray-area
+                  {: visible})))))))
+                  
     (run
       (start-menu
         {:screen screen

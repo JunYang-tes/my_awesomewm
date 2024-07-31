@@ -15,11 +15,13 @@
    :gray (gears.color :gray)})
 (local {: make-builder
         : events
+        : event-props
         : factory } (require :ui.node))
 (local {: dpi } (require :utils.wm))
 (local { : atom-node}
        (require :lite-reactive.node))
 (local BORDER_WIDTH 1.5)
+(local dndoverlay (require :libxdnd-overlay))
 
 (fn polygon [cr points]
   (let [[first & rest] points]
@@ -233,6 +235,8 @@
                     (values w h)))))
         (tset widget :layout
               (fn [_ _ w h]
+                (tset widget :_width w)
+                (tset widget :_height h)
                 (let [child (get-child)]
                   (if child
                     [(base.place_widget_at
@@ -252,6 +256,7 @@
     (awesome.connect_signal
       :systray::update
       #(do
+         (widget:emit_signal :systray::update)
          (widget:emit_signal :widget::layout_changed)
          (widget:emit_signal :widget::redraw_needed)))
     (tset widget :set_size
@@ -290,7 +295,13 @@
 (local systray
   (atom-node
     (make-builder
-      #(systray-widget))))
+      (fn [props]
+        (let [w (systray-widget)]
+          w))
+      (event-props
+        [
+         [:onSystrayUpdate :systray::update]
+         [:onLayoutChanged :widget::layout_changed]]))))
 
 (fn make-widget [props methods signals]
   (fn []
