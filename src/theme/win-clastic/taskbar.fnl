@@ -118,7 +118,8 @@
                            win bar.drawin.window
                            client (props.client)]
                        (when (dndoverlay.is_dragging win)
-                         (client:raise))))
+                         (client:raise)
+                         (focus client))))
      :onButtonPress (fn []
                       (let [c (props.client)]
                         (if (not= awesome-global.client.focus c)
