@@ -42,11 +42,6 @@
                         (apply-property 
                           v 
                           (utils.catch (fn [value old]
-                                         (if (= k :onSystrayUpdate)
-                                           (do
-                                             (print :apply-property k value old)
-                                             (print (inspect props-setter))
-                                             (print (find-setter k))))
                                         ((find-setter k) widget value old)))))]
       widget)))
 
@@ -75,8 +70,10 @@
                       (assign props
                         {:widget (wibox.widget {:text ""
                                                 :widget wibox.widget.textbox})
-                         :ontop true
-                         :visible true})))
+                         :ontop (if (= nil props.ontop)
+                                  props.ontop true)
+                         :visible (if (= nil props.visible)
+                                    props.visible true)})))
                   events)
     (fn [child popup]
       (tset popup :widget (. child 1)))))

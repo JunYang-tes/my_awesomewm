@@ -256,7 +256,6 @@
             (var win nil)
             (local close (fn []
                            (set running nil)
-                           (print :close)
                            (win:close)))
             (set win (run (pallet-node
                               {: visible
