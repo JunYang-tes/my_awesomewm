@@ -7,6 +7,7 @@
 (local awful (require :awful))
 (local {: hybrid} (require :utils.table))
 (local {: run
+        : use-onbuilt
         : use-widget } (require :lite-reactive.app))
 (local {: value
         : map-list
@@ -190,6 +191,7 @@
         (popup
           {:visible props.visible
            :screen props.screen
+           :debug true
            :ontop true
            :placement (fn [c]
                         (awful.placement.bottom_left
@@ -230,10 +232,10 @@
                       (menu-item {:image :shutdown.png
                                   :on-click #(awful.spawn ["sh" "-c" "pkexec systemctl suspend -i"])
                                   :text :Shutdown...}))))))))]
-    (effect [props.visible]
-            (if (props.visible)
-              (click-away popover
-                          hide)))
+    (onchange [props.visible]
+              (when (props.visible)
+                (pcall #(click-away (popover)
+                                    (props.on-close)))))
     popover))
 
 (defn systray-area
@@ -322,8 +324,8 @@
         {:screen screen
          :on-close #(start-menu-visible false)
          :visible (mapn [visible start-menu-visible]
-                        #(and (. $1 1)
-                              (. $1 2)))}))))
+                        (fn [[visible start-menu-visible]]
+                          (and visible start-menu-visible)))}))))
 (local titlebar-mgr
   (let [bars {}]
     (fn hide [tag]

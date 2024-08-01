@@ -19,6 +19,7 @@
 (local tag (require :tag))
 (local {: tag-untaged} (require :client))
 (local wp (require :utils.wallpapers))
+(local signal (require :utils.signal))
 
 (require :command-palette.load-cmds)
 (require :notification)
@@ -26,16 +27,18 @@
 (require :components.function-bar)
 (require :autorun)
 
+(fn mouse-on-root []
+  (root.buttons
+    (gears.table.join 
+      (awful.button {} 1 #(signal.emit :root::mouse-click :left))
+      (awful.button {} 2 #(signal.emit :root::mouse-click :right)))))
+      
+
 (fn setup-global-keys []
   (local ks (require :key-bindings))
   (root.keys ks))
 
-
-;; TODO
-;; move focus
-;; search key
-;; exit fullscreen when new window was opened
 (setup-global-keys)
+(mouse-on-root)
 (tag:init)
 (require :floating)
-;(wp.wp-each-screen)
