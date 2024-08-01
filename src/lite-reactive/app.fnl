@@ -190,7 +190,7 @@
                  (error (.. "unknow node: " (tostring node)))))
               node ctx)]
          (if node.on-built
-           (node.on-built))
+           (node.on-built result))
          (ctx.node-stack.pop)
          (if node.props.id
            (ctx.set-widget node.props.id result))
@@ -270,8 +270,18 @@
     (let [ctx (CURRENT_CTX.get)
           node (ctx.node-stack.current)
           ret (observable.value false)]
-      (tset node :on-built #(ret true))
+      (tset node :on-built #(ret $1))
       ret)))
+
+(fn use-onbuilt [cb]
+  (local built (use-built))
+  (var remove nil)
+  (fn observer [widget]
+    (when widget
+      (cb widget)
+      (remove)))
+  (set remove (built.add-observer observer)))
+
 (fn use-destroy []
   (let [root (use-root)]
     (fn []
@@ -299,4 +309,5 @@
  : use-built
  : use-widget
  : use-run
+ : use-onbuilt
  :_tests { : difference}}
