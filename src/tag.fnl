@@ -4,7 +4,8 @@
 (local {: prompt } (require :ui.prompt))
 (local {: root } (require :awesome-global))
 (local  awesome (require :awesome-global))
-(local {: map : find } (require :utils.list))
+(local {: map : find
+        : filter } (require :utils.list))
 (local {: filesystem } (require :gears))
 (local {: get-prefered-screen
         : is-screen
@@ -20,12 +21,16 @@
 (local list (require :utils.list))
 (local titlebar (require :title-bars.init))
 (local mouse (require :utils.mouse))
+(local {: is-number} (require :utils.utils))
 
 (fn save-tags []
   (fn save []
     (fn mk-cfg [tags]
       {: tags})
     (-> (root.tags)
+      (filter (fn [t]
+                (and (not= t.name :Anonymous)
+                     (not (is-number t.name)))))
       (map (fn [t] {:name t.name
                     :selected t.selected
                     :floating (= t.layout awful.layout.suit.floating)
