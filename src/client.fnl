@@ -43,7 +43,24 @@
   (let [handlers-for-layout
         {:floating (fn [client]
                      (tset client :titlebars_enabled true)
-                     (tset client :titlebar true))
+                     (tset client :titlebar true)
+                     (print :-------------------------------------)
+                     (awful.placement.no_offscreen client)
+                     (let [geometry (client:geometry)
+                           workarea (. client :screen
+                                              :workarea)
+                           bw (* 2 client.border_width)
+                           dh (- (+ geometry.y geometry.height bw)
+                                 (+ workarea.y workarea.height))
+                           dw (- (+ geometry.x geometry.width bw)
+                                 (+ workarea.x workarea.width))]
+                           
+                       (when (> dh 0)
+                         (print :no_offscreen!--)
+                         (print :set_height_to client.height (- client.height dh))
+                         (tset client :height (- client.height dh)))
+                       (when (> dw 0)
+                         (tset client :width (- client.width dw)))))
          :tile (fn [client]
                 (move-chrome-devtools client)
                 (local tag client.first_tag)
@@ -101,8 +118,6 @@
                               (if client.fullscreen
                                 (signal.emit :client::fullscreen client)
                                 (signal.emit :client::unfullscreen client))))
-    (when (= (?. client :first_tag :layout) awful.layout.suit.floating)
-      (awful.placement.no_offscreen client))
     (if (= nil client.first_tag)
       (set client.first_tag
            (let [screen client.screen]
