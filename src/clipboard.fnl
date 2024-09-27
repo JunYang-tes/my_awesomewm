@@ -434,4 +434,5 @@
  :is-visble (fn []
               (visible))
  :paste (fn [i]
-          (execute-paste i))}
+          (let [item (. (filtered-item) i)]
+            (execute-paste (. item :index))))}
