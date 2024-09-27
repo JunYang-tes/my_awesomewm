@@ -395,6 +395,13 @@
                                       :class remark-style
                                       :hexpand true
                                       :xalign 0})
+                              (label {:text (map item
+                                                 #(let [idx $1._data_index]
+                                                    (if (< idx 10)
+                                                      (.. "󰘳 "
+                                                          (tostring idx))
+                                                      "")))
+                                      :class remark-style})
                               (icon-button
                                 {:name :document-print-preview
                                  :connect_click (fn []
