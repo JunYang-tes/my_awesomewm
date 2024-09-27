@@ -16,7 +16,7 @@
                           cy geometry.y
                           cw geometry.width
                           ch geometry.height
-                          delta 6
+                          delta 2
                           mouse-coords (_G.mouse.coords)
                           mx mouse-coords.x
                           my mouse-coords.y
@@ -80,6 +80,7 @@
                          "feh"
                          "Gpick" "Kruler"
                          "wechat"
+                         "zenity"
                          "polkit-kde-authentication-agent-1"
                          "MessageWin" "Sxiv" "Wpa_gui" "veromix"
                          "xtightvncviewer"]
