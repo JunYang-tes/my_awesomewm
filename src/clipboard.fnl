@@ -242,7 +242,7 @@
   (visible false)
   (timer.set-timeout
     #(do 
-       (paste (filtered-item)
+       (paste (clipboard-items)
           index)
        (save-clipboard-items (clipboard-items)))
     0.1))
