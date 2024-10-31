@@ -460,7 +460,7 @@ static inline int make_a_widget(lua_State *L, widget_factory factory) {
   const char *name = G_OBJECT_TYPE_NAME(widget);
   luaL_getmetatable(L, name); //[mt udata ...]
   lua_setmetatable(L, -2);    // [udata ...]
-  w->widget = factory();
+  w->widget = widget;
   g_object_ref(w->widget);
   return 1;
 }
@@ -984,6 +984,7 @@ static int listview_set_show_separators(lua_State *L) {
   return 0;
 }
 const luaL_Reg listview_methods[] = {
+    {"__gc", widget_gc},
     {"set_model", listview_set_model},
     {"set_factory", listview_set_item_factory},
     {"update_model", listview_update_model},
