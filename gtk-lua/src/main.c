@@ -428,6 +428,12 @@ static int widget_get_width(lua_State *L) {
   lua_pushnumber(L, width);
   return 1;
 }
+static int widget_print_rc(lua_State *L) {
+  Widget *w = (Widget *)lua_touserdata(L, 1);
+  GObject *obj = G_OBJECT(w->widget);
+  printf("widget rc %d\n", obj->ref_count);
+  return 0;
+}
 
 const luaL_Reg widget_apis[] = {
     {"set_hexpand", widget_set_hexpand},
@@ -451,6 +457,7 @@ const luaL_Reg widget_apis[] = {
     {"set_overflow", widget_overflow},
     {"get_height", widget_get_height},
     {"get_width", widget_get_width},
+    {"print_rc", widget_print_rc},
     {NULL, NULL}};
 
 typedef GtkWidget *(*widget_factory)();
@@ -461,7 +468,7 @@ static inline int make_a_widget(lua_State *L, widget_factory factory) {
   luaL_getmetatable(L, name); //[mt udata ...]
   lua_setmetatable(L, -2);    // [udata ...]
   w->widget = widget;
-  g_object_ref(w->widget);
+  g_object_ref_sink(w->widget);
   return 1;
 }
 
@@ -469,6 +476,8 @@ static int button_new(lua_State *L) { return make_a_widget(L, gtk_button_new); }
 static int button_from_icon_name(lua_State *L) {
   const char *name = lua_tostring(L, 1);
   GtkWidget *w = gtk_button_new_from_icon_name(name);
+  GObject *obj = G_OBJECT(w);
+  printf("new button \%d", obj->ref_count);
   wrap_gtk_widget(L, w);
   return 1;
 }
