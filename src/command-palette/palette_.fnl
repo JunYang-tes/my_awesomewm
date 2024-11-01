@@ -1,4 +1,5 @@
-(import-macros {: unmount : defn : effect} :lite-reactive)
+(import-macros {: unmount : defn : effect
+                : onchange} :lite-reactive)
 (import-macros {: css-gen } :css)
 (import-macros {: global-css : css
                 : global-id-css } :gtk)
@@ -89,10 +90,12 @@
 ;;       (box))
 (defn pallet-node
   (local win nil)
+  (var command-mgr (props.mgr))
+  (onchange [props.mgr]
+            (set command-mgr (props.mgr)))
 
   (let [{: visible
          : close} props
-        command-mgr (props.mgr)
         selected-index (value 1)
         input (value "")
         cmds (map input #(command-mgr.match (input)))
@@ -246,21 +249,19 @@
       (refresh-cmds))
     win))
 
-(var running nil)
+(local visible (value false))
+(local command-mgr (value nil))
+(var win nil)
+(local close #(visible false))
 {
  :run (fn [cmds]
-        (if running
-          (running.close)
-          (let [mgr (commands.create-command-mgr cmds)
-                visible (value false)]
-            (var win nil)
-            (local close (fn []
-                           (set running nil)
-                           (win:close)))
-            (set win (run (pallet-node
+        (local mgr (commands.create-command-mgr cmds))
+        (command-mgr mgr)
+        (if (= win nil)
+          (set win
+               (run (pallet-node
                               {: visible
                                : close
-                               : mgr})))
-            (set running {: close})
-            (visible true))))}
+                               :mgr command-mgr}))))
+        (visible (not (visible))))}
 
